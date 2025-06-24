@@ -16,7 +16,7 @@ export async function handleCreateQuiz(request: Request, formData: FormData) {
     try {
         const { questions, lessonId } = Object.fromEntries(formData) as unknown as { questions: string, lessonId: string };
         const parsedQuestions = JSON.parse(questions) as Question[];
-        console.log(parsedQuestions);
+
         // format the questions to the correct format
         const formattedQuestions = parsedQuestions.map((question: Question) => ({
             title: question.title,
@@ -59,7 +59,7 @@ export async function handleUpdateQuiz(request: Request, formData: FormData) {
     try {
         const { questions, lessonId, quizId } = Object.fromEntries(formData) as unknown as { questions: string, lessonId: string, quizId: string };
         const parsedQuestions = JSON.parse(questions) as Question[];
-        console.log(parsedQuestions);
+
         // format the questions to the correct format
         const formattedQuestions = parsedQuestions.map((question: Question) => ({
             title: question.title,

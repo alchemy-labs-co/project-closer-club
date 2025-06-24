@@ -119,6 +119,7 @@ export const coursesTable = pgTable(
 		id: uuid("id").primaryKey().defaultRandom(),
 		name: varchar("name", { length: 255 }).notNull(),
 		description: varchar("description", { length: 255 }).notNull(),
+		thumbnailUrl: varchar("thumbnail_url", { length: 500 }),
 		isPublic: boolean("is_public").notNull().default(false),
 		slug: varchar("slug", { length: 255 }).notNull(),
 		createdAt: timestamp("created_at").notNull().defaultNow(),

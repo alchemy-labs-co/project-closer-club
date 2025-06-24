@@ -1,4 +1,4 @@
-import { data, type ActionFunctionArgs } from "react-router";
+import { data, redirect, type ActionFunctionArgs } from "react-router";
 import {
 	handleCreateCourse,
 	handleDeleteCourse,
@@ -16,9 +16,30 @@ const intents = [
 	"make-private",
 	"update-course-assignment",
 ];
+import type { Route } from "./+types/resource.course";
+import { toast } from "sonner";
 
 export async function loader() {
 	return data("Not Allowed", { status: 405 });
+}
+
+
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+	const result: {
+		success: boolean;
+		message: string;
+		redirectToUrl?: string;
+	} | undefined = await serverAction();
+
+	if (result?.success) {
+		toast.success(result?.message);
+		if (result?.redirectToUrl) {
+			throw redirect(result?.redirectToUrl);
+		}
+	} else {
+		toast.error(result?.message);
+	}
+	return result;
 }
 
 export async function action({ request }: ActionFunctionArgs) {

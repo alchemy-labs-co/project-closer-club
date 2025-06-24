@@ -30,7 +30,7 @@ export async function handleCreateTeamLeader(
     const { name, email, phoneNumber, password } = Object.fromEntries(formData);
     const agents = formData.get("agents") as string;
     const agentsArray = agents ? agents.split(",") : [];
-    console.log(`agentsArray`, agentsArray);
+
     // validate the data
     const unvalidatedFields = createTeamLeaderSchema.safeParse({
         name,
@@ -92,9 +92,6 @@ export async function handleCreateTeamLeader(
                 throw new Error("Something went wrong");
             }
 
-            // assign agents to team leader (if they have agents assigned from the frontend)
-            console.log(`length`, agentsArray.length);
-            console.log(`agentsArray`, agentsArray);
             if (agentsArray.length > 0) {
                 await tx
                     .update(agentsTable)

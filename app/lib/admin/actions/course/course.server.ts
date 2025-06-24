@@ -1,8 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import db from "~/db/index.server";
-import { coursesTable, lessonsTable, studentCoursesTable } from "~/db/schema";
+import { coursesTable, studentCoursesTable } from "~/db/schema";
 import { isAdminLoggedIn } from "~/lib/auth/auth.server";
+import { uploadThumbnailToBunny } from "~/lib/bunny.server";
 import { titleToSlug } from "~/lib/utils";
 import {
 	assignCourseSchema,
@@ -14,16 +15,21 @@ import { checkCourseSlugUnique } from "../shared/shared.server";
 export async function handleCreateCourse(request: Request, formData: FormData) {
 	// auth check
 	const { isLoggedIn } = await isAdminLoggedIn(request);
+
 	if (!isLoggedIn) {
 		throw redirect("/admin/login");
 	}
+
 	const studentsIds = (formData.get("students") as string).split(",");
+	const thumbnail = formData.get("thumbnail") as File;
 	const formDataObject = {
 		name: formData.get("name"),
 		description: formData.get("description"),
 		students: studentsIds,
 	};
+
 	const unvalidatedFields = createCourseSchema.safeParse(formDataObject);
+
 	if (!unvalidatedFields.success) {
 		return data(
 			{ success: false, message: "Invalid form data" },
@@ -43,38 +49,58 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 				{ status: 400 },
 			);
 		}
-		const { slug: redirectToUrl } = await db.transaction(async (tx) => {
-			const [insertedCourse] = await tx
-				.insert(coursesTable)
-				.values({
-					name: validatedFields.name,
-					description: validatedFields.description,
-					slug: slug,
-				})
-				.returning({
-					id: coursesTable.id,
-				});
 
-			// insert all the studentids + courseId in the studentCoursesTable so they are assigned to this course
 
-			const valuesToInsert = validatedFields.students.map((student) => ({
-				studentId: student,
-				courseId: insertedCourse.id,
-			}));
+		// First create the course to get the ID
+		const [insertedCourse] = await db
+			.insert(coursesTable)
+			.values({
+				name: validatedFields.name,
+				description: validatedFields.description,
+				slug: slug,
+			})
+			.returning({
+				id: coursesTable.id,
+			});
 
-			await tx.insert(studentCoursesTable).values(valuesToInsert);
-			return { slug };
-		});
+		// Upload thumbnail if provided
+		let thumbnailUrl: string | null = null;
+		if (thumbnail && thumbnail.size > 0) {
+			try {
+				thumbnailUrl = await uploadThumbnailToBunny(thumbnail, insertedCourse.id);
+				// Update the course with the thumbnail URL
+				await db
+					.update(coursesTable)
+					.set({ thumbnailUrl })
+					.where(eq(coursesTable.id, insertedCourse.id));
+
+			} catch (thumbnailError) {
+			}
+		}
+		// Insert student assignments
+		const valuesToInsert = validatedFields.students.map((student) => ({
+			studentId: student,
+			courseId: insertedCourse.id,
+		}));
+
+		if (valuesToInsert.length > 0) {
+			await db.insert(studentCoursesTable).values(valuesToInsert);
+		}
+
 		return data(
 			{
 				success: true,
 				message: "Course created successfully",
-				courseSlug: redirectToUrl,
+				redirectToUrl: `/dashboard/courses/${slug}`,
 			},
 			{ status: 200 },
 		);
 	} catch (error) {
-		console.error(error);
+		console.error("🔴 Course creation failed:", {
+			error: error instanceof Error ? error.message : 'Unknown error',
+			stack: error instanceof Error ? error.stack : undefined,
+			courseName: validatedFields.name
+		});
 		return data(
 			{
 				success: false,

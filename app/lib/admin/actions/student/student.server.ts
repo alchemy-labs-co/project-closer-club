@@ -30,7 +30,7 @@ export async function handleCreateStudent(
 	const { name, email, phoneNumber, password } = Object.fromEntries(formData);
 	const courses = formData.get("courses") as string;
 	const coursesArray = courses ? courses.split(",") : [];
-	console.log(`coursesArray`, coursesArray);
+
 	// validate the data
 	const unvalidatedFields = createStudentSchema.safeParse({
 		name,
@@ -92,8 +92,7 @@ export async function handleCreateStudent(
 			}
 
 			// insert into studentCoursesTable (if they have courses assgiend to from the frontend)
-			console.log(`length`, coursesArray.length);
-			console.log(`coursesArray`, coursesArray);
+
 			if (coursesArray.length > 0) {
 				const valuesToInsert = coursesArray.map((courseId) => ({
 					studentId: user.id,
