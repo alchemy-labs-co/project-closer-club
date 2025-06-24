@@ -1,0 +1,514 @@
+import { AlertCircleIcon, LockIcon } from "lucide-react";
+import React, { Suspense } from "react";
+import { Link, redirect, useFetcher, useRouteLoaderData } from "react-router";
+import { QuizCompletedResults } from "~/components/features/courses/quiz/quiz-completed-results";
+import { VideoPlayer } from "~/components/features/video-players/video-player";
+import PrimaryButton from "~/components/global/brand/primary-button";
+import { Skeleton } from "~/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "~/components/ui/tooltip";
+import { dashboardConfig } from "~/config/dashboard";
+import type { Quiz } from "~/db/schema";
+import { isAgentLoggedIn } from "~/lib/auth/auth.server";
+import { getCompletedAssignmentForLesson } from "~/lib/student/data-access/assignments.server";
+import {
+	getLessonBySlug,
+	getQuizzesForLesson,
+} from "~/lib/student/data-access/lessons.server.";
+import type { FetcherSubmitQuizResponse } from "~/lib/types";
+import type { Route } from "./+types/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug";
+
+export async function loader({ request, params }: Route.LoaderArgs) {
+	const { isLoggedIn, student } = await isAgentLoggedIn(request);
+
+	if (!isLoggedIn || !student) {
+		throw redirect("/student/courses");
+	}
+
+	const { courseSlug, moduleSlug, lessonSlug } = params;
+
+	if (!courseSlug || !moduleSlug || !lessonSlug) {
+		throw redirect("/student/courses");
+	}
+
+	// non critical data
+
+	const nonCriticalData = nonCriticalLoaderData(
+		request,
+		moduleSlug,
+		lessonSlug,
+		courseSlug
+	);
+
+	// critical data
+	const { lesson, completedAssignment } = await criticalLoaderData(
+		request,
+		courseSlug,
+		moduleSlug,
+		lessonSlug
+	);
+
+	return {
+		nonCriticalData,
+		lesson,
+		completedAssignment,
+		studentId: student.id,
+	};
+}
+
+async function criticalLoaderData(
+	request: Request,
+	courseSlug: string,
+	moduleSlug: string,
+	lessonSlug: string
+) {
+	const { lesson } = await getLessonBySlug(
+		request,
+		moduleSlug,
+		lessonSlug,
+		courseSlug
+	);
+
+	if (!lesson) {
+		throw new Error("Lesson not found");
+	}
+
+	// Get completed assignment as critical data
+	const { completedAssignment } = await getCompletedAssignmentForLesson(
+		request,
+		lessonSlug,
+		moduleSlug,
+		courseSlug
+	);
+
+	return { lesson, completedAssignment };
+}
+
+function nonCriticalLoaderData(
+	request: Request,
+	moduleSlug: string,
+	lessonSlug: string,
+	courseSlug: string
+) {
+	// all these will return promises
+	const quizzes = getQuizzesForLesson(
+		request,
+		moduleSlug,
+		lessonSlug,
+		courseSlug
+	);
+
+	return { quizzes };
+}
+
+function useLessonLoaderData() {
+	const data = useRouteLoaderData<typeof loader>(
+		"routes/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug"
+	);
+	if (!data) {
+		throw new Error(
+			"VideoContent must be used within _agent._editor._tabs route"
+		);
+	}
+
+	return data;
+}
+
+export default function AgentEditorLesson({
+	loaderData,
+}: Route.ComponentProps) {
+	const { lesson, completedAssignment } = useLessonLoaderData();
+
+	const isAssignmentCompleted = completedAssignment !== null;
+
+	return (
+		<div className="flex flex-col gap-8">
+			<VideoContent />
+			<VideoContentTabs />
+			{!isAssignmentCompleted && <LockNextLessonButton />}
+			{isAssignmentCompleted && <ProccedToNextLessonButton />}
+		</div>
+	);
+}
+
+function VideoContent() {
+	const { lesson } = useLessonLoaderData();
+
+	return (
+		<VideoPlayer type={dashboardConfig.videoPlayer} url={lesson.videoUrl} />
+	);
+}
+
+function VideoContentTabs() {
+	const { lesson, completedAssignment } = useLessonLoaderData();
+
+	return (
+		<Tabs defaultValue="overview" className="flex flex-col gap-6 w-full">
+			<TabsList className="w-full">
+				<TabsTrigger value="overview">Overview</TabsTrigger>
+				<TabsTrigger value="quizzes" className="relative">
+					Quizzes
+					{!completedAssignment && (
+						<span className="absolute top-1 right-4 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+					)}
+					{completedAssignment && (
+						<span className="absolute top-1 right-4 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+					)}
+				</TabsTrigger>
+			</TabsList>
+			<TabsContent value="overview">
+				<div className="space-y-4">
+					<h2 className="text-2xl font-bold text-gray-800">{lesson.name}</h2>
+
+					{lesson.description && (
+						<div className="prose prose-gray text-balance">
+							<p className="text-gray-600 leading-relaxed">
+								{lesson.description}
+							</p>
+						</div>
+					)}
+				</div>
+			</TabsContent>
+			<TabsContent value="quizzes">
+				<Suspense fallback={<Skeleton className="w-full h-[200px]" />}>
+					<QuizzesContent />
+				</Suspense>
+			</TabsContent>
+		</Tabs>
+	);
+}
+
+function QuizzesContent() {
+	const { nonCriticalData, completedAssignment } = useLessonLoaderData();
+	const quizzesPromise = React.use(nonCriticalData.quizzes);
+
+	const isThereQuizzes = quizzesPromise.quizzes !== null;
+
+	if (!isThereQuizzes) {
+		return <div>No quizzes present at the moment</div>;
+	}
+
+	// If quiz assignment does not exist, show the quiz display
+	if (!completedAssignment) {
+		return <QuizDisplay quiz={quizzesPromise.quizzes} />;
+	}
+
+	// Otherwise, show the completed assignment status
+	return (
+		<QuizCompletedResults
+			quiz={quizzesPromise.quizzes}
+			completedAssignment={completedAssignment}
+		/>
+	);
+}
+
+function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
+	const { studentId } = useLessonLoaderData();
+	const [selectedAnswers, setSelectedAnswers] = React.useState<{
+		[questionIndex: number]: number;
+	}>({});
+	const [quizState, setQuizState] = React.useState<"taking" | "submitted">(
+		"taking"
+	);
+	const [lastSubmissionData, setLastSubmissionData] =
+		React.useState<FetcherSubmitQuizResponse | null>(null);
+
+	const fetcher = useFetcher<FetcherSubmitQuizResponse>();
+	const { data: fetcherData } = fetcher;
+	const currentQuiz = quiz || null;
+
+	const questions = currentQuiz?.questions || [];
+
+	// Update last submission data when fetcher completes
+	React.useEffect(() => {
+		if (fetcherData && fetcherData.success && fetcher.state === "idle") {
+			setLastSubmissionData(fetcherData);
+			setQuizState("submitted");
+		}
+	}, [fetcherData, fetcher.state]);
+
+	// Reset quiz to taking state
+	const resetQuiz = () => {
+		setSelectedAnswers({});
+		setQuizState("taking");
+		setLastSubmissionData(null);
+	};
+
+	const handleAnswerSelect = (questionIndex: number, answerIndex: number) => {
+		setSelectedAnswers((prev) => ({
+			...prev,
+			[questionIndex]: answerIndex,
+		}));
+	};
+
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		if (!currentQuiz?.id) {
+			console.error("No quiz ID available");
+			return;
+		}
+
+		const answersArray = questions.map(
+			(_, index) => selectedAnswers[index] ?? -1
+		);
+
+		fetcher.submit(
+			{
+				intent: "submit-quiz",
+				quizId: currentQuiz.id,
+				selectedAnswers: JSON.stringify(answersArray),
+				lessonId: currentQuiz.lessonId,
+				studentId: studentId,
+			},
+			{
+				method: "post",
+				action: "/resource/assignments",
+			}
+		);
+	};
+
+	const isAllQuestionsAnswered = questions.every(
+		(_, index) => selectedAnswers[index] !== undefined
+	);
+
+	const isPending = fetcher.state !== "idle";
+
+	// Handle case where there are no questions
+	if (!questions || questions.length === 0) {
+		return (
+			<div className="text-center py-8">
+				<p className="text-gray-500">No questions available for this quiz.</p>
+			</div>
+		);
+	}
+
+	// Show quiz results if submitted
+	if (quizState === "submitted" && lastSubmissionData) {
+		return (
+			<div className="space-y-6">
+				{/* Quiz Results Header */}
+				<div className="text-center p-6 border rounded-lg">
+					<div className="space-y-2">
+						<AlertCircleIcon className="w-12 h-12 text-red-600 mx-auto" />
+						<h3 className="text-xl font-semibold text-red-800">Quiz Failed</h3>
+						<p className="text-red-600">
+							Score: {lastSubmissionData.score}/
+							{lastSubmissionData.totalQuestions}
+						</p>
+						<p className="text-sm text-gray-600">
+							{lastSubmissionData.message}
+						</p>
+					</div>
+				</div>
+
+				{/* Show incorrect answers for review */}
+				{!lastSubmissionData.passed &&
+					lastSubmissionData.incorrectQuestions && (
+						<div className="space-y-4">
+							<h4 className="text-lg font-semibold text-red-800">
+								Review Incorrect Answers:
+							</h4>
+							{lastSubmissionData.incorrectQuestions.map((incorrectQ) => (
+								<div
+									key={incorrectQ.questionIndex}
+									className="p-4 border border-red-200 rounded-lg bg-red-50"
+								>
+									<h5 className="font-medium text-red-800 mb-3">
+										{incorrectQ.questionIndex + 1}. {incorrectQ.question}
+									</h5>
+									<div className="space-y-2">
+										{incorrectQ.answers.map((answer, answerIndex) => (
+											<div
+												key={answerIndex}
+												className={`flex items-center gap-3 p-2 rounded ${
+													answerIndex === incorrectQ.correctAnswer
+														? "bg-green-100 border border-green-300"
+														: answerIndex === incorrectQ.selectedAnswer
+														? "bg-red-100 border border-red-300"
+														: "bg-white border border-gray-200"
+												}`}
+											>
+												<span
+													className={`text-sm font-medium ${
+														answerIndex === incorrectQ.correctAnswer
+															? "text-green-700"
+															: answerIndex === incorrectQ.selectedAnswer
+															? "text-red-700"
+															: "text-gray-600"
+													}`}
+												>
+													{answerIndex === incorrectQ.correctAnswer
+														? "✓"
+														: answerIndex === incorrectQ.selectedAnswer
+														? "✗"
+														: " "}
+												</span>
+												<span
+													className={`flex-1 ${
+														answerIndex === incorrectQ.correctAnswer
+															? "text-green-800"
+															: answerIndex === incorrectQ.selectedAnswer
+															? "text-red-800"
+															: "text-gray-700"
+													}`}
+												>
+													{answer}
+												</span>
+												{answerIndex === incorrectQ.correctAnswer && (
+													<span className="text-xs text-green-600 font-medium">
+														Correct Answer
+													</span>
+												)}
+												{answerIndex === incorrectQ.selectedAnswer &&
+													answerIndex !== incorrectQ.correctAnswer && (
+														<span className="text-xs text-red-600 font-medium">
+															Your Answer
+														</span>
+													)}
+											</div>
+										))}
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+
+				{/* Try Again Button for failed quizzes */}
+				{!lastSubmissionData.passed && (
+					<div className="pt-4">
+						<PrimaryButton onClick={resetQuiz} className="w-full" type="button">
+							Try Again
+						</PrimaryButton>
+					</div>
+				)}
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-6">
+			<div className="text-center">
+				<h3 className="text-xl font-semibold text-gray-800 mb-2">
+					Quiz Assessment
+				</h3>
+				<p className="text-gray-600 text-sm">
+					Answer all questions below to complete this lesson
+				</p>
+			</div>
+
+			<fetcher.Form onSubmit={handleSubmit} className="space-y-6">
+				{questions.map((question, questionIndex) => (
+					<QuizQuestion
+						key={questionIndex}
+						question={question}
+						questionIndex={questionIndex}
+						selectedAnswer={selectedAnswers[questionIndex]}
+						onAnswerSelect={handleAnswerSelect}
+					/>
+				))}
+
+				<div className="pt-4 border-t border-gray-200">
+					{!isAllQuestionsAnswered && (
+						<div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+							<AlertCircleIcon className="w-4 h-4 text-amber-600 flex-shrink-0" />
+							<p className="text-sm text-amber-700">
+								Please answer all questions before submitting
+							</p>
+						</div>
+					)}
+
+					<PrimaryButton
+						type="submit"
+						className="w-full"
+						disabled={!isAllQuestionsAnswered || isPending}
+					>
+						{isPending ? "Submitting..." : "Submit Quiz"}
+					</PrimaryButton>
+				</div>
+			</fetcher.Form>
+		</div>
+	);
+}
+
+function QuizQuestion({
+	question,
+	questionIndex,
+	selectedAnswer,
+	onAnswerSelect,
+}: {
+	question: {
+		title: string;
+		answers: string[];
+		correctAnswerIndex: number;
+	};
+	questionIndex: number;
+	selectedAnswer: number | undefined;
+	onAnswerSelect: (questionIndex: number, answerIndex: number) => void;
+}) {
+	return (
+		<div className="space-y-4 p-4 border border-gray-200 rounded-lg bg-white">
+			<div className="space-y-3">
+				<h4 className="font-medium text-gray-800">
+					{questionIndex + 1}. {question.title}
+				</h4>
+
+				<div className="space-y-2">
+					{question.answers.map((answer, answerIndex) => (
+						<label
+							key={answerIndex}
+							className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all hover:bg-gray-50 ${
+								selectedAnswer === answerIndex
+									? "border-blue-500 bg-blue-50"
+									: "border-gray-200"
+							}`}
+						>
+							<input
+								type="radio"
+								name={`question-${questionIndex}`}
+								value={answerIndex}
+								checked={selectedAnswer === answerIndex}
+								onChange={() => onAnswerSelect(questionIndex, answerIndex)}
+								className="text-blue-600 focus:ring-blue-500"
+							/>
+							<span className="text-gray-700 flex-1">{answer}</span>
+						</label>
+					))}
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function LockNextLessonButton() {
+	return (
+		<Tooltip>
+			<TooltipProvider>
+				<TooltipTrigger asChild>
+					<PrimaryButton disabled={true}>
+						<LockIcon className="w-4 h-4" />
+						Procced to Next Lesson
+					</PrimaryButton>
+				</TooltipTrigger>
+				<TooltipContent>You must complete the quiz to proceed</TooltipContent>
+			</TooltipProvider>
+		</Tooltip>
+	);
+}
+
+function ProccedToNextLessonButton() {
+	const { lesson } = useLessonLoaderData();
+
+	return (
+		<PrimaryButton asChild>
+			<Link to={`/student/courses/${lesson.moduleId}/${lesson.id}`}>
+				Procced to Next Lesson
+			</Link>
+		</PrimaryButton>
+	);
+}

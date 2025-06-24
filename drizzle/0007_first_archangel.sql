@@ -1,0 +1,1 @@
+ALTER TABLE "modules" ALTER COLUMN "is_public" SET DEFAULT true;

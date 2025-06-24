@@ -1,0 +1,1 @@
+ALTER TABLE "team_leaders" ADD COLUMN "is_activated" boolean DEFAULT true NOT NULL;

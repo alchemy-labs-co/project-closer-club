@@ -1,0 +1,14 @@
+{
+	"files": {
+		"ignore": ["node_modules/**", "build/**"]
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+
+		}
+	},
+	"formatter": {
+		"enabled": true
+	}
+}
