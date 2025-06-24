@@ -19,14 +19,24 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 	if (!isLoggedIn) {
 		throw redirect("/admin/login");
 	}
-
+	console.log('students', formData.get("students"))
 	const studentsIds = (formData.get("students") as string).split(",");
-	const thumbnail = formData.get("thumbnail") as File;
+	const thumbnail = formData.get("thumbnail");
+	console.log("thumbnail", thumbnail);
+
+	// check if is instance of File
+	if (!(thumbnail instanceof File)) {
+		return data(
+			{ success: false, message: "Thumbnail is not a file" },
+			{ status: 400 },
+		);
+	}
 	const formDataObject = {
 		name: formData.get("name"),
 		description: formData.get("description"),
 		students: studentsIds,
 	};
+
 
 	const unvalidatedFields = createCourseSchema.safeParse(formDataObject);
 
@@ -38,6 +48,8 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 	}
 
 	const validatedFields = unvalidatedFields.data;
+
+
 
 	try {
 		const slug = titleToSlug(validatedFields.name);
@@ -65,7 +77,8 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 
 		// Upload thumbnail if provided
 		let thumbnailUrl: string | null = null;
-		if (thumbnail && thumbnail.size > 0) {
+
+		if (thumbnail) {
 			try {
 				thumbnailUrl = await uploadThumbnailToBunny(thumbnail, insertedCourse.id);
 				// Update the course with the thumbnail URL
@@ -75,6 +88,7 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 					.where(eq(coursesTable.id, insertedCourse.id));
 
 			} catch (thumbnailError) {
+				console.error("🔴 Error uploading thumbnail:", thumbnailError);
 			}
 		}
 		// Insert student assignments

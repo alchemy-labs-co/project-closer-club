@@ -95,14 +95,24 @@ export function CreateCourse() {
 						method="POST"
 						action="/resource/course"
 						className="flex flex-col gap-4"
+						encType="multipart/form-data"
 						onSubmit={form.handleSubmit((data) => {
-							fetcher.submit(
-								{ ...data, intent: "create-course" },
-								{
-									method: "POST",
-									action: "/resource/course",
-								}
+							const formData = new FormData();
+							formData.append("intent", "create-course");
+							formData.append("name", data.name);
+							formData.append("description", data.description);
+							if (data.thumbnail) {
+								formData.append("thumbnail", data.thumbnail);
+							}
+							data.students.forEach((student) =>
+								formData.append("students", student)
 							);
+
+							fetcher.submit(formData, {
+								method: "POST",
+								action: "/resource/course",
+								encType: "multipart/form-data",
+							});
 						})}
 					>
 						<FormField

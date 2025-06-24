@@ -1,5 +1,3 @@
-
-
 export const BUNNY = {
     STORAGE_BASE_URL: "https://storage.bunnycdn.com/closer-club-dev-storage",
     CDN_URL: "https://closer-club-dev.b-cdn.net",
@@ -103,25 +101,30 @@ export const uploadThumbnailToBunny = async (
     file: File,
     courseId: string
 ): Promise<string> => {
-
+    console.log("file", file);
+    console.log("file.name", file.name);
+    const fileExtension = file.name.split('.').pop();
+    console.log("fileExtension", fileExtension);
 
     const { uploadUrl, cdnUrl, accessKey } = await getThumbnailUploadUrl(courseId);
+    const finalUploadUrl = `${uploadUrl}.${fileExtension}`;
+    const finalCdnUrl = `${cdnUrl}.${fileExtension}`;
 
-
+    console.log("finalUploadUrl", finalUploadUrl);
+    console.log("finalCdnUrl", finalCdnUrl);
+    console.log("accessKey", accessKey);
 
     if (!accessKey) {
         console.error("🔴 Missing Bunny storage access key");
         throw new Error("Bunny storage access key not configured");
     }
 
-    const fileExtension = file.name.split('.').pop();
-    const finalUploadUrl = `${uploadUrl}.${fileExtension}`;
-    const finalCdnUrl = `${cdnUrl}.${fileExtension}`;
-
 
     try {
         // Convert File to ArrayBuffer for raw binary upload
         const arrayBuffer = await file.arrayBuffer();
+        console.log("arrayBuffer", arrayBuffer);
+        const buffer = Buffer.from(arrayBuffer);
 
         const response = await fetch(finalUploadUrl, {
             method: 'PUT',
@@ -129,7 +132,7 @@ export const uploadThumbnailToBunny = async (
                 'AccessKey': accessKey,
                 'Content-Type': 'application/octet-stream',
             },
-            body: arrayBuffer,
+            body: buffer,
         });
 
         if (!response.ok) {
