@@ -2,8 +2,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { data, Link, redirect, useFetcher, useNavigation } from "react-router";
+import { data, Link, redirect, useFetcher } from "react-router";
 import { toast } from "sonner";
+import PrimaryButton from "~/components/global/brand/primary-button";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -28,8 +29,6 @@ import {
 	type UpdateTeamLeaderSchema,
 } from "~/lib/zod-schemas/team-leader";
 import type { Route } from "./+types/_admin.dashboard.team-leaders_.$teamleaderId_.edit";
-import { isAdminLoggedIn } from "~/lib/auth/auth.server";
-import PrimaryButton from "~/components/global/brand/primary-button";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
 	const { teamleaderId } = params;
