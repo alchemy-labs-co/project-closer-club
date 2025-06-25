@@ -374,16 +374,16 @@ export const uploadVideoToBunnyStream = async (
 
     try {
         // Convert File to ArrayBuffer for raw binary upload
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        // const arrayBuffer = await file.arrayBuffer();
+        // const buffer = Buffer.from(arrayBuffer);
 
         const response = await fetch(uploadUrl, {
             method: 'PUT',
             headers: {
                 'AccessKey': accessKey,
-                'Content-Type': 'application/octet-stream',
+                'Content-Type': file.type,
             },
-            body: buffer,
+            body: file,
         });
 
         if (!response.ok) {
