@@ -267,59 +267,6 @@ export function CreateSegment() {
 						className="flex flex-col gap-4"
 						onSubmit={form.handleSubmit(handleDirectUpload)}
 					>
-						{/* Upload Progress Display */}
-						{isUploading && (
-							<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-								<h3 className="font-medium text-blue-800 mb-3">
-									Upload Progress
-								</h3>
-
-								{/* Video Upload Progress */}
-								<div className="mb-4">
-									<div className="flex justify-between text-sm text-blue-700 mb-1">
-										<span>Video Upload</span>
-										<span>{uploadProgress.video}%</span>
-									</div>
-									<div className="w-full bg-blue-200 rounded-full h-2">
-										<div
-											className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-											style={{ width: `${uploadProgress.video}%` }}
-										/>
-									</div>
-								</div>
-
-								{/* Attachment Upload Progress */}
-								{Object.keys(uploadProgress.attachments).length > 0 && (
-									<div>
-										<h4 className="text-sm font-medium text-blue-700 mb-2">
-											Attachments
-										</h4>
-										{Object.entries(uploadProgress.attachments).map(
-											([fileName, progress]) => (
-												<div key={fileName} className="mb-2">
-													<div className="flex justify-between text-xs text-blue-600 mb-1">
-														<span
-															className="truncate max-w-40"
-															title={fileName}
-														>
-															{fileName}
-														</span>
-														<span>{progress}%</span>
-													</div>
-													<div className="w-full bg-blue-200 rounded-full h-1">
-														<div
-															className="bg-blue-500 h-1 rounded-full transition-all duration-300"
-															style={{ width: `${progress}%` }}
-														/>
-													</div>
-												</div>
-											)
-										)}
-									</div>
-								)}
-							</div>
-						)}
-
 						<FormField
 							control={form.control}
 							name="name"
@@ -529,6 +476,59 @@ export function CreateSegment() {
 								</FormItem>
 							)}
 						/>
+						{/* Upload Progress Display */}
+						{isUploading && (
+							<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+								<h3 className="font-medium text-blue-800 mb-3">
+									Upload Progress
+								</h3>
+
+								{/* Video Upload Progress */}
+								<div className="mb-4">
+									<div className="flex justify-between text-sm text-blue-700 mb-1">
+										<span>Video Upload</span>
+										<span>{uploadProgress.video}%</span>
+									</div>
+									<div className="w-full bg-blue-200 rounded-full h-2">
+										<div
+											className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+											style={{ width: `${uploadProgress.video}%` }}
+										/>
+									</div>
+								</div>
+
+								{/* Attachment Upload Progress */}
+								{Object.keys(uploadProgress.attachments).length > 0 && (
+									<div>
+										<h4 className="text-sm font-medium text-blue-700 mb-2">
+											Attachments
+										</h4>
+										{Object.entries(uploadProgress.attachments).map(
+											([fileName, progress]) => (
+												<div key={fileName} className="mb-2">
+													<div className="flex justify-between text-xs text-blue-600 mb-1">
+														<span
+															className="truncate max-w-40"
+															title={fileName}
+														>
+															{fileName}
+														</span>
+														<span>{progress}%</span>
+													</div>
+													<div className="w-full bg-blue-200 rounded-full h-1">
+														<div
+															className="bg-blue-500 h-1 rounded-full transition-all duration-300"
+															style={{ width: `${progress}%` }}
+														/>
+													</div>
+												</div>
+											)
+										)}
+									</div>
+								)}
+							</div>
+						)}
+
 						<div className="flex justify-end">
 							<PrimaryButton
 								type="submit"
