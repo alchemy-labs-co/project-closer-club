@@ -1,4 +1,9 @@
-import { AlertCircleIcon, LockIcon } from "lucide-react";
+import {
+	AlertCircleIcon,
+	LockIcon,
+	DownloadIcon,
+	FileIcon,
+} from "lucide-react";
 import React, { Suspense } from "react";
 import { Link, redirect, useFetcher, useRouteLoaderData } from "react-router";
 import { QuizCompletedResults } from "~/components/features/courses/quiz/quiz-completed-results";
@@ -13,9 +18,10 @@ import {
 	TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { dashboardConfig } from "~/config/dashboard";
-import type { Quiz } from "~/db/schema";
+import type { Quiz, Attachment } from "~/db/schema";
 import { isAgentLoggedIn } from "~/lib/auth/auth.server";
 import { getCompletedAssignmentForLesson } from "~/lib/student/data-access/assignments.server";
+import { getAttachmentsForLesson } from "~/lib/student/data-access/attachments.server";
 import {
 	getLessonBySlug,
 	getQuizzesForLesson,
@@ -36,21 +42,21 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		throw redirect("/student/courses");
 	}
 
-	// non critical data
-
-	const nonCriticalData = nonCriticalLoaderData(
-		request,
-		moduleSlug,
-		lessonSlug,
-		courseSlug
-	);
-
 	// critical data
 	const { lesson, completedAssignment } = await criticalLoaderData(
 		request,
 		courseSlug,
 		moduleSlug,
 		lessonSlug
+	);
+
+	// non critical data
+	const nonCriticalData = nonCriticalLoaderData(
+		request,
+		moduleSlug,
+		lessonSlug,
+		courseSlug,
+		lesson.id
 	);
 
 	return {
@@ -75,7 +81,7 @@ async function criticalLoaderData(
 	);
 
 	if (!lesson) {
-		throw new Error("Lesson not found");
+		throw redirect("/student/courses");
 	}
 
 	// Get completed assignment as critical data
@@ -93,7 +99,8 @@ function nonCriticalLoaderData(
 	request: Request,
 	moduleSlug: string,
 	lessonSlug: string,
-	courseSlug: string
+	courseSlug: string,
+	lessonId: string
 ) {
 	// all these will return promises
 	const quizzes = getQuizzesForLesson(
@@ -103,7 +110,9 @@ function nonCriticalLoaderData(
 		courseSlug
 	);
 
-	return { quizzes };
+	const attachments = getAttachmentsForLesson(request, lessonId);
+
+	return { quizzes, attachments };
 }
 
 function useLessonLoaderData() {
@@ -160,6 +169,7 @@ function VideoContentTabs() {
 						<span className="absolute top-1 right-4 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
 					)}
 				</TabsTrigger>
+				<TabsTrigger value="resources">Resources</TabsTrigger>
 			</TabsList>
 			<TabsContent value="overview">
 				<div className="space-y-4">
@@ -177,6 +187,11 @@ function VideoContentTabs() {
 			<TabsContent value="quizzes">
 				<Suspense fallback={<Skeleton className="w-full h-[200px]" />}>
 					<QuizzesContent />
+				</Suspense>
+			</TabsContent>
+			<TabsContent value="resources">
+				<Suspense fallback={<Skeleton className="w-full h-[200px]" />}>
+					<ResourcesContent />
 				</Suspense>
 			</TabsContent>
 		</Tabs>
@@ -204,6 +219,77 @@ function QuizzesContent() {
 			quiz={quizzesPromise.quizzes}
 			completedAssignment={completedAssignment}
 		/>
+	);
+}
+
+function ResourcesContent() {
+	const { nonCriticalData } = useLessonLoaderData();
+	const { attachments } = React.use(nonCriticalData.attachments);
+
+	const hasAttachments = attachments !== null;
+
+	if (!hasAttachments) {
+		return (
+			<div className="text-center py-8">
+				<FileIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+				<p className="text-gray-500">No resources available for this lesson.</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className="grid gap-3">
+			{attachments.map((attachment) => (
+				<AttachmentItem key={attachment.id} attachment={attachment} />
+			))}
+		</div>
+	);
+}
+
+function AttachmentItem({
+	attachment,
+}: {
+	attachment: {
+		id: string;
+		fileName: string;
+		fileUrl: string;
+		fileExtension: string;
+		createdAt: Date;
+	};
+}) {
+	const handleDownload = () => {
+		window.open(attachment.fileUrl, "_blank");
+	};
+
+	const getFileIcon = (extension: string) => {
+		const ext = extension.toLowerCase();
+		if (ext === "pdf") return "📄";
+		if (ext === "doc" || ext === "docx") return "📝";
+		if (ext === "png" || ext === "jpg" || ext === "jpeg") return "🖼️";
+		return "📎";
+	};
+
+	return (
+		<div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors">
+			<div className="flex items-center gap-3">
+				<span className="text-2xl" role="img" aria-label="file">
+					{getFileIcon(attachment.fileExtension)}
+				</span>
+				<div>
+					<p className="font-medium text-gray-800">{attachment.fileName}</p>
+					<p className="text-sm text-gray-500 capitalize">
+						{attachment.fileExtension.toUpperCase()} file
+					</p>
+				</div>
+			</div>
+			<button
+				onClick={handleDownload}
+				className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+			>
+				<DownloadIcon className="w-4 h-4" />
+				Download
+			</button>
+		</div>
 	);
 }
 

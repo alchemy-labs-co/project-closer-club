@@ -6,6 +6,10 @@ export const createSegmentSchema = z.object({
 	videoUrl: z.string().min(1, { message: "Video URL is required" }).trim(),
 	courseSlug: z.string().min(1, { message: "Course slug is required" }).trim(),
 	moduleSlug: z.string().min(1, { message: "Module slug is required" }).trim(),
+	attachments: z
+		.array(z.instanceof(File))
+		.max(10, { message: "Maximum 10 files allowed" })
+		.optional(),
 });
 
 export const editSegmentSchema = z.object({

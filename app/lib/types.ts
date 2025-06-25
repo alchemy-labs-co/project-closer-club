@@ -2,6 +2,7 @@ export type FetcherResponse = {
 	success: boolean;
 	message: string;
 	redirectTo?: string;
+	redirectToUrl?: string;
 };
 
 export type VideoPlayerTypes = {

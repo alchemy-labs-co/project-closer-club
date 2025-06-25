@@ -5,13 +5,15 @@ import { Button } from "~/components/ui/button";
 export function DeleteSegment({
 	segmentId,
 	courseSlug,
-}: { segmentId: string; courseSlug: string }) {
-	const navigate = useNavigate();
+}: {
+	segmentId: string;
+	courseSlug: string;
+}) {
 	return (
 		<DeleteDialog
 			resourceRoute="/resource/segment"
 			hiddenInputs={[
-				{ name: "id", value: segmentId },
+				{ name: "segmentId", value: segmentId },
 				{ name: "intent", value: "delete-segment" },
 				{ name: "courseSlug", value: courseSlug },
 			]}
@@ -32,10 +34,6 @@ export function DeleteSegment({
 					Delete Segment
 				</Button>
 			}
-			onSuccess={() => {
-				// redirect to the course page
-				navigate(href("/dashboard/courses/:slug", { slug: courseSlug }));
-			}}
 		/>
 	);
 }

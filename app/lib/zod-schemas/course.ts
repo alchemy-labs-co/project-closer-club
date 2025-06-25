@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 export const createCourseSchema = z.object({
+	thumbnail: z
+		.instanceof(File)
+		.refine((file) => file.size === 0 || file.size > 0, "Invalid file")
+		.optional(),
 	name: z.string().min(1, { message: "Name is required" }).trim(),
 	description: z.string().min(1, { message: "Description is required" }).trim(),
 	students: z
@@ -9,6 +13,10 @@ export const createCourseSchema = z.object({
 });
 
 export const updateCourseSchema = z.object({
+	thumbnail: z
+		.instanceof(File)
+		.refine((file) => file.size === 0 || file.size > 0, "Invalid file")
+		.optional(),
 	name: z.string().min(1, { message: "Name is required" }).trim(),
 	description: z.string().min(1, { message: "Description is required" }).trim(),
 });

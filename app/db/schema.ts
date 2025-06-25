@@ -119,6 +119,7 @@ export const coursesTable = pgTable(
 		id: uuid("id").primaryKey().defaultRandom(),
 		name: varchar("name", { length: 255 }).notNull(),
 		description: varchar("description", { length: 255 }).notNull(),
+		thumbnailUrl: varchar("thumbnail_url", { length: 500 }),
 		isPublic: boolean("is_public").notNull().default(false),
 		slug: varchar("slug", { length: 255 }).notNull(),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -263,6 +264,23 @@ export const completedQuizAssignmentsTable = pgTable("completed_quiz_assignments
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const attachmentsTable = pgTable(
+	"attachments",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		lessonId: uuid("lesson_id")
+			.references(() => lessonsTable.id, { onDelete: "cascade" })
+			.notNull(),
+		fileName: varchar("file_name", { length: 255 }).notNull(),
+		fileUrl: varchar("file_url", { length: 500 }).notNull(),
+		fileExtension: varchar("file_extension", { length: 10 }).notNull(),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+	(t) => [
+		index("attachment_lesson_id_index").on(t.lessonId),
+	],
+);
+
 // TYPES
 export type Student = typeof agentsTable.$inferSelect;
 export type Course = typeof coursesTable.$inferSelect;
@@ -273,6 +291,7 @@ export type TeamLeader = typeof teamLeadersTable.$inferSelect;
 export type LessonProgress = typeof lessonProgressTable.$inferSelect;
 export type Quiz = typeof quizzesTable.$inferSelect;
 export type CompletedQuizAssignment = typeof completedQuizAssignmentsTable.$inferSelect;
+export type Attachment = typeof attachmentsTable.$inferSelect;
 // AUTH RELATED
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;

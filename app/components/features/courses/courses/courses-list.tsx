@@ -22,11 +22,12 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { cn } from "~/lib/utils";
 
 export function CoursesList() {
 	const { courses } = useCoursesLoaderData();
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
 			{courses.map((course) => (
 				<CourseCard key={course.id} course={course} />
 			))}
@@ -34,9 +35,18 @@ export function CoursesList() {
 	);
 }
 function CourseCard({ course }: { course: Course }) {
-	const { id, name, description, isPublic, slug } = course;
+	const { id, name, description, isPublic, slug, thumbnailUrl } = course;
 	return (
-		<Card className="relative">
+		<Card className={cn("relative", thumbnailUrl && "pt-0")}>
+			{thumbnailUrl && (
+				<div className="p-0">
+					<img
+						src={thumbnailUrl}
+						alt={`${name} thumbnail`}
+						className="w-full h-48 object-cover rounded-t-lg"
+					/>
+				</div>
+			)}
 			<CardHeader className="flex flex-row justify-between items-center">
 				<CardTitle>
 					<h3>{name}</h3>
@@ -88,6 +98,7 @@ function CourseCard({ course }: { course: Course }) {
 									description={description}
 									courseId={id}
 									slug={slug}
+									thumbnailUrl={thumbnailUrl ?? undefined}
 								/>
 							</div>
 						</TooltipTrigger>

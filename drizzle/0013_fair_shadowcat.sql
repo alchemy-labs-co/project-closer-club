@@ -1,0 +1,1 @@
+ALTER TABLE "courses" ADD COLUMN "thumbnail_url" varchar(500);
