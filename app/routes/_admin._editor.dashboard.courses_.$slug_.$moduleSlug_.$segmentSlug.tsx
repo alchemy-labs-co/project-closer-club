@@ -53,6 +53,11 @@ import type { Question } from "./_admin.dashboard.quizzes_.create";
 
 import { DROPZONE_ACCEPTED_TYPES } from "~/lib/constants";
 import PrimaryButton from "~/components/global/brand/primary-button";
+import {
+	uploadAttachmentDirectlyToBunny,
+	uploadWithProgress,
+} from "~/lib/utils";
+import { toast } from "sonner";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
 	// auth check
@@ -421,8 +426,13 @@ function LessonAttachments({ lesson }: { lesson: Segment }) {
 function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [attachments, setAttachments] = useState<File[]>([]);
+	const [uploadProgress, setUploadProgress] = useState<{
+		[key: string]: number;
+	}>({});
+	const [isUploading, setIsUploading] = useState(false);
+
 	const fetcher = useFetcher<FetcherResponse>();
-	const isSubmitting = fetcher.state !== "idle";
+	const isSubmitting = fetcher.state !== "idle" || isUploading;
 
 	const form = useForm<AttachmentUploadSchema>({
 		resolver: zodResolver(attachmentUploadSchema),
@@ -454,6 +464,103 @@ function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 		form.setValue("attachments", newAttachments);
 	};
 
+	const handleDirectUpload = async (data: AttachmentUploadSchema) => {
+		if (!data.attachments || data.attachments.length === 0) return;
+
+		setIsUploading(true);
+
+		try {
+			// Step 1: Generate upload tokens
+			const tokenFormData = new FormData();
+			tokenFormData.append("intent", "generate-attachment-tokens");
+			tokenFormData.append("lessonId", lessonId);
+
+			// Add attachment file names for token generation
+			data.attachments.forEach((file) => {
+				tokenFormData.append("attachmentNames", file.name);
+			});
+
+			const tokenResponse = await fetch("/resource/attachments", {
+				method: "POST",
+				body: tokenFormData,
+			});
+
+			const tokens = await tokenResponse.json();
+
+			if (!tokens.success) {
+				throw new Error(tokens.message || "Failed to generate upload tokens");
+			}
+
+			// Step 2: Upload attachments directly to Bunny
+			const attachmentData: Array<{
+				fileName: string;
+				fileUrl: string;
+				fileExtension: string;
+			}> = [];
+
+			for (let i = 0; i < data.attachments.length; i++) {
+				const file = data.attachments[i];
+				const token = tokens.attachmentTokens[i];
+
+				const attachmentSuccess = await uploadWithProgress(
+					file,
+					token.uploadUrl,
+					token.accessKey,
+					(progress) =>
+						setUploadProgress((prev) => ({
+							...prev,
+							[file.name]: progress,
+						}))
+				);
+
+				if (attachmentSuccess) {
+					attachmentData.push({
+						fileName: token.fileName,
+						fileUrl: token.cdnUrl,
+						fileExtension: token.fileExtension,
+					});
+				} else {
+					throw new Error(`Failed to upload ${file.name}`);
+				}
+			}
+
+			// Step 3: Confirm uploads and save to database
+			const confirmFormData = new FormData();
+			confirmFormData.append("intent", "confirm-attachment-uploads");
+			confirmFormData.append("lessonId", lessonId);
+			confirmFormData.append("attachmentData", JSON.stringify(attachmentData));
+
+			fetcher.submit(confirmFormData, {
+				method: "POST",
+				action: "/resource/attachments",
+			});
+		} catch (error) {
+			console.error("Upload error:", error);
+			toast.error(error instanceof Error ? error.message : "Upload failed");
+			setIsUploading(false);
+		}
+	};
+
+	// Reset state when dialog closes
+	React.useEffect(() => {
+		if (!isOpen) {
+			setAttachments([]);
+			setUploadProgress({});
+			setIsUploading(false);
+			form.reset();
+		}
+	}, [isOpen, form]);
+
+	// Reset uploading state when fetcher completes
+	React.useEffect(() => {
+		if (fetcher.data && isUploading) {
+			setIsUploading(false);
+			if (fetcher.data.success) {
+				setIsOpen(false);
+			}
+		}
+	}, [fetcher.data, isUploading]);
+
 	return (
 		<Dialog open={isOpen} onOpenChange={setIsOpen}>
 			<DialogTrigger asChild>
@@ -467,29 +574,35 @@ function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 					<DialogTitle>Add Attachments</DialogTitle>
 				</DialogHeader>
 				<Form {...form}>
-					<fetcher.Form
-						method="POST"
-						action="/resource/attachments"
+					<form
 						className="space-y-6"
-						encType="multipart/form-data"
-						onSubmit={form.handleSubmit((data) => {
-							const formData = new FormData();
-							formData.append("intent", "create-attachment");
-							formData.append("lessonId", lessonId);
-
-							if (data.attachments) {
-								data.attachments.forEach((file) => {
-									formData.append("attachments", file);
-								});
-							}
-
-							fetcher.submit(formData, {
-								method: "POST",
-								action: "/resource/attachments",
-								encType: "multipart/form-data",
-							});
-						})}
+						onSubmit={form.handleSubmit(handleDirectUpload)}
 					>
+						{/* Upload Progress Display */}
+						{isUploading && Object.keys(uploadProgress).length > 0 && (
+							<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+								<h3 className="font-medium text-blue-800 mb-3">
+									Upload Progress
+								</h3>
+								{Object.entries(uploadProgress).map(([fileName, progress]) => (
+									<div key={fileName} className="mb-3">
+										<div className="flex justify-between text-sm text-blue-700 mb-1">
+											<span className="truncate max-w-56" title={fileName}>
+												{fileName}
+											</span>
+											<span>{progress}%</span>
+										</div>
+										<div className="w-full bg-blue-200 rounded-full h-2">
+											<div
+												className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+												style={{ width: `${progress}%` }}
+											/>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+
 						<FormField
 							control={form.control}
 							name="attachments"
@@ -553,6 +666,7 @@ function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 															type="button"
 															onClick={() => removeAttachment(index)}
 															className="ml-1 text-red-500 hover:text-red-700 flex-shrink-0"
+															disabled={isSubmitting}
 														>
 															×
 														</button>
@@ -588,10 +702,14 @@ function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 								type="submit"
 								disabled={isSubmitting || attachments.length === 0}
 							>
-								{isSubmitting ? "Uploading..." : "Upload Attachments"}
+								{isSubmitting
+									? isUploading
+										? "Uploading..."
+										: "Saving..."
+									: "Upload Attachments"}
 							</Button>
 						</div>
-					</fetcher.Form>
+					</form>
 				</Form>
 			</DialogContent>
 		</Dialog>

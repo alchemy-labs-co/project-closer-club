@@ -237,3 +237,142 @@ export async function updateAttachment(request: Request, formData: FormData) {
         );
     }
 }
+
+export async function generateAttachmentUploadTokens(
+    request: Request,
+    formData: FormData
+) {
+    const { isLoggedIn } = await isAdminLoggedIn(request);
+    if (!isLoggedIn) {
+        throw redirect("/admin/login");
+    }
+
+    try {
+        const lessonId = formData.get("lessonId") as string;
+        const attachmentNames = formData.getAll("attachmentNames") as string[];
+
+        if (!lessonId) {
+            return data(
+                { success: false, message: "Lesson ID is required" },
+                { status: 400 }
+            );
+        }
+
+        if (!attachmentNames || attachmentNames.length === 0) {
+            return data(
+                { success: false, message: "At least one attachment name is required" },
+                { status: 400 }
+            );
+        }
+
+        if (attachmentNames.length > 10) {
+            return data(
+                { success: false, message: "Maximum 10 files allowed" },
+                { status: 400 }
+            );
+        }
+
+        // Verify lesson exists
+        const [lesson] = await db.select().from(lessonsTable).where(eq(lessonsTable.id, lessonId)).limit(1);
+        if (!lesson) {
+            return data(
+                { success: false, message: "Lesson not found" },
+                { status: 404 }
+            );
+        }
+
+        // Generate upload tokens for each attachment
+        const { generateAttachmentUploadToken } = await import("~/lib/bunny.server");
+
+        const attachmentTokens = await Promise.all(
+            attachmentNames.map(fileName =>
+                generateAttachmentUploadToken(lessonId, fileName)
+            )
+        );
+
+        return data(
+            {
+                success: true,
+                message: "Upload tokens generated successfully",
+                attachmentTokens,
+            },
+            { status: 200 }
+        );
+
+    } catch (error) {
+        console.error("Error generating attachment upload tokens:", error);
+        return data(
+            { success: false, message: "Failed to generate upload tokens" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function confirmAttachmentUploads(
+    request: Request,
+    formData: FormData
+) {
+    const { isLoggedIn } = await isAdminLoggedIn(request);
+    if (!isLoggedIn) {
+        throw redirect("/admin/login");
+    }
+
+    try {
+        const lessonId = formData.get("lessonId") as string;
+        const attachmentData = formData.get("attachmentData") as string;
+
+        if (!lessonId || !attachmentData) {
+            return data(
+                { success: false, message: "Missing required fields" },
+                { status: 400 }
+            );
+        }
+
+        // Verify lesson exists
+        const [lesson] = await db.select().from(lessonsTable).where(eq(lessonsTable.id, lessonId)).limit(1);
+        if (!lesson) {
+            return data(
+                { success: false, message: "Lesson not found" },
+                { status: 404 }
+            );
+        }
+
+        // Parse attachment data
+        const attachments = JSON.parse(attachmentData) as Array<{
+            fileName: string;
+            fileUrl: string;
+            fileExtension: string;
+        }>;
+
+        if (attachments.length === 0) {
+            return data(
+                { success: false, message: "No attachments to save" },
+                { status: 400 }
+            );
+        }
+
+        // Insert attachment records into database
+        const uploadPromises = attachments.map(attachment =>
+            db.insert(attachmentsTable).values({
+                lessonId: lessonId,
+                fileName: attachment.fileName,
+                fileUrl: attachment.fileUrl,
+                fileExtension: attachment.fileExtension,
+            })
+        );
+
+        await Promise.all(uploadPromises);
+
+        return data(
+            { success: true, message: `Successfully uploaded ${attachments.length} attachment(s)` },
+            { status: 200 }
+        );
+
+    } catch (error) {
+        console.error("Error confirming attachment uploads:", error);
+        return data(
+            { success: false, message: "Failed to save attachments" },
+            { status: 500 }
+        );
+    }
+}

@@ -1,6 +1,12 @@
 import { data } from "react-router";
 import { toast } from "sonner";
-import { createAttachment, deleteAttachment, updateAttachment } from "~/lib/admin/actions/segment/attachments.server";
+import {
+    createAttachment,
+    deleteAttachment,
+    updateAttachment,
+    generateAttachmentUploadTokens,
+    confirmAttachmentUploads,
+} from "~/lib/admin/actions/segment/attachments.server";
 import type { Route } from "./+types/resource.attachments";
 
 
@@ -8,6 +14,8 @@ const intents = [
     "create-attachment",
     "delete-attachment",
     "update-attachment",
+    "generate-attachment-tokens",
+    "confirm-attachment-uploads",
 ];
 
 export async function loader() {
@@ -38,6 +46,8 @@ export async function action({ request }: Route.ActionArgs) {
         "create-attachment": createAttachment,
         "delete-attachment": deleteAttachment,
         "update-attachment": updateAttachment,
+        "generate-attachment-tokens": generateAttachmentUploadTokens,
+        "confirm-attachment-uploads": confirmAttachmentUploads,
     }
 
     const handler = handlers[intent as keyof typeof handlers];
