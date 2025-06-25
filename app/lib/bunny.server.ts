@@ -293,3 +293,146 @@ export const deleteAttachmentFromBunny = async (fileUrl: string): Promise<void> 
         throw error;
     }
 };
+
+// Types for Bunny Stream API
+interface CreateVideoResponse {
+    videoLibraryId: number;
+    guid: string;
+    title: string;
+    description?: string;
+    dateUploaded: string;
+    views: number;
+    isPublic: boolean;
+    length: number;
+    status: number;
+    framerate: number;
+    rotation?: number;
+    width: number;
+    height: number;
+    availableResolutions?: string;
+    outputCodecs?: string;
+    thumbnailCount: number;
+    encodeProgress: number;
+    storageSize: number;
+    hasMP4Fallback: boolean;
+    collectionId?: string;
+    thumbnailFileName?: string;
+    averageWatchTime: number;
+    totalWatchTime: number;
+    category?: string;
+}
+
+interface ApiFetchOptions {
+    method?: "GET" | "POST" | "PUT" | "DELETE";
+    headers?: Record<string, string>;
+    body?: Record<string, unknown>;
+    expectJson?: boolean;
+}
+
+// Create a video in Bunny Stream Library
+export const createVideoInBunnyStream = async (
+    title: string,
+    libraryId: string,
+    collectionId?: string,
+    thumbnailTime?: number
+): Promise<CreateVideoResponse> => {
+    const url = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos`;
+
+    const body: Record<string, unknown> = {
+        title,
+    };
+
+    if (collectionId) {
+        body.collectionId = collectionId;
+    }
+
+    if (thumbnailTime) {
+        body.thumbnailTime = thumbnailTime;
+    }
+
+    return await bunnyApiFetch<CreateVideoResponse>(url, {
+        method: "POST",
+        body,
+        bunnyType: "stream",
+    });
+};
+
+// Upload video file to Bunny Stream
+export const uploadVideoToBunnyStream = async (
+    file: File,
+    videoId: string,
+    libraryId: string
+): Promise<void> => {
+    const uploadUrl = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoId}`;
+
+    const accessKey = ACCESS_KEYS.streamAccessKey;
+
+    if (!accessKey) {
+        console.error("🔴 Missing Bunny stream access key");
+        throw new Error("Bunny stream access key not configured");
+    }
+
+    try {
+        // Convert File to ArrayBuffer for raw binary upload
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const response = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+                'AccessKey': accessKey,
+                'Content-Type': 'application/octet-stream',
+            },
+            body: buffer,
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("🔴 Video upload failed:", {
+                status: response.status,
+                statusText: response.statusText,
+                errorText,
+                uploadUrl,
+                fileName: file.name,
+            });
+            throw new Error(`Failed to upload video: ${response.status} - ${errorText}`);
+        }
+
+    } catch (error) {
+        console.error("🔴 Video upload process error:", {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            videoId,
+            libraryId,
+            fileName: file.name,
+            fileSize: file.size
+        });
+        throw error;
+    }
+};
+
+// Create video in Bunny Stream Library (Bunny handles upload automatically)
+export const createAndUploadVideoToBunnyStream = async (
+    file: File,
+    title: string,
+    libraryId: string,
+    collectionId?: string,
+    thumbnailTime?: number
+): Promise<string> => {
+    try {
+        // Create video in library - Bunny automatically handles the file upload
+        const videoResponse = await createVideoInBunnyStream(title, libraryId, collectionId, thumbnailTime);
+
+        // Return the video GUID (this will be stored as videoUrl in the database)
+        return videoResponse.guid;
+
+    } catch (error) {
+        console.error("🔴 Create video error:", {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            title,
+            libraryId,
+            fileName: file.name,
+            fileSize: file.size
+        });
+        throw error;
+    }
+};

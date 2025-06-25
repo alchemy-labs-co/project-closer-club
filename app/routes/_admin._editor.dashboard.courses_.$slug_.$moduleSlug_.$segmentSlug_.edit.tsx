@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, redirect, useFetcher, useNavigate } from "react-router";
 import { toast } from "sonner";
-import PrimaryButton from "~/components/global/brand/primary-button";
 import { DeleteSegment } from "~/components/features/courses/segments/delete-segment";
+import PrimaryButton from "~/components/global/brand/primary-button";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
