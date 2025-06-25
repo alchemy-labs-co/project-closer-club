@@ -97,22 +97,34 @@ export const getThumbnailUploadUrl = async (courseId: string) => {
     };
 };
 
+export const getAttachmentUploadUrl = async (lessonId: string, originalFileName: string) => {
+    const fileExtension = originalFileName.split('.').pop() || '';
+    const timestampedFileName = `${Date.now()}-${lessonId}-${originalFileName}`;
+    const uploadUrl = `${THUMBNAIL_STORAGE_BASE_URL}/attachments/${timestampedFileName}`;
+    const cdnUrl = `${THUMBNAIL_CDN_URL}/attachments/${timestampedFileName}`;
+
+    return {
+        uploadUrl,
+        cdnUrl,
+        accessKey: ACCESS_KEYS.storageAccessKey,
+        fileExtension,
+        fileName: originalFileName,
+    };
+};
+
 export const uploadThumbnailToBunny = async (
     file: File,
     courseId: string
 ): Promise<string> => {
-    console.log("file", file);
-    console.log("file.name", file.name);
+
     const fileExtension = file.name.split('.').pop();
-    console.log("fileExtension", fileExtension);
+
 
     const { uploadUrl, cdnUrl, accessKey } = await getThumbnailUploadUrl(courseId);
     const finalUploadUrl = `${uploadUrl}.${fileExtension}`;
     const finalCdnUrl = `${cdnUrl}.${fileExtension}`;
 
-    console.log("finalUploadUrl", finalUploadUrl);
-    console.log("finalCdnUrl", finalCdnUrl);
-    console.log("accessKey", accessKey);
+
 
     if (!accessKey) {
         console.error("🔴 Missing Bunny storage access key");
@@ -123,7 +135,7 @@ export const uploadThumbnailToBunny = async (
     try {
         // Convert File to ArrayBuffer for raw binary upload
         const arrayBuffer = await file.arrayBuffer();
-        console.log("arrayBuffer", arrayBuffer);
+
         const buffer = Buffer.from(arrayBuffer);
 
         const response = await fetch(finalUploadUrl, {
@@ -159,6 +171,124 @@ export const uploadThumbnailToBunny = async (
             courseId,
             fileName: file.name,
             fileSize: file.size
+        });
+        throw error;
+    }
+};
+
+export const uploadAttachmentToBunny = async (
+    file: File,
+    lessonId: string
+): Promise<{ cdnUrl: string; fileExtension: string; fileName: string }> => {
+
+
+    const { uploadUrl, cdnUrl, accessKey, fileExtension, fileName } = await getAttachmentUploadUrl(lessonId, file.name);
+    const finalUploadUrl = uploadUrl;
+    const finalCdnUrl = cdnUrl;
+
+
+
+    if (!accessKey) {
+        console.error("🔴 Missing Bunny storage access key");
+        throw new Error("Bunny storage access key not configured");
+    }
+
+    try {
+        // Convert File to ArrayBuffer for raw binary upload
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const response = await fetch(finalUploadUrl, {
+            method: 'PUT',
+            headers: {
+                'AccessKey': accessKey,
+                'Content-Type': 'application/octet-stream',
+            },
+            body: buffer,
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("🔴 Attachment upload failed:", {
+                status: response.status,
+                statusText: response.statusText,
+                errorText,
+                finalUploadUrl,
+                fileName: file.name,
+            });
+            throw new Error(`Failed to upload attachment: ${response.status} - ${errorText}`);
+        }
+
+        return {
+            cdnUrl: finalCdnUrl,
+            fileExtension,
+            fileName,
+        };
+
+    } catch (error) {
+        console.error("🔴 Attachment upload process error:", {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            lessonId,
+            fileName: file.name,
+            fileSize: file.size
+        });
+        throw error;
+    }
+};
+
+export const deleteAttachmentFromBunny = async (fileUrl: string): Promise<void> => {
+    if (!fileUrl) {
+        throw new Error("File URL is required for deletion");
+    }
+
+    // Extract the file path from the CDN URL
+    // Example URL: https://closer-club-dev.b-cdn.net/attachments/1234567890-lessonId-filename.pdf
+    // We need to extract: attachments/1234567890-lessonId-filename.pdf
+    const cdnBaseUrl = BUNNY.CDN_URL;
+    if (!fileUrl.startsWith(cdnBaseUrl)) {
+        throw new Error("Invalid file URL - not from our CDN");
+    }
+
+    // Remove the CDN base URL to get the file path
+    const filePath = fileUrl.replace(cdnBaseUrl + "/", "");
+
+    // Construct the storage API delete URL
+    const deleteUrl = `${BUNNY.STORAGE_BASE_URL}/${filePath}`;
+
+    const accessKey = ACCESS_KEYS.storageAccessKey;
+
+    if (!accessKey) {
+        console.error("🔴 Missing Bunny storage access key");
+        throw new Error("Bunny storage access key not configured");
+    }
+
+    try {
+        const response = await fetch(deleteUrl, {
+            method: 'DELETE',
+            headers: {
+                'AccessKey': accessKey,
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("🔴 Delete failed:", {
+                status: response.status,
+                statusText: response.statusText,
+                errorText,
+                deleteUrl,
+                filePath,
+            });
+            throw new Error(`Failed to delete attachment from Bunny: ${response.status} - ${errorText}`);
+        }
+
+
+
+    } catch (error) {
+        console.error("🔴 Attachment deletion error:", {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            fileUrl,
+            filePath,
         });
         throw error;
     }

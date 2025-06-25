@@ -1,15 +1,14 @@
-import { data } from "react-router";
 import { and, eq } from "drizzle-orm";
-import { redirect } from "react-router";
+import { data, redirect } from "react-router";
 import db from "~/db/index.server";
-import { lessonsTable, modulesTable } from "~/db/schema";
+import { attachmentsTable, lessonsTable } from "~/db/schema";
 import { isAdminLoggedIn } from "~/lib/auth/auth.server";
+import { uploadAttachmentToBunny } from "~/lib/bunny.server";
 import { titleToSlug } from "~/lib/utils";
 import {
 	createSegmentSchema,
 	editSegmentSchema,
 } from "../../../zod-schemas/segment";
-import { getCourseBySlug } from "../../data-access/courses.server";
 import { getModuleBySlug } from "../../data-access/modules/modules.server";
 import { checkSegmentSlugUniqueForModule } from "../shared/shared.server";
 
@@ -24,9 +23,20 @@ export async function handleCreateSegment(
 		throw redirect("/admin/login");
 	}
 
-	const unvalidatedFields = createSegmentSchema.safeParse(
-		Object.fromEntries(formData),
-	);
+	// Extract attachments from formData before validation
+	const attachments = formData.getAll("attachments") as File[];
+
+
+	// Create form data object excluding attachments for validation
+	const formDataObject = {
+		name: formData.get("name"),
+		description: formData.get("description"),
+		videoUrl: formData.get("videoUrl"),
+		courseSlug: formData.get("courseSlug"),
+		moduleSlug: formData.get("moduleSlug"),
+	};
+
+	const unvalidatedFields = createSegmentSchema.safeParse(formDataObject);
 
 	if (!unvalidatedFields.success) {
 		return data(
@@ -78,6 +88,7 @@ export async function handleCreateSegment(
 				moduleId: module.id,
 			})
 			.returning({
+				id: lessonsTable.id,
 				slug: lessonsTable.slug,
 			});
 
@@ -86,6 +97,33 @@ export async function handleCreateSegment(
 				{ success: false, message: "Failed to create lesson" },
 				{ status: 500 },
 			);
+		}
+
+		// Upload attachments if provided
+		if (attachments.length > 0) {
+			const validAttachments = attachments.filter(file => file.size > 0);
+
+			if (validAttachments.length > 0) {
+				try {
+					const uploadPromises = validAttachments.map(async (file) => {
+						const { cdnUrl, fileExtension, fileName } = await uploadAttachmentToBunny(file, insertedSegment.id);
+
+						// Insert attachment record into database
+						return db.insert(attachmentsTable).values({
+							lessonId: insertedSegment.id,
+							fileName: fileName,
+							fileUrl: cdnUrl,
+							fileExtension: fileExtension,
+						});
+					});
+
+					await Promise.all(uploadPromises);
+				} catch (attachmentError) {
+					console.error("🔴 Error uploading attachments:", attachmentError);
+					// Note: We don't fail the entire operation if attachments fail
+					// The lesson is created successfully, just without attachments
+				}
+			}
 		}
 
 		return data(

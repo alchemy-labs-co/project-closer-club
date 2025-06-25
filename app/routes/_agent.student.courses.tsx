@@ -13,6 +13,7 @@ import {
 import { CourseCardSkeleton } from "~/components/global/student/student-skeleton";
 import type { Course } from "~/db/schema";
 import { getStudentCourses } from "~/lib/student/data-access/students.server";
+import { cn } from "~/lib/utils";
 import type { Route } from "./+types/_agent.student.courses";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -50,17 +51,33 @@ export default function StudentCourses({ loaderData }: Route.ComponentProps) {
 }
 
 function CourseCard({ course }: { course: Course }) {
-	const { name, description, slug } = course;
+	const { name, description, slug, thumbnailUrl } = course;
 
 	return (
-		<Card className="flex flex-col h-full transition-all duration-300 hover:shadow-lg hover:border-brand-primary/30">
-			<CardHeader>
-				<div className="flex items-center gap-2 mb-2">
-					<div className="bg-brand-primary/10 p-2 rounded-full">
-						<BookOpen className="h-5 w-5 text-brand-primary" />
-					</div>
-					<CardTitle className="text-xl">{name}</CardTitle>
+		<Card
+			className={cn(
+				"flex flex-col h-full transition-all duration-300 hover:shadow-lg hover:border-brand-primary/30",
+				thumbnailUrl && "pt-0"
+			)}
+		>
+			{thumbnailUrl && (
+				<div className="p-0">
+					<img
+						src={thumbnailUrl}
+						alt={`${name} thumbnail`}
+						className="w-full h-48 object-cover rounded-t-lg"
+					/>
 				</div>
+			)}
+			<CardHeader>
+				{!thumbnailUrl && (
+					<div className="flex items-center gap-2 mb-2">
+						<div className="bg-brand-primary/10 p-2 rounded-full">
+							<BookOpen className="h-5 w-5 text-brand-primary" />
+						</div>
+					</div>
+				)}
+				<CardTitle className="text-xl">{name}</CardTitle>
 			</CardHeader>
 			<CardContent className="flex-grow">
 				<CardDescription className="text-base">{description}</CardDescription>

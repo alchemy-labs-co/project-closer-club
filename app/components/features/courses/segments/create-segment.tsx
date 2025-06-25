@@ -1,5 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { FileText, ImagePlus } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import { redirect, useFetcher, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -21,6 +23,8 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import { Badge } from "~/components/ui/badge";
+import { MAX_ATTACHMENT_SIZE } from "~/lib/constants";
 import type { FetcherResponse } from "~/lib/types";
 import {
 	createSegmentSchema,
@@ -30,6 +34,18 @@ import {
 type CreateSegmentFetcherResponse = FetcherResponse & {
 	segmentSlug: string;
 };
+
+const ACCEPTED_FILE_TYPES = {
+	"application/pdf": [".pdf"],
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+		".docx",
+	],
+	"application/msword": [".doc"],
+	"image/png": [".png"],
+	"image/jpg": [".jpg"],
+	"image/jpeg": [".jpeg"],
+};
+
 export function CreateSegment() {
 	const params = useParams();
 	const courseSlug = params.slug;
@@ -39,6 +55,7 @@ export function CreateSegment() {
 	if (!moduleSlug) throw redirect(`/dashboard/courses/${courseSlug}`);
 
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [attachments, setAttachments] = useState<File[]>([]);
 	const fetcher = useFetcher<CreateSegmentFetcherResponse>();
 	const isSubmitting = fetcher.state === "submitting";
 	const navigate = useNavigate();
@@ -50,8 +67,32 @@ export function CreateSegment() {
 			videoUrl: "",
 			courseSlug: courseSlug || "",
 			moduleSlug: moduleSlug || "",
+			attachments: [],
 		},
 	});
+
+	const onDrop = useCallback(
+		(acceptedFiles: File[]) => {
+			const newAttachments = [...attachments, ...acceptedFiles];
+			setAttachments(newAttachments);
+			form.setValue("attachments", newAttachments);
+		},
+		[attachments, form]
+	);
+
+	const { getRootProps, getInputProps, isDragActive, fileRejections } =
+		useDropzone({
+			onDrop,
+			maxSize: MAX_ATTACHMENT_SIZE,
+			accept: ACCEPTED_FILE_TYPES,
+			multiple: true,
+		});
+
+	const removeAttachment = (index: number) => {
+		const newAttachments = attachments.filter((_, i) => i !== index);
+		setAttachments(newAttachments);
+		form.setValue("attachments", newAttachments);
+	};
 
 	useEffect(() => {
 		if (fetcher.data) {
@@ -74,7 +115,7 @@ export function CreateSegment() {
 			<DialogTrigger asChild>
 				<PrimaryButton>Add Lesson</PrimaryButton>
 			</DialogTrigger>
-			<DialogContent className="flex flex-col gap-8">
+			<DialogContent className="flex flex-col gap-8 max-w-3xl max-h-[80vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>Create Lesson</DialogTitle>
 				</DialogHeader>
@@ -83,14 +124,28 @@ export function CreateSegment() {
 						method="POST"
 						action="/resource/segment"
 						className="flex flex-col gap-4"
+						encType="multipart/form-data"
 						onSubmit={form.handleSubmit((data) => {
-							fetcher.submit(
-								{ ...data, intent: "create-segment" },
-								{
-									action: "/resource/segment",
-									method: "POST",
-								}
-							);
+							const formData = new FormData();
+							formData.append("intent", "create-segment");
+							formData.append("name", data.name);
+							formData.append("description", data.description);
+							formData.append("videoUrl", data.videoUrl);
+							formData.append("courseSlug", data.courseSlug);
+							formData.append("moduleSlug", data.moduleSlug);
+
+							// Add attachments
+							if (data.attachments) {
+								data.attachments.forEach((file) => {
+									formData.append("attachments", file);
+								});
+							}
+
+							fetcher.submit(formData, {
+								method: "POST",
+								action: "/resource/segment",
+								encType: "multipart/form-data",
+							});
 						})}
 					>
 						<FormField
@@ -156,6 +211,92 @@ export function CreateSegment() {
 								</FormItem>
 							)}
 						/>
+
+						<FormField
+							control={form.control}
+							name="attachments"
+							disabled={isSubmitting}
+							render={() => (
+								<FormItem>
+									<FormLabel
+										className={`${
+											fileRejections.length !== 0 && "text-destructive"
+										}`}
+									>
+										Lesson Attachments (Optional)
+									</FormLabel>
+									<FormControl>
+										<div
+											{...getRootProps()}
+											className="flex cursor-pointer flex-col items-center justify-center gap-y-2 rounded-lg border-2 border-dashed border-gray-300 p-6 transition-colors hover:border-gray-400"
+										>
+											<FileText className="size-8 text-gray-400" />
+											<Input
+												{...getInputProps()}
+												type="file"
+												className="hidden"
+											/>
+											{isDragActive ? (
+												<p className="text-sm text-gray-600">
+													Drop the files here!
+												</p>
+											) : (
+												<p className="text-sm text-gray-600">
+													Click here or drag files to upload
+													<br />
+													<span className="text-xs text-gray-500">
+														Supports: PDF, DOCX, DOC, PNG, JPG, JPEG (Max 10MB
+														each)
+													</span>
+												</p>
+											)}
+										</div>
+									</FormControl>
+
+									{/* Display uploaded files */}
+									{attachments.length > 0 && (
+										<div className="mt-4 space-y-2">
+											<p className="text-sm font-medium">Uploaded Files:</p>
+											<div className="flex flex-wrap gap-2">
+												{attachments.map((file, index) => (
+													<Badge
+														key={index}
+														variant="secondary"
+														className="flex items-center gap-2 px-3 py-1 max-w-xs"
+													>
+														<FileText className="h-3 w-3 flex-shrink-0" />
+														<span
+															className="text-xs truncate max-w-40"
+															title={file.name}
+														>
+															{file.name}
+														</span>
+														<button
+															type="button"
+															onClick={() => removeAttachment(index)}
+															className="ml-1 text-red-500 hover:text-red-700 flex-shrink-0"
+														>
+															×
+														</button>
+													</Badge>
+												))}
+											</div>
+										</div>
+									)}
+
+									<FormMessage>
+										{fileRejections.length !== 0 && (
+											<p>
+												Some files were rejected. Please ensure files are less
+												than 10MB and of supported types (PDF, DOCX, DOC, PNG,
+												JPG, JPEG)
+											</p>
+										)}
+									</FormMessage>
+								</FormItem>
+							)}
+						/>
+
 						<FormField
 							control={form.control}
 							name="courseSlug"

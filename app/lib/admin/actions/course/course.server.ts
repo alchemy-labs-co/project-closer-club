@@ -19,10 +19,10 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 	if (!isLoggedIn) {
 		throw redirect("/admin/login");
 	}
-	console.log('students', formData.get("students"))
+
 	const studentsIds = (formData.get("students") as string).split(",");
 	const thumbnail = formData.get("thumbnail");
-	console.log("thumbnail", thumbnail);
+
 
 	// check if is instance of File
 	if (!(thumbnail instanceof File)) {
@@ -134,6 +134,7 @@ export async function handleEditCourse(request: Request, formData: FormData) {
 	}
 	const courseId = formData.get("id") as string;
 	const slug = formData.get("slug") as string;
+	const thumbnail = formData.get("thumbnail");
 
 	if (!courseId) {
 		return data(
@@ -149,10 +150,14 @@ export async function handleEditCourse(request: Request, formData: FormData) {
 		);
 	}
 
+	const formDataObject = {
+		name: formData.get("name"),
+		description: formData.get("description"),
+		thumbnail: thumbnail,
+	};
+
 	// validate the form data
-	const unavlidatedFields = updateCourseSchema.safeParse(
-		Object.fromEntries(formData),
-	);
+	const unavlidatedFields = updateCourseSchema.safeParse(formDataObject);
 
 	if (!unavlidatedFields.success) {
 		return data(
@@ -179,14 +184,32 @@ export async function handleEditCourse(request: Request, formData: FormData) {
 			}
 		}
 
+		// Prepare update data
+		const updateData: {
+			name: string;
+			description: string;
+			slug: string;
+			thumbnailUrl?: string;
+		} = {
+			name: validatedFields.name,
+			description: validatedFields.description,
+			slug: newSlug,
+		};
+
+		// Upload thumbnail if provided and has content
+		if (thumbnail instanceof File && thumbnail.size > 0) {
+			try {
+				const thumbnailUrl = await uploadThumbnailToBunny(thumbnail, courseId);
+				updateData.thumbnailUrl = thumbnailUrl;
+			} catch (thumbnailError) {
+				console.error("🔴 Error uploading thumbnail:", thumbnailError);
+			}
+		}
+
 		// update the course
 		const [updatedCourse] = await db
 			.update(coursesTable)
-			.set({
-				name: validatedFields.name,
-				description: validatedFields.description,
-				slug: newSlug,
-			})
+			.set(updateData)
 			.where(eq(coursesTable.id, courseId))
 			.returning({
 				slug: coursesTable.slug,
