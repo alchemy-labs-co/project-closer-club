@@ -34,6 +34,11 @@ import {
 	createSegmentSchema,
 	type CreateSegmentSchema,
 } from "~/lib/zod-schemas/segment";
+import {
+	uploadVideoDirectlyToBunny,
+	uploadAttachmentDirectlyToBunny,
+	uploadWithProgress,
+} from "~/lib/utils";
 
 type CreateSegmentFetcherResponse = FetcherResponse & {
 	segmentSlug: string;
@@ -61,8 +66,14 @@ export function CreateSegment() {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [attachments, setAttachments] = useState<File[]>([]);
 	const [videoPreview, setVideoPreview] = useState<string | null>(null);
+	const [uploadProgress, setUploadProgress] = useState<{
+		video: number;
+		attachments: { [key: string]: number };
+	}>({ video: 0, attachments: {} });
+	const [isUploading, setIsUploading] = useState(false);
+
 	const fetcher = useFetcher<CreateSegmentFetcherResponse>();
-	const isSubmitting = fetcher.state === "submitting";
+	const isSubmitting = fetcher.state === "submitting" || isUploading;
 	const navigate = useNavigate();
 	const form = useForm<CreateSegmentSchema>({
 		resolver: zodResolver(createSegmentSchema),
@@ -125,6 +136,103 @@ export function CreateSegment() {
 		form.setValue("attachments", newAttachments);
 	};
 
+	const handleDirectUpload = async (data: CreateSegmentSchema) => {
+		setIsUploading(true);
+
+		try {
+			// Step 1: Generate upload tokens
+			const tokenFormData = new FormData();
+			tokenFormData.append("intent", "generate-upload-tokens");
+			tokenFormData.append("name", data.name);
+			tokenFormData.append("lessonId", "temp"); // Will be replaced with actual ID
+
+			// Add attachment file names for token generation
+			attachments.forEach((file) => {
+				tokenFormData.append("attachmentNames", file.name);
+			});
+
+			const tokenResponse = await fetch("/resource/segment", {
+				method: "POST",
+				body: tokenFormData,
+			});
+
+			const tokens = await tokenResponse.json();
+
+			if (!tokens.success) {
+				throw new Error(tokens.message || "Failed to generate upload tokens");
+			}
+
+			// Step 2: Upload video directly to Bunny
+			const videoSuccess = await uploadWithProgress(
+				data.videoFile,
+				tokens.videoToken.uploadUrl,
+				tokens.videoToken.accessKey,
+				(progress) =>
+					setUploadProgress((prev) => ({ ...prev, video: progress }))
+			);
+
+			if (!videoSuccess) {
+				throw new Error("Failed to upload video");
+			}
+
+			// Step 3: Upload attachments directly to Bunny
+			const attachmentData: Array<{
+				fileName: string;
+				fileUrl: string;
+				fileExtension: string;
+			}> = [];
+
+			for (let i = 0; i < attachments.length; i++) {
+				const file = attachments[i];
+				const token = tokens.attachmentTokens[i];
+
+				const attachmentSuccess = await uploadWithProgress(
+					file,
+					token.uploadUrl,
+					token.accessKey,
+					(progress) =>
+						setUploadProgress((prev) => ({
+							...prev,
+							attachments: { ...prev.attachments, [file.name]: progress },
+						}))
+				);
+
+				if (attachmentSuccess) {
+					attachmentData.push({
+						fileName: token.fileName,
+						fileUrl: token.cdnUrl,
+						fileExtension: token.fileExtension,
+					});
+				}
+			}
+
+			// Step 4: Confirm uploads and create lesson record
+			const confirmFormData = new FormData();
+			confirmFormData.append("intent", "confirm-uploads");
+			confirmFormData.append("videoGuid", tokens.videoToken.videoGuid);
+			confirmFormData.append("name", data.name);
+			confirmFormData.append("description", data.description);
+			confirmFormData.append("courseSlug", data.courseSlug);
+			confirmFormData.append("moduleSlug", data.moduleSlug);
+
+			if (attachmentData.length > 0) {
+				confirmFormData.append(
+					"attachmentData",
+					JSON.stringify(attachmentData)
+				);
+			}
+
+			fetcher.submit(confirmFormData, {
+				method: "POST",
+				action: "/resource/segment",
+			});
+		} catch (error) {
+			console.error("Upload error:", error);
+			toast.error(error instanceof Error ? error.message : "Upload failed");
+			setIsUploading(false);
+		}
+	};
+
 	useEffect(() => {
 		if (fetcher.data) {
 			if (fetcher.data.success) {
@@ -138,6 +246,10 @@ export function CreateSegment() {
 			if (!fetcher.data.success) {
 				toast.error(fetcher.data.message);
 			}
+
+			// Reset upload state
+			setIsUploading(false);
+			setUploadProgress({ video: 0, attachments: {} });
 		}
 	}, [fetcher.data, courseSlug, moduleSlug, navigate]);
 
@@ -151,34 +263,63 @@ export function CreateSegment() {
 					<DialogTitle>Create Lesson</DialogTitle>
 				</DialogHeader>
 				<Form {...form}>
-					<fetcher.Form
-						method="POST"
-						action="/resource/segment"
+					<form
 						className="flex flex-col gap-4"
-						encType="multipart/form-data"
-						onSubmit={form.handleSubmit((data) => {
-							const formData = new FormData();
-							formData.append("intent", "create-segment");
-							formData.append("name", data.name);
-							formData.append("description", data.description);
-							formData.append("videoFile", data.videoFile);
-							formData.append("courseSlug", data.courseSlug);
-							formData.append("moduleSlug", data.moduleSlug);
-
-							// Add attachments
-							if (data.attachments) {
-								data.attachments.forEach((file) => {
-									formData.append("attachments", file);
-								});
-							}
-
-							fetcher.submit(formData, {
-								method: "POST",
-								action: "/resource/segment",
-								encType: "multipart/form-data",
-							});
-						})}
+						onSubmit={form.handleSubmit(handleDirectUpload)}
 					>
+						{/* Upload Progress Display */}
+						{isUploading && (
+							<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+								<h3 className="font-medium text-blue-800 mb-3">
+									Upload Progress
+								</h3>
+
+								{/* Video Upload Progress */}
+								<div className="mb-4">
+									<div className="flex justify-between text-sm text-blue-700 mb-1">
+										<span>Video Upload</span>
+										<span>{uploadProgress.video}%</span>
+									</div>
+									<div className="w-full bg-blue-200 rounded-full h-2">
+										<div
+											className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+											style={{ width: `${uploadProgress.video}%` }}
+										/>
+									</div>
+								</div>
+
+								{/* Attachment Upload Progress */}
+								{Object.keys(uploadProgress.attachments).length > 0 && (
+									<div>
+										<h4 className="text-sm font-medium text-blue-700 mb-2">
+											Attachments
+										</h4>
+										{Object.entries(uploadProgress.attachments).map(
+											([fileName, progress]) => (
+												<div key={fileName} className="mb-2">
+													<div className="flex justify-between text-xs text-blue-600 mb-1">
+														<span
+															className="truncate max-w-40"
+															title={fileName}
+														>
+															{fileName}
+														</span>
+														<span>{progress}%</span>
+													</div>
+													<div className="w-full bg-blue-200 rounded-full h-1">
+														<div
+															className="bg-blue-500 h-1 rounded-full transition-all duration-300"
+															style={{ width: `${progress}%` }}
+														/>
+													</div>
+												</div>
+											)
+										)}
+									</div>
+								)}
+							</div>
+						)}
+
 						<FormField
 							control={form.control}
 							name="name"
@@ -388,10 +529,20 @@ export function CreateSegment() {
 								</FormItem>
 							)}
 						/>
-						<PrimaryButton type="submit" disabled={isSubmitting}>
-							{isSubmitting ? "Creating Lesson..." : "Create Lesson"}
-						</PrimaryButton>
-					</fetcher.Form>
+						<div className="flex justify-end">
+							<PrimaryButton
+								type="submit"
+								disabled={isSubmitting}
+								className="min-w-32"
+							>
+								{isSubmitting
+									? isUploading
+										? "Uploading..."
+										: "Creating..."
+									: "Create Lesson"}
+							</PrimaryButton>
+						</div>
+					</form>
 				</Form>
 			</DialogContent>
 		</Dialog>

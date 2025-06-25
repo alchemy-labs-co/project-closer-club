@@ -3,12 +3,16 @@ import {
 	handleCreateSegment,
 	handleDeleteSegment,
 	handleEditSegment,
+	handleGenerateUploadTokens,
+	handleConfirmUploads,
 } from "~/lib/admin/actions/segment/segment.server";
 
 const intents = [
 	"create-segment",
 	"edit-segment",
 	"delete-segment",
+	"generate-upload-tokens",
+	"confirm-uploads",
 ];
 
 export async function loader() {
@@ -30,6 +34,8 @@ export async function action({ request }: ActionFunctionArgs) {
 			"create-segment": handleCreateSegment,
 			"edit-segment": handleEditSegment,
 			"delete-segment": handleDeleteSegment,
+			"generate-upload-tokens": handleGenerateUploadTokens,
+			"confirm-uploads": handleConfirmUploads,
 		} as const;
 
 		const handler = handlers[intent as keyof typeof handlers];

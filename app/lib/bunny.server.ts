@@ -439,3 +439,62 @@ export const createAndUploadVideoToBunnyStream = async (
         throw error;
     }
 };
+
+// Generate pre-signed URL for direct video upload to Bunny Stream
+export const generateVideoUploadToken = async (
+    title: string,
+    libraryId: string,
+    collectionId?: string,
+    thumbnailTime?: number
+) => {
+    try {
+        // Step 1: Create video in library to get the GUID
+        const videoResponse = await createVideoInBunnyStream(title, libraryId, collectionId, thumbnailTime);
+
+        // Step 2: Return upload URL and video GUID for client-side upload
+        const uploadUrl = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoResponse.guid}`;
+
+        return {
+            videoGuid: videoResponse.guid,
+            uploadUrl,
+            accessKey: ACCESS_KEYS.streamAccessKey,
+            videoResponse
+        };
+    } catch (error) {
+        console.error("🔴 Error generating video upload token:", error);
+        throw error;
+    }
+};
+
+// Generate pre-signed URL for direct attachment upload to Bunny Storage
+export const generateAttachmentUploadToken = async (
+    lessonId: string,
+    fileName: string
+) => {
+    try {
+        const { uploadUrl, cdnUrl, accessKey, fileExtension } = await getAttachmentUploadUrl(lessonId, fileName);
+
+        return {
+            uploadUrl,
+            cdnUrl,
+            accessKey,
+            fileExtension,
+            fileName
+        };
+    } catch (error) {
+        console.error("🔴 Error generating attachment upload token:", error);
+        throw error;
+    }
+};
+
+// Function to confirm video upload completion (called after client-side upload)
+export const confirmVideoUpload = async (videoGuid: string, libraryId: string) => {
+    try {
+        // You can add any post-upload verification here if needed
+        // For now, just return the GUID as confirmation
+        return { success: true, videoGuid };
+    } catch (error) {
+        console.error("🔴 Error confirming video upload:", error);
+        throw error;
+    }
+};

@@ -331,3 +331,182 @@ export async function handleMakeSegmentPublic(request: Request, formData: FormDa
 async function checkIfFirstLessonInFirstModule(module: any, courseSlug: string): Promise<boolean> {
 	return false; // Always return false since we no longer use this logic
 }
+
+export async function handleGenerateUploadTokens(
+	request: Request,
+	formData: FormData,
+) {
+	// auth check
+	const { isLoggedIn } = await isAdminLoggedIn(request);
+
+	if (!isLoggedIn) {
+		throw redirect("/admin/login");
+	}
+
+	try {
+		const name = formData.get("name") as string;
+		const lessonId = formData.get("lessonId") as string;
+		const attachmentNames = formData.getAll("attachmentNames") as string[];
+
+		if (!name) {
+			return data(
+				{ success: false, message: "Lesson name is required" },
+				{ status: 400 },
+			);
+		}
+
+		// Generate video upload token
+		const { generateVideoUploadToken, generateAttachmentUploadToken } = await import("~/lib/bunny.server");
+
+		const videoToken = await generateVideoUploadToken(
+			name,
+			dashboardConfig.libraryId!,
+		);
+
+		// Generate attachment upload tokens if provided
+		const attachmentTokens = await Promise.all(
+			attachmentNames.map(fileName =>
+				generateAttachmentUploadToken(lessonId || "temp", fileName)
+			)
+		);
+
+		return data(
+			{
+				success: true,
+				videoToken,
+				attachmentTokens,
+			},
+			{ status: 200 },
+		);
+	} catch (error) {
+		console.error("Error generating upload tokens:", error);
+		return data(
+			{
+				success: false,
+				message: error instanceof Error ? error.message : "Failed to generate upload tokens",
+			},
+			{ status: 500 },
+		);
+	}
+}
+
+export async function handleConfirmUploads(
+	request: Request,
+	formData: FormData,
+) {
+	// auth check
+	const { isLoggedIn } = await isAdminLoggedIn(request);
+
+	if (!isLoggedIn) {
+		throw redirect("/admin/login");
+	}
+
+	try {
+		const videoGuid = formData.get("videoGuid") as string;
+		const attachmentUrls = formData.getAll("attachmentUrls") as string[];
+		const attachmentData = formData.get("attachmentData") as string;
+
+		const name = formData.get("name") as string;
+		const description = formData.get("description") as string;
+		const courseSlug = formData.get("courseSlug") as string;
+		const moduleSlug = formData.get("moduleSlug") as string;
+
+		if (!videoGuid || !name || !description || !courseSlug || !moduleSlug) {
+			return data(
+				{ success: false, message: "Missing required fields" },
+				{ status: 400 },
+			);
+		}
+
+		// Get the module where the lesson will be created
+		const { success: moduleResponse, module } = await getModuleBySlug(
+			request,
+			moduleSlug,
+			courseSlug,
+		);
+
+		if (!moduleResponse || !module) {
+			return data(
+				{ success: false, message: "Module not found" },
+				{ status: 404 },
+			);
+		}
+
+		// Convert lesson name to slug
+		const slug = titleToSlug(name);
+
+		// Check the slug created is unique within this module
+		const isSlugUnique = await checkSegmentSlugUniqueForModule(slug, module.id);
+		if (!isSlugUnique) {
+			return data(
+				{ success: false, message: "a lesson with this name already exists in this module" },
+				{ status: 400 },
+			);
+		}
+
+		// Insert lesson into database
+		const [insertedSegment] = await db
+			.insert(lessonsTable)
+			.values({
+				name,
+				description,
+				videoUrl: videoGuid, // Store the video GUID as videoUrl
+				slug,
+				moduleId: module.id,
+			})
+			.returning({
+				id: lessonsTable.id,
+				slug: lessonsTable.slug,
+			});
+
+		if (!insertedSegment) {
+			return data(
+				{ success: false, message: "Failed to create lesson" },
+				{ status: 500 },
+			);
+		}
+
+		// Save attachment data if provided
+		if (attachmentData) {
+			try {
+				const attachments = JSON.parse(attachmentData) as Array<{
+					fileName: string;
+					fileUrl: string;
+					fileExtension: string;
+				}>;
+
+				const attachmentPromises = attachments.map(attachment =>
+					db.insert(attachmentsTable).values({
+						lessonId: insertedSegment.id,
+						fileName: attachment.fileName,
+						fileUrl: attachment.fileUrl,
+						fileExtension: attachment.fileExtension,
+					})
+				);
+
+				await Promise.all(attachmentPromises);
+			} catch (attachmentError) {
+				console.error("🔴 Error saving attachments:", attachmentError);
+				// Note: We don't fail the entire operation if attachments fail
+			}
+		}
+
+		return data(
+			{
+				success: true,
+				message: "Lesson created successfully",
+				segmentSlug: insertedSegment.slug,
+			},
+			{ status: 200 },
+		);
+	} catch (error) {
+		console.error("Error confirming uploads:", error);
+		return data(
+			{
+				success: false,
+				message: error instanceof Error ? error.message : "Failed to confirm uploads",
+			},
+			{ status: 500 },
+		);
+	}
+}

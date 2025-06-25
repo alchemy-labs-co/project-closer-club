@@ -184,3 +184,99 @@ export function daysAgo(inputDate: Date): string {
 export const createIframeLink = (videoId: string) =>
 	`https://iframe.mediadelivery.net/embed/455348/${videoId}?autoplay=true&preload=true`;
 
+// Client-side upload utilities for Bunny CDN
+export const uploadVideoDirectlyToBunny = async (
+	file: File,
+	uploadUrl: string,
+	accessKey: string
+): Promise<boolean> => {
+	try {
+		const response = await fetch(uploadUrl, {
+			method: 'PUT',
+			headers: {
+				'AccessKey': accessKey,
+				'Content-Type': file.type,
+			},
+			body: file,
+		});
+
+		if (!response.ok) {
+			console.error('🔴 Direct video upload failed:', response.status, response.statusText);
+			return false;
+		}
+
+		return true;
+	} catch (error) {
+		console.error('🔴 Error uploading video directly to Bunny:', error);
+		return false;
+	}
+};
+
+export const uploadAttachmentDirectlyToBunny = async (
+	file: File,
+	uploadUrl: string,
+	accessKey: string
+): Promise<boolean> => {
+	try {
+		const response = await fetch(uploadUrl, {
+			method: 'PUT',
+			headers: {
+				'AccessKey': accessKey,
+				'Content-Type': 'application/octet-stream',
+			},
+			body: file,
+		});
+
+		if (!response.ok) {
+			console.error('🔴 Direct attachment upload failed:', response.status, response.statusText);
+			return false;
+		}
+
+		return true;
+	} catch (error) {
+		console.error('🔴 Error uploading attachment directly to Bunny:', error);
+		return false;
+	}
+};
+
+// Upload progress tracking utilities
+export const uploadWithProgress = async (
+	file: File,
+	uploadUrl: string,
+	accessKey: string,
+	onProgress?: (progress: number) => void
+): Promise<boolean> => {
+	return new Promise((resolve) => {
+		const xhr = new XMLHttpRequest();
+
+		// Track upload progress
+		if (onProgress) {
+			xhr.upload.addEventListener('progress', (e) => {
+				if (e.lengthComputable) {
+					const progress = Math.round((e.loaded / e.total) * 100);
+					onProgress(progress);
+				}
+			});
+		}
+
+		xhr.addEventListener('load', () => {
+			if (xhr.status >= 200 && xhr.status < 300) {
+				resolve(true);
+			} else {
+				console.error('🔴 Upload failed:', xhr.status, xhr.statusText);
+				resolve(false);
+			}
+		});
+
+		xhr.addEventListener('error', () => {
+			console.error('🔴 Upload error');
+			resolve(false);
+		});
+
+		xhr.open('PUT', uploadUrl);
+		xhr.setRequestHeader('AccessKey', accessKey);
+		xhr.setRequestHeader('Content-Type', file.type.startsWith('video/') ? file.type : 'application/octet-stream');
+		xhr.send(file);
+	});
+};
+
