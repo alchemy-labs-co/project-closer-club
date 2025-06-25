@@ -410,7 +410,7 @@ export const uploadVideoToBunnyStream = async (
     }
 };
 
-// Create video in Bunny Stream Library (Bunny handles upload automatically)
+// Combined function to create video and upload file
 export const createAndUploadVideoToBunnyStream = async (
     file: File,
     title: string,
@@ -419,14 +419,17 @@ export const createAndUploadVideoToBunnyStream = async (
     thumbnailTime?: number
 ): Promise<string> => {
     try {
-        // Create video in library - Bunny automatically handles the file upload
+        // Step 1: Create video in library
         const videoResponse = await createVideoInBunnyStream(title, libraryId, collectionId, thumbnailTime);
+
+        // Step 2: Upload the actual video file
+        await uploadVideoToBunnyStream(file, videoResponse.guid, libraryId);
 
         // Return the video GUID (this will be stored as videoUrl in the database)
         return videoResponse.guid;
 
     } catch (error) {
-        console.error("🔴 Create video error:", {
+        console.error("🔴 Create and upload video error:", {
             error: error instanceof Error ? error.message : 'Unknown error',
             title,
             libraryId,
