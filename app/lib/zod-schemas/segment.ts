@@ -3,7 +3,7 @@ import { z } from "zod";
 export const createSegmentSchema = z.object({
 	name: z.string().min(1, { message: "Name is required" }).trim(),
 	description: z.string().min(1, { message: "Description is required" }).trim(),
-	videoUrl: z.string().min(1, { message: "Video URL is required" }).trim(),
+	videoFile: z.instanceof(File, { message: "Video file is required" }),
 	courseSlug: z.string().min(1, { message: "Course slug is required" }).trim(),
 	moduleSlug: z.string().min(1, { message: "Module slug is required" }).trim(),
 	attachments: z

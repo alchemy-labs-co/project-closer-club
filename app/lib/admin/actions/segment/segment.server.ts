@@ -3,7 +3,8 @@ import { data, redirect } from "react-router";
 import db from "~/db/index.server";
 import { attachmentsTable, lessonsTable } from "~/db/schema";
 import { isAdminLoggedIn } from "~/lib/auth/auth.server";
-import { uploadAttachmentToBunny } from "~/lib/bunny.server";
+import { uploadAttachmentToBunny, createAndUploadVideoToBunnyStream } from "~/lib/bunny.server";
+import { dashboardConfig } from "~/config/dashboard";
 import { titleToSlug } from "~/lib/utils";
 import {
 	createSegmentSchema,
@@ -23,17 +24,18 @@ export async function handleCreateSegment(
 		throw redirect("/admin/login");
 	}
 
-	// Extract attachments from formData before validation
+	// Extract attachments and video file from formData before validation
 	const attachments = formData.getAll("attachments") as File[];
+	const videoFileFromForm = formData.get("videoFile") as File;
 
-
-	// Create form data object excluding attachments for validation
+	// Create form data object including video file for validation
 	const formDataObject = {
 		name: formData.get("name"),
 		description: formData.get("description"),
-		videoUrl: formData.get("videoUrl"),
+		videoFile: videoFileFromForm,
 		courseSlug: formData.get("courseSlug"),
 		moduleSlug: formData.get("moduleSlug"),
+		attachments: attachments,
 	};
 
 	const unvalidatedFields = createSegmentSchema.safeParse(formDataObject);
@@ -45,7 +47,7 @@ export async function handleCreateSegment(
 		);
 	}
 
-	const { courseSlug, moduleSlug, name, description, videoUrl } = unvalidatedFields.data;
+	const { courseSlug, moduleSlug, name, description, videoFile } = unvalidatedFields.data;
 
 	try {
 		// getting the module where the lesson will be created
@@ -77,13 +79,29 @@ export async function handleCreateSegment(
 		// Check if this is the first lesson in the first module of the course
 		const isFirstLessonInFirstModule = await checkIfFirstLessonInFirstModule(module, courseSlug);
 
+		// Upload video to Bunny Stream and get the video GUID
+		let videoGuid: string;
+		try {
+			videoGuid = await createAndUploadVideoToBunnyStream(
+				videoFile,
+				name, // Use lesson name as video title
+				dashboardConfig.libraryId!, // Library ID from config
+			);
+		} catch (videoError) {
+			console.error("🔴 Error uploading video:", videoError);
+			return data(
+				{ success: false, message: "Failed to upload video. Please try again." },
+				{ status: 500 },
+			);
+		}
+
 		// insert lesson into database
 		const [insertedSegment] = await db
 			.insert(lessonsTable)
 			.values({
 				name,
 				description,
-				videoUrl,
+				videoUrl: videoGuid, // Store the video GUID as videoUrl
 				slug,
 				moduleId: module.id,
 			})

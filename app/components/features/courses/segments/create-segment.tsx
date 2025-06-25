@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText, ImagePlus } from "lucide-react";
+import { FileText, Video } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
@@ -24,7 +24,11 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
-import { MAX_ATTACHMENT_SIZE } from "~/lib/constants";
+import {
+	MAX_ATTACHMENT_SIZE,
+	MAX_VIDEO_SIZE,
+	ACCEPTED_VIDEO_TYPES,
+} from "~/lib/constants";
 import type { FetcherResponse } from "~/lib/types";
 import {
 	createSegmentSchema,
@@ -56,6 +60,7 @@ export function CreateSegment() {
 
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [attachments, setAttachments] = useState<File[]>([]);
+	const [videoPreview, setVideoPreview] = useState<string | null>(null);
 	const fetcher = useFetcher<CreateSegmentFetcherResponse>();
 	const isSubmitting = fetcher.state === "submitting";
 	const navigate = useNavigate();
@@ -64,14 +69,28 @@ export function CreateSegment() {
 		defaultValues: {
 			name: "",
 			description: "",
-			videoUrl: "",
+			videoFile: new File([""], "filename"),
 			courseSlug: courseSlug || "",
 			moduleSlug: moduleSlug || "",
 			attachments: [],
 		},
 	});
 
-	const onDrop = useCallback(
+	const onVideoDropRef = useCallback(
+		(acceptedFiles: File[]) => {
+			if (acceptedFiles[0]) {
+				const file = acceptedFiles[0];
+				const reader = new FileReader();
+				reader.onload = () => setVideoPreview(reader.result as string);
+				reader.readAsDataURL(file);
+				form.setValue("videoFile", file);
+				form.clearErrors("videoFile");
+			}
+		},
+		[form]
+	);
+
+	const onAttachmentDrop = useCallback(
 		(acceptedFiles: File[]) => {
 			const newAttachments = [...attachments, ...acceptedFiles];
 			setAttachments(newAttachments);
@@ -80,9 +99,21 @@ export function CreateSegment() {
 		[attachments, form]
 	);
 
+	const {
+		getRootProps: getVideoRootProps,
+		getInputProps: getVideoInputProps,
+		isDragActive: isVideoDragActive,
+		fileRejections: videoFileRejections,
+	} = useDropzone({
+		onDrop: onVideoDropRef,
+		maxFiles: 1,
+		maxSize: MAX_VIDEO_SIZE,
+		accept: ACCEPTED_VIDEO_TYPES,
+	});
+
 	const { getRootProps, getInputProps, isDragActive, fileRejections } =
 		useDropzone({
-			onDrop,
+			onDrop: onAttachmentDrop,
 			maxSize: MAX_ATTACHMENT_SIZE,
 			accept: ACCEPTED_FILE_TYPES,
 			multiple: true,
@@ -130,7 +161,7 @@ export function CreateSegment() {
 							formData.append("intent", "create-segment");
 							formData.append("name", data.name);
 							formData.append("description", data.description);
-							formData.append("videoUrl", data.videoUrl);
+							formData.append("videoFile", data.videoFile);
 							formData.append("courseSlug", data.courseSlug);
 							formData.append("moduleSlug", data.moduleSlug);
 
@@ -192,22 +223,58 @@ export function CreateSegment() {
 						/>
 						<FormField
 							control={form.control}
-							name="videoUrl"
+							name="videoFile"
 							disabled={isSubmitting}
-							render={({ field }) => (
+							render={() => (
 								<FormItem>
-									<FormLabel>
-										Video URL <span className="text-xs text-red-500">*</span>
+									<FormLabel
+										className={`${
+											videoFileRejections.length !== 0 && "text-destructive"
+										}`}
+									>
+										Video File <span className="text-xs text-red-500">*</span>
 									</FormLabel>
 									<FormControl>
-										<Input
-											placeholder="Enter video URL"
-											type="text"
-											className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
-											{...field}
-										/>
+										<div
+											{...getVideoRootProps()}
+											className="flex cursor-pointer flex-col items-center justify-center gap-y-2 rounded-lg border-2 border-dashed border-gray-300 p-6 transition-colors hover:border-gray-400"
+										>
+											{videoPreview ? (
+												<video
+													src={videoPreview}
+													controls
+													className="max-h-[200px] rounded-lg object-cover"
+												/>
+											) : (
+												<Video className="size-12 text-gray-400" />
+											)}
+											<input
+												{...getVideoInputProps()}
+												type="file"
+												className="hidden"
+											/>
+											{isVideoDragActive ? (
+												<p className="text-sm text-gray-600">Drop the video!</p>
+											) : (
+												<p className="text-sm text-gray-600">
+													Click here or drag a video file to upload
+													<br />
+													<span className="text-xs text-gray-500">
+														Supports: MP4, AVI, MOV, WMV, WebM, MKV (Max{" "}
+														{MAX_VIDEO_SIZE / 1024 / 1024}MB)
+													</span>
+												</p>
+											)}
+										</div>
 									</FormControl>
-									<FormMessage />
+									<FormMessage>
+										{videoFileRejections.length !== 0 && (
+											<p>
+												Video must be less than {MAX_VIDEO_SIZE / 1024 / 1024}MB
+												and of supported format (MP4, AVI, MOV, WMV, WebM, MKV)
+											</p>
+										)}
+									</FormMessage>
 								</FormItem>
 							)}
 						/>
