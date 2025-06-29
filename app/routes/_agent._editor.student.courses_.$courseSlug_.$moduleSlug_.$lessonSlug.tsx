@@ -5,7 +5,13 @@ import {
 	LockIcon,
 } from "lucide-react";
 import React, { Suspense } from "react";
-import { Link, redirect, useFetcher, useRouteLoaderData } from "react-router";
+import {
+	Link,
+	redirect,
+	useFetcher,
+	useNavigation,
+	useRouteLoaderData,
+} from "react-router";
 import { QuizCompletedResults } from "~/components/features/courses/quiz/quiz-completed-results";
 import { VideoPlayer } from "~/components/features/video-players/video-player";
 import PrimaryButton from "~/components/global/brand/primary-button";
@@ -50,7 +56,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		student.id,
 		courseSlug,
 		moduleSlug,
-		lessonSlug,
+		lessonSlug
 	);
 
 	// If they can't access, redirect them to the required lesson
@@ -69,7 +75,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		request,
 		courseSlug,
 		moduleSlug,
-		lessonSlug,
+		lessonSlug
 	);
 
 	// non critical data
@@ -79,7 +85,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		lessonSlug,
 		courseSlug,
 		lesson.id,
-		student.id,
+		student.id
 	);
 
 	return {
@@ -97,13 +103,13 @@ async function criticalLoaderData(
 	request: Request,
 	courseSlug: string,
 	moduleSlug: string,
-	lessonSlug: string,
+	lessonSlug: string
 ) {
 	const { lesson } = await getLessonBySlug(
 		request,
 		moduleSlug,
 		lessonSlug,
-		courseSlug,
+		courseSlug
 	);
 
 	if (!lesson) {
@@ -115,7 +121,7 @@ async function criticalLoaderData(
 		request,
 		lessonSlug,
 		moduleSlug,
-		courseSlug,
+		courseSlug
 	);
 
 	return { lesson, completedAssignment };
@@ -127,14 +133,14 @@ function nonCriticalLoaderData(
 	lessonSlug: string,
 	courseSlug: string,
 	lessonId: string,
-	studentId: string,
+	studentId: string
 ) {
 	// all these will return promises
 	const quizzes = getQuizzesForLesson(
 		request,
 		moduleSlug,
 		lessonSlug,
-		courseSlug,
+		courseSlug
 	);
 
 	const attachments = getAttachmentsForLesson(request, lessonId);
@@ -144,7 +150,7 @@ function nonCriticalLoaderData(
 		studentId,
 		courseSlug,
 		moduleSlug,
-		lessonSlug,
+		lessonSlug
 	);
 
 	return { quizzes, attachments, nextLesson };
@@ -152,11 +158,11 @@ function nonCriticalLoaderData(
 
 function useLessonLoaderData() {
 	const data = useRouteLoaderData<typeof loader>(
-		"routes/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug",
+		"routes/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug"
 	);
 	if (!data) {
 		throw new Error(
-			"VideoContent must be used within _agent._editor._tabs route",
+			"VideoContent must be used within _agent._editor._tabs route"
 		);
 	}
 
@@ -166,9 +172,25 @@ function useLessonLoaderData() {
 export default function AgentEditorLesson({
 	loaderData,
 }: Route.ComponentProps) {
+	const navigation = useNavigation();
 	const { lesson, completedAssignment } = useLessonLoaderData();
 
 	const isAssignmentCompleted = completedAssignment !== null;
+	const isNavigating = navigation.state !== "idle";
+
+	// Show loading state when navigating between lessons
+	if (isNavigating) {
+		return (
+			<div className="flex flex-col gap-8">
+				<Skeleton className="w-full h-[400px] rounded-lg" />
+				<div className="space-y-4">
+					<Skeleton className="w-full h-[40px]" />
+					<Skeleton className="w-full h-[200px]" />
+				</div>
+				<Skeleton className="w-full h-[50px]" />
+			</div>
+		);
+	}
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -338,7 +360,7 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 		[questionIndex: number]: number;
 	}>({});
 	const [quizState, setQuizState] = React.useState<"taking" | "submitted">(
-		"taking",
+		"taking"
 	);
 	const [lastSubmissionData, setLastSubmissionData] =
 		React.useState<FetcherSubmitQuizResponse | null>(null);
@@ -380,7 +402,7 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 		}
 
 		const answersArray = questions.map(
-			(_, index) => selectedAnswers[index] ?? -1,
+			(_, index) => selectedAnswers[index] ?? -1
 		);
 
 		fetcher.submit(
@@ -394,12 +416,12 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 			{
 				method: "post",
 				action: "/resource/assignments",
-			},
+			}
 		);
 	};
 
 	const isAllQuestionsAnswered = questions.every(
-		(_, index) => selectedAnswers[index] !== undefined,
+		(_, index) => selectedAnswers[index] !== undefined
 	);
 
 	const isPending = fetcher.state !== "idle";
@@ -455,8 +477,8 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 													answerIndex === incorrectQ.correctAnswer
 														? "bg-green-100 border border-green-300"
 														: answerIndex === incorrectQ.selectedAnswer
-															? "bg-red-100 border border-red-300"
-															: "bg-white border border-gray-200"
+														? "bg-red-100 border border-red-300"
+														: "bg-white border border-gray-200"
 												}`}
 											>
 												<span
@@ -464,23 +486,23 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 														answerIndex === incorrectQ.correctAnswer
 															? "text-green-700"
 															: answerIndex === incorrectQ.selectedAnswer
-																? "text-red-700"
-																: "text-gray-600"
+															? "text-red-700"
+															: "text-gray-600"
 													}`}
 												>
 													{answerIndex === incorrectQ.correctAnswer
 														? "✓"
 														: answerIndex === incorrectQ.selectedAnswer
-															? "✗"
-															: " "}
+														? "✗"
+														: " "}
 												</span>
 												<span
 													className={`flex-1 ${
 														answerIndex === incorrectQ.correctAnswer
 															? "text-green-800"
 															: answerIndex === incorrectQ.selectedAnswer
-																? "text-red-800"
-																: "text-gray-700"
+															? "text-red-800"
+															: "text-gray-700"
 													}`}
 												>
 													{answer}
