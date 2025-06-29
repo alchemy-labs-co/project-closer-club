@@ -186,7 +186,7 @@ function ProgressCircle({
 			</svg>
 			{/* Percentage text */}
 			<div className="absolute inset-0 flex items-center justify-center">
-				<span className="text-xs font-semibold text-gray-700">
+				<span className="text-xs font-semibold text-white">
 					{Math.round(progressPercentage)}%
 				</span>
 			</div>

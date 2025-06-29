@@ -4,7 +4,7 @@ import { getCourseBySlug } from "../courses.server";
 import { getModuleBySlug } from "../modules/modules.server";
 import { lessonsTable, quizzesTable, attachmentsTable, type Segment, type Attachment } from "~/db/schema";
 import type { Quiz } from "~/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import db from "~/db/index.server";
 
 export async function getLessonBySlug(request: Request, lessonSlug: string, moduleSlug: string, courseSlug: string): Promise<{ success: boolean, lesson: Segment | null }> {
@@ -25,7 +25,16 @@ export async function getLessonBySlug(request: Request, lessonSlug: string, modu
             throw redirect(`/dashboard/courses/${courseSlug}/${moduleSlug}`);
         }
 
-        const [lesson] = await db.select().from(lessonsTable).where(eq(lessonsTable.slug, lessonSlug)).limit(1);
+        const [lesson] = await db
+            .select()
+            .from(lessonsTable)
+            .where(
+                and(
+                    eq(lessonsTable.slug, lessonSlug),
+                    eq(lessonsTable.moduleId, module.id)
+                )
+            )
+            .limit(1);
 
         return { success: true, lesson };
     } catch (error) {

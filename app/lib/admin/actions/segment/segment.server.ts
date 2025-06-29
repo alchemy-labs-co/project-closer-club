@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, max } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import db from "~/db/index.server";
 import { attachmentsTable, lessonsTable } from "~/db/schema";
@@ -76,8 +76,14 @@ export async function handleCreateSegment(
 			);
 		}
 
-		// Check if this is the first lesson in the first module of the course
-		const isFirstLessonInFirstModule = await checkIfFirstLessonInFirstModule(module, courseSlug);
+		// Get the next order index for lessons in this module
+		const [nextOrderIndex] = await db
+			.select({ max: max(lessonsTable.orderIndex) })
+			.from(lessonsTable)
+			.where(eq(lessonsTable.moduleId, module.id))
+			.limit(1);
+
+		const orderIndex = nextOrderIndex?.max ? parseInt(nextOrderIndex.max) + 1 : 0;
 
 		// Upload video to Bunny Stream and get the video GUID
 		let videoGuid: string;
@@ -104,6 +110,7 @@ export async function handleCreateSegment(
 				videoUrl: videoGuid, // Store the video GUID as videoUrl
 				slug,
 				moduleId: module.id,
+				orderIndex: orderIndex.toString(),
 			})
 			.returning({
 				id: lessonsTable.id,
@@ -444,6 +451,15 @@ export async function handleConfirmUploads(
 			);
 		}
 
+		// Get the next order index for lessons in this module
+		const [nextOrderIndex] = await db
+			.select({ max: max(lessonsTable.orderIndex) })
+			.from(lessonsTable)
+			.where(eq(lessonsTable.moduleId, module.id))
+			.limit(1);
+
+		const orderIndex = nextOrderIndex?.max ? parseInt(nextOrderIndex.max) + 1 : 0;
+
 		// Insert lesson into database
 		const [insertedSegment] = await db
 			.insert(lessonsTable)
@@ -453,6 +469,7 @@ export async function handleConfirmUploads(
 				videoUrl: videoGuid, // Store the video GUID as videoUrl
 				slug,
 				moduleId: module.id,
+				orderIndex: orderIndex.toString(),
 			})
 			.returning({
 				id: lessonsTable.id,

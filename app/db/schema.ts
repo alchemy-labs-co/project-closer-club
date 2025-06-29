@@ -122,6 +122,7 @@ export const coursesTable = pgTable(
 		thumbnailUrl: varchar("thumbnail_url", { length: 500 }),
 		isPublic: boolean("is_public").notNull().default(false),
 		slug: varchar("slug", { length: 255 }).notNull(),
+		orderIndex: text("order_index").notNull().default("0"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at")
 			.notNull()
@@ -144,7 +145,7 @@ export const modulesTable = pgTable(
 		courseId: uuid("course_id")
 			.references(() => coursesTable.id, { onDelete: "cascade" })
 			.notNull(),
-		orderIndex: text("order_index").notNull().default("1"),
+		orderIndex: text("order_index").notNull().default("0"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at")
 			.notNull()
@@ -169,7 +170,7 @@ export const lessonsTable = pgTable(
 		moduleId: uuid("module_id")
 			.references(() => modulesTable.id, { onDelete: "cascade" })
 			.notNull(),
-		orderIndex: text("order_index").notNull().default("1"),
+		orderIndex: text("order_index").notNull().default("0"),
 		created_at: timestamp("created_at").notNull().defaultNow(),
 		updated_at: timestamp("updated_at")
 			.notNull()

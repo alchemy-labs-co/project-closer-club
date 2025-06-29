@@ -7,6 +7,7 @@ import {
 	useLocation,
 	useRouteLoaderData,
 } from "react-router";
+import { LessonStatusIcon } from "~/components/features/students/lesson-status-icon";
 import {
 	Accordion,
 	AccordionContent,
@@ -21,6 +22,7 @@ import {
 	getModulesAndLessonsForCourse,
 	getTotalLessonsCount,
 } from "~/lib/student/data-access/courses.server";
+import { getLessonStatusesForCourse } from "~/lib/student/data-access/lesson-status.server";
 import type { Route } from "./+types/_agent._editor";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -52,11 +54,18 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		return { totalLessons, completedLessons };
 	})();
 
+	// Add lesson status data for the sidebar navigation
+	const lessonStatusesPromise = getLessonStatusesForCourse(
+		student.id,
+		courseSlug
+	);
+
 	return {
 		courseSlug,
 		studentId: student.id,
 		modulesAndLessonsPromise,
 		progressPromise,
+		lessonStatusesPromise,
 	};
 }
 
@@ -71,11 +80,27 @@ export function useAgentEditorLoaderData() {
 }
 
 function ModulesAndLessonsContent() {
-	const { modulesAndLessonsPromise, courseSlug } = useAgentEditorLoaderData();
+	const { modulesAndLessonsPromise, courseSlug, lessonStatusesPromise } =
+		useAgentEditorLoaderData();
 	const { modules, lessons } = React.use(modulesAndLessonsPromise);
+	const lessonStatuses = React.use(lessonStatusesPromise);
 	const location = useLocation();
 	const pathname = location.pathname;
 	const hasModules = modules.length > 0;
+
+	// Helper function to get lesson status
+	const getLessonStatus = (lessonSlug: string, moduleSlug: string) => {
+		// Find the module status data
+		const moduleStatus = lessonStatuses.find(
+			(m) => m.moduleSlug === moduleSlug
+		);
+		if (!moduleStatus) return null;
+
+		// Find the lesson status within that module
+		return (
+			moduleStatus.lessons.find((l) => l.lessonSlug === lessonSlug) || null
+		);
+	};
 
 	return (
 		<div className="flex-1 relative h-full">
@@ -137,17 +162,63 @@ function ModulesAndLessonsContent() {
 													const isLessonActive =
 														pathname ===
 														`/student/courses/${courseSlug}/${module.slug}/${lesson.slug}`;
+
+													const lessonStatus = getLessonStatus(
+														lesson.slug,
+														module.slug
+													);
+													const isLocked = lessonStatus
+														? !lessonStatus.canAccess
+														: false;
+													const status = lessonStatus?.status || "accessible";
+
+													// If lesson is locked, render as non-clickable div
+													if (isLocked) {
+														return (
+															<li key={lesson.id}>
+																<div className="flex items-center gap-2 px-4 py-2 text-sm border-b border-gray-100 last:border-b-0 text-gray-400 cursor-not-allowed opacity-60">
+																	<LessonStatusIcon
+																		status={status}
+																		canAccess={false}
+																		size="sm"
+																	/>
+																	<span className="flex-1">{lesson.name}</span>
+																	<span className="text-xs font-medium">
+																		Locked
+																	</span>
+																</div>
+															</li>
+														);
+													}
+
 													return (
 														<li key={lesson.id}>
 															<Link
 																to={`/student/courses/${courseSlug}/${module.slug}/${lesson.slug}`}
-																className={`block px-4 py-2 text-sm transition-colors border-b border-gray-100 last:border-b-0 ${
+																className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors border-b border-gray-100 last:border-b-0 ${
 																	isLessonActive
 																		? "bg-blue-50 text-blue-700 font-medium"
+																		: status === "completed"
+																		? "text-green-700 hover:bg-green-50"
 																		: "text-gray-600 hover:bg-gray-50"
 																}`}
 															>
-																{lesson.name}
+																<LessonStatusIcon
+																	status={status}
+																	canAccess={true}
+																	size="sm"
+																/>
+																<span className="flex-1">{lesson.name}</span>
+																{status === "completed" && (
+																	<span className="text-xs text-green-600 font-medium">
+																		✓
+																	</span>
+																)}
+																{isLessonActive && (
+																	<span className="text-xs text-blue-600 font-medium">
+																		Current
+																	</span>
+																)}
 															</Link>
 														</li>
 													);

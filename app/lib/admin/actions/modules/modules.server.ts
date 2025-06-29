@@ -63,7 +63,7 @@ export async function handleCreateModule(request: Request, formData: FormData) {
             .where(eq(modulesTable.courseId, course.id))
             .limit(1);
 
-        const orderIndex = nextOrderIndex ? parseInt(nextOrderIndex.max || "0") + 1 : 1;
+        const orderIndex = nextOrderIndex?.max ? parseInt(nextOrderIndex.max) + 1 : 0;
 
         // Create the module
         const [newModule] = await db

@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { redirect } from "react-router";
 import db from "~/db/index.server";
 import { coursesTable, studentCoursesTable, agentsTable } from "~/db/schema";
@@ -43,7 +43,7 @@ export async function getStudentCourses(request: Request) {
 						studentCourses.map((course) => course.courseId),
 					),
 				),
-			);
+			).orderBy(asc(coursesTable.orderIndex));
 
 		return { courses };
 	} catch (error) {

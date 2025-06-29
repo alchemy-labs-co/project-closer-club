@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, max } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import db from "~/db/index.server";
 import { coursesTable, studentCoursesTable } from "~/db/schema";
@@ -62,6 +62,13 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 			);
 		}
 
+		// Get the next order index
+		const [nextOrderIndex] = await db
+			.select({ max: max(coursesTable.orderIndex) })
+			.from(coursesTable)
+			.limit(1);
+
+		const orderIndex = nextOrderIndex?.max ? parseInt(nextOrderIndex.max) + 1 : 0;
 
 		// First create the course to get the ID
 		const [insertedCourse] = await db
@@ -70,6 +77,7 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 				name: validatedFields.name,
 				description: validatedFields.description,
 				slug: slug,
+				orderIndex: orderIndex.toString(),
 			})
 			.returning({
 				id: coursesTable.id,

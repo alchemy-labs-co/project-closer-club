@@ -28,6 +28,7 @@ import {
 } from "~/lib/student/data-access/lessons.server.";
 import type { FetcherSubmitQuizResponse } from "~/lib/types";
 import type { Route } from "./+types/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug";
+import { canAccessLesson } from "~/lib/student/data-access/lesson-locking.server";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
 	const { isLoggedIn, student } = await isAgentLoggedIn(request);
@@ -40,6 +41,24 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 	if (!courseSlug || !moduleSlug || !lessonSlug) {
 		throw redirect("/student/courses");
+	}
+
+	const accessResult = await canAccessLesson(
+		student.id,
+		courseSlug,
+		moduleSlug,
+		lessonSlug
+	);
+
+	// If they can't access, redirect them to the required lesson
+	if (!accessResult.canAccess) {
+		if (accessResult.redirectTo) {
+			// Redirect to the lesson they need to complete first
+			throw redirect(`/student/courses/${accessResult.redirectTo}`);
+		} else {
+			// Fallback redirect to course overview
+			throw redirect(`/student/courses/${courseSlug}`);
+		}
 	}
 
 	// critical data
@@ -100,7 +119,8 @@ function nonCriticalLoaderData(
 	moduleSlug: string,
 	lessonSlug: string,
 	courseSlug: string,
-	lessonId: string
+	lessonId: string,
+	studentId: string
 ) {
 	// all these will return promises
 	const quizzes = getQuizzesForLesson(
