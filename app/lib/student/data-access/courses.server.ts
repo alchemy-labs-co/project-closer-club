@@ -132,3 +132,15 @@ export async function getFirstLessonForCourse(request: Request, courseSlug: stri
 
 	return { lesson, module };
 }
+
+export async function getTotalLessonsCount(courseId: string) {
+	const lessons = await db
+		.select({
+			id: lessonsTable.id,
+		})
+		.from(lessonsTable)
+		.leftJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
+		.where(eq(modulesTable.courseId, courseId));
+
+	return lessons.length;
+}

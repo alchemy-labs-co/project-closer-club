@@ -1,8 +1,8 @@
 import {
 	AlertCircleIcon,
-	LockIcon,
 	DownloadIcon,
 	FileIcon,
+	LockIcon,
 } from "lucide-react";
 import React, { Suspense } from "react";
 import { Link, redirect, useFetcher, useRouteLoaderData } from "react-router";
@@ -18,7 +18,7 @@ import {
 	TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { dashboardConfig } from "~/config/dashboard";
-import type { Quiz, Attachment } from "~/db/schema";
+import type { Quiz } from "~/db/schema";
 import { isAgentLoggedIn } from "~/lib/auth/auth.server";
 import { getCompletedAssignmentForLesson } from "~/lib/student/data-access/assignments.server";
 import { getAttachmentsForLesson } from "~/lib/student/data-access/attachments.server";

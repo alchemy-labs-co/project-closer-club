@@ -57,7 +57,9 @@ export async function getQuizzesForLesson(request: Request, moduleSlug: string, 
 		}
 
 		const [quizzes] = await db.select().from(quizzesTable).where(eq(quizzesTable.lessonId, lesson.id));
-
+		if (!quizzes) {
+			return { quizzes: null };
+		}
 		// dto remove the correctAnswerIndex from the network response
 		const quizzesDto = {
 			...quizzes,

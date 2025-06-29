@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { redirect } from "react-router";
 import db from "~/db/index.server";
-import { completedQuizAssignmentsTable } from "~/db/schema";
+import { completedQuizAssignmentsTable, coursesTable, lessonsTable, modulesTable } from "~/db/schema";
 import { isAgentLoggedIn } from "~/lib/auth/auth.server";
 import { getLessonBySlug } from "./lessons.server.";
 
@@ -23,6 +23,20 @@ export async function getCompletedAssignmentForLesson(request: Request, lessonSl
         return { success: false, completedAssignment: null }
     }
 
+}
+
+
+export async function getCompletedLessonsCount(studentId: string, courseId: string) {
+	const completedLessons = await db
+		.select({
+			id: completedQuizAssignmentsTable.id,
+		})
+		.from(completedQuizAssignmentsTable)
+		.leftJoin(lessonsTable, eq(completedQuizAssignmentsTable.lessonId, lessonsTable.id))
+		.leftJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
+		.where(and(eq(modulesTable.courseId, courseId), eq(completedQuizAssignmentsTable.studentId, studentId)));
+
+	return completedLessons.length;
 }
 
 

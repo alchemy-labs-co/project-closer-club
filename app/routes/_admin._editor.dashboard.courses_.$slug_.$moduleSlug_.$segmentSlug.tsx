@@ -33,17 +33,16 @@ import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { dashboardConfig } from "~/config/dashboard";
-import type { Attachment, Segment } from "~/db/schema";
+import type { Attachment, Quiz, Segment } from "~/db/schema";
 import {
+	getAttachmentsForLesson,
 	getLessonBySlug,
 	getQuizzesForLesson,
-	getAttachmentsForLesson,
 } from "~/lib/admin/data-access/lessons/lessons.server";
 import { isAdminLoggedIn } from "~/lib/auth/auth.server";
 import type { FetcherResponse } from "~/lib/types";
 import { formatDateToString } from "~/lib/utils";
 import {
-	ACCEPTED_FILE_TYPES,
 	attachmentUploadSchema,
 	MAX_FILE_SIZE,
 	type AttachmentUploadSchema,
@@ -51,13 +50,10 @@ import {
 import type { Route } from "./+types/_admin._editor.dashboard.courses_.$slug_.$moduleSlug_.$segmentSlug";
 import type { Question } from "./_admin.dashboard.quizzes_.create";
 
-import { DROPZONE_ACCEPTED_TYPES } from "~/lib/constants";
-import PrimaryButton from "~/components/global/brand/primary-button";
-import {
-	uploadAttachmentDirectlyToBunny,
-	uploadWithProgress,
-} from "~/lib/utils";
 import { toast } from "sonner";
+import PrimaryButton from "~/components/global/brand/primary-button";
+import { DROPZONE_ACCEPTED_TYPES } from "~/lib/constants";
+import { uploadWithProgress } from "~/lib/utils";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
 	// auth check
@@ -110,8 +106,29 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	};
 }
 
+function QuizIndicator({
+	quizzes,
+}: {
+	quizzes: Promise<{ success: boolean; quizzes: Quiz[] | null }>;
+}) {
+	const quizzesData = React.use(quizzes);
+
+	const hasQuizzes =
+		quizzesData.success &&
+		quizzesData.quizzes &&
+		quizzesData.quizzes.length > 0;
+
+	if (hasQuizzes) {
+		return null;
+	}
+
+	return (
+		<span className="absolute top-1 right-4 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+	);
+}
+
 export default function LessonView({ loaderData }: Route.ComponentProps) {
-	const { courseSlug, moduleSlug, lesson } = loaderData;
+	const { courseSlug, moduleSlug, lesson, quizzes } = loaderData;
 
 	return (
 		<div className="flex flex-col gap-4 p-4 overflow-y-auto h-full [scrollbar-width:thin]">
@@ -139,7 +156,12 @@ export default function LessonView({ loaderData }: Route.ComponentProps) {
 			<Tabs defaultValue="lesson" className="w-full">
 				<TabsList className="w-full">
 					<TabsTrigger value="lesson">Lesson</TabsTrigger>
-					<TabsTrigger value="quizzes">Quizzes</TabsTrigger>
+					<TabsTrigger value="quizzes" className="relative">
+						Quizzes
+						<Suspense fallback={null}>
+							<QuizIndicator quizzes={quizzes} />
+						</Suspense>
+					</TabsTrigger>
 					<TabsTrigger value="attachments">Attachments</TabsTrigger>
 				</TabsList>
 				<TabsContent value="lesson" className="mt-6">
@@ -172,7 +194,7 @@ export default function LessonView({ loaderData }: Route.ComponentProps) {
 }
 
 function LessonQuizzes() {
-	const { quizzes } = useLoaderData<typeof loader>();
+	const { quizzes, lesson } = useLoaderData<typeof loader>();
 	const quizzesData = React.use(quizzes);
 
 	if (
@@ -187,9 +209,14 @@ function LessonQuizzes() {
 					<p className="text-gray-600 mb-4">
 						No quizzes found for this lesson.
 					</p>
-					<p className="text-sm text-gray-500">
+					<p className="text-sm text-gray-500 mb-6">
 						Create a quiz to test student knowledge on this lesson.
 					</p>
+					<PrimaryButton asChild>
+						<Link to={`/dashboard/quizzes/create?lessonId=${lesson.id}`}>
+							Create Quiz for this Lesson
+						</Link>
+					</PrimaryButton>
 				</div>
 			</div>
 		);
@@ -208,9 +235,16 @@ function LessonQuizzes() {
 						<h3 className="text-lg font-semibold text-gray-800">
 							Quiz {quizIndex + 1}
 						</h3>
-						<p className="text-sm text-gray-500">
-							Created: {formatDateToString(quiz.createdAt)}
-						</p>
+						<div className="flex items-center gap-3">
+							<p className="text-sm text-gray-500">
+								Created: {formatDateToString(quiz.createdAt)}
+							</p>
+							<Button variant="outline" size="sm" asChild>
+								<Link to={`/dashboard/quizzes/create?edit=${quiz.id}`}>
+									<Pencil className="w-4 h-4" />
+								</Link>
+							</Button>
+						</div>
 					</div>
 
 					<div className="space-y-6">
