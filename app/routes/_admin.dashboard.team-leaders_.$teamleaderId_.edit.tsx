@@ -38,7 +38,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	}
 	const { success, teamLeader } = await GetTeamLeaderById(
 		request,
-		teamleaderId
+		teamleaderId,
 	);
 	if (!success || !teamLeader) {
 		throw redirect("/dashboard/team-leaders");
@@ -120,7 +120,7 @@ export default function EditTeamLeaderPage({
 									{
 										action: "/resource/team-leaders",
 										method: "POST",
-									}
+									},
 								);
 							})}
 						>

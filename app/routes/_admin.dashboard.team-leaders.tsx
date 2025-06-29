@@ -13,11 +13,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function useTeamLeadersLoaderData() {
 	const data = useRouteLoaderData<typeof loader>(
-		"routes/_admin.dashboard.team-leaders"
+		"routes/_admin.dashboard.team-leaders",
 	);
 	if (!data)
 		throw new Error(
-			"Cannot use team leaders loader data if the route is not a child of the team leaders route"
+			"Cannot use team leaders loader data if the route is not a child of the team leaders route",
 		);
 	return data;
 }

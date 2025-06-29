@@ -1,4 +1,12 @@
-import { Book, Home, Users, Users2, type LucideProps, BarChart3, ListChecks } from "lucide-react";
+import {
+	Book,
+	Home,
+	Users,
+	Users2,
+	type LucideProps,
+	BarChart3,
+	ListChecks,
+} from "lucide-react";
 import type { VideoPlayerTypes } from "~/lib/types";
 
 type DahsboardConfig = {

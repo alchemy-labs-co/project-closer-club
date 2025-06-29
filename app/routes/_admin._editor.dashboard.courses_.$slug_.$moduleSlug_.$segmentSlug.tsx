@@ -75,14 +75,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		request,
 		segmentSlug,
 		moduleSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	const attachments = getAttachmentsForLesson(
 		request,
 		segmentSlug,
 		moduleSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	// critical data
@@ -90,7 +90,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		request,
 		segmentSlug,
 		moduleSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	if (!success || !lesson) {
@@ -307,11 +307,11 @@ function LessonQuizzes() {
 															</span>
 														)}
 													</div>
-												)
+												),
 											)}
 										</div>
 									</div>
-								)
+								),
 							)}
 					</div>
 				</div>
@@ -481,7 +481,7 @@ function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 			setAttachments(newAttachments);
 			form.setValue("attachments", newAttachments);
 		},
-		[attachments, form]
+		[attachments, form],
 	);
 
 	const { getRootProps, getInputProps, isDragActive, fileRejections } =
@@ -544,7 +544,7 @@ function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 						setUploadProgress((prev) => ({
 							...prev,
 							[file.name]: progress,
-						}))
+						})),
 				);
 
 				if (attachmentSuccess) {

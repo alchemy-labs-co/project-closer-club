@@ -111,7 +111,7 @@ export default function EditStudentPage({ loaderData }: Route.ComponentProps) {
 									{
 										action: "/resource/student",
 										method: "POST",
-									}
+									},
 								);
 							})}
 						>

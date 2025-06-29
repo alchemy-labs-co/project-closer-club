@@ -109,7 +109,7 @@ export function CreateStudent() {
 									{
 										action: "/resource/student",
 										method: "POST",
-									}
+									},
 								);
 							})}
 						>
@@ -229,7 +229,7 @@ function SubmittedState({
 				className="cursor-pointer"
 				onClick={() => {
 					navigator.clipboard.writeText(
-						`Email: ${email}\nPassword: ${password}`
+						`Email: ${email}\nPassword: ${password}`,
 					);
 					setHasCopied(true);
 				}}

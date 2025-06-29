@@ -30,7 +30,7 @@ export function useDashboardLayoutLoaderData() {
 	const data = useRouteLoaderData<typeof loader>("routes/_admin");
 	if (!data) {
 		throw new Error(
-			"Dashboard Loader needs to be used within a DashboardLoader context, the route needs to be a child of the Dashboard route"
+			"Dashboard Loader needs to be used within a DashboardLoader context, the route needs to be a child of the Dashboard route",
 		);
 	}
 	return data;

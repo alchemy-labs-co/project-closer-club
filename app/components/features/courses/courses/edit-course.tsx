@@ -44,7 +44,7 @@ export function EditCourse({
 	thumbnailUrl?: string;
 }) {
 	const [preview, setPreview] = useState<string | ArrayBuffer | null>(
-		thumbnailUrl || null
+		thumbnailUrl || null,
 	);
 	const fetcher = useFetcher<FetcherResponse>();
 	const isSubmitting = fetcher.state === "submitting";
@@ -71,7 +71,7 @@ export function EditCourse({
 				form.resetField("thumbnail");
 			}
 		},
-		[form, thumbnailUrl]
+		[form, thumbnailUrl],
 	);
 
 	const { getRootProps, getInputProps, isDragActive, fileRejections } =

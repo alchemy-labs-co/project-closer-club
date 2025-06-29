@@ -23,4 +23,4 @@ export type FetcherSubmitQuizResponse = {
 		correctAnswer: number;
 		answers: string[];
 	}[];
-}
+};

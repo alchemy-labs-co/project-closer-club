@@ -48,7 +48,7 @@ export function AssignCourseToStudent({
 		// attach the ids of the selected courses to the form
 		form.setValue(
 			"courses",
-			form.getValues("courses")?.filter((s) => s !== course.id) ?? []
+			form.getValues("courses")?.filter((s) => s !== course.id) ?? [],
 		);
 	}, []);
 
@@ -71,7 +71,7 @@ export function AssignCourseToStudent({
 				}
 			}
 		},
-		[]
+		[],
 	);
 
 	const selectables = courses.filter((course) => !selected.includes(course));

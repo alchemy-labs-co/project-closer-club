@@ -37,7 +37,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 	const { success, teamLeader } = await GetTeamLeaderById(
 		request,
-		teamleaderId
+		teamleaderId,
 	);
 	if (!success || !teamLeader) {
 		throw redirect("/dashboard/team-leaders");
@@ -103,7 +103,7 @@ export default function EditPasswordPage({ loaderData }: Route.ComponentProps) {
 								{
 									method: "POST",
 									action: "/resource/team-leaders",
-								}
+								},
 							);
 						})}
 					>
@@ -155,7 +155,7 @@ export default function EditPasswordPage({ loaderData }: Route.ComponentProps) {
 							className="cursor-pointer"
 							onClick={() => {
 								navigator.clipboard.writeText(
-									`Password: ${form.getValues("password")}`
+									`Password: ${form.getValues("password")}`,
 								);
 								setHasCopied(true);
 								setIsDialogOpen(false);

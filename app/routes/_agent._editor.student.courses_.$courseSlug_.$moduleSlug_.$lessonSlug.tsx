@@ -28,6 +28,10 @@ import {
 } from "~/lib/student/data-access/lessons.server.";
 import type { FetcherSubmitQuizResponse } from "~/lib/types";
 import type { Route } from "./+types/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug";
+import {
+	canAccessLesson,
+	getNextLessonAfterCurrent,
+} from "~/lib/student/data-access/lesson-locking.server";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
 	const { isLoggedIn, student } = await isAgentLoggedIn(request);
@@ -42,12 +46,30 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		throw redirect("/student/courses");
 	}
 
+	const accessResult = await canAccessLesson(
+		student.id,
+		courseSlug,
+		moduleSlug,
+		lessonSlug,
+	);
+
+	// If they can't access, redirect them to the required lesson
+	if (!accessResult.canAccess) {
+		if (accessResult.redirectTo) {
+			// Redirect to the lesson they need to complete first
+			throw redirect(`/student/courses/${accessResult.redirectTo}`);
+		} else {
+			// Fallback redirect to course overview
+			throw redirect(`/student/courses/${courseSlug}`);
+		}
+	}
+
 	// critical data
 	const { lesson, completedAssignment } = await criticalLoaderData(
 		request,
 		courseSlug,
 		moduleSlug,
-		lessonSlug
+		lessonSlug,
 	);
 
 	// non critical data
@@ -56,7 +78,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		moduleSlug,
 		lessonSlug,
 		courseSlug,
-		lesson.id
+		lesson.id,
+		student.id,
 	);
 
 	return {
@@ -64,6 +87,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		lesson,
 		completedAssignment,
 		studentId: student.id,
+		courseSlug,
+		moduleSlug,
+		lessonSlug,
 	};
 }
 
@@ -71,13 +97,13 @@ async function criticalLoaderData(
 	request: Request,
 	courseSlug: string,
 	moduleSlug: string,
-	lessonSlug: string
+	lessonSlug: string,
 ) {
 	const { lesson } = await getLessonBySlug(
 		request,
 		moduleSlug,
 		lessonSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	if (!lesson) {
@@ -89,7 +115,7 @@ async function criticalLoaderData(
 		request,
 		lessonSlug,
 		moduleSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	return { lesson, completedAssignment };
@@ -100,28 +126,37 @@ function nonCriticalLoaderData(
 	moduleSlug: string,
 	lessonSlug: string,
 	courseSlug: string,
-	lessonId: string
+	lessonId: string,
+	studentId: string,
 ) {
 	// all these will return promises
 	const quizzes = getQuizzesForLesson(
 		request,
 		moduleSlug,
 		lessonSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	const attachments = getAttachmentsForLesson(request, lessonId);
 
-	return { quizzes, attachments };
+	// Get next lesson as a promise (non-blocking)
+	const nextLesson = getNextLessonAfterCurrent(
+		studentId,
+		courseSlug,
+		moduleSlug,
+		lessonSlug,
+	);
+
+	return { quizzes, attachments, nextLesson };
 }
 
 function useLessonLoaderData() {
 	const data = useRouteLoaderData<typeof loader>(
-		"routes/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug"
+		"routes/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug",
 	);
 	if (!data) {
 		throw new Error(
-			"VideoContent must be used within _agent._editor._tabs route"
+			"VideoContent must be used within _agent._editor._tabs route",
 		);
 	}
 
@@ -140,7 +175,11 @@ export default function AgentEditorLesson({
 			<VideoContent />
 			<VideoContentTabs />
 			{!isAssignmentCompleted && <LockNextLessonButton />}
-			{isAssignmentCompleted && <ProccedToNextLessonButton />}
+			{isAssignmentCompleted && (
+				<Suspense fallback={<Skeleton className="w-full h-[30px]" />}>
+					<ProccedToNextLessonButton />
+				</Suspense>
+			)}
 		</div>
 	);
 }
@@ -299,7 +338,7 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 		[questionIndex: number]: number;
 	}>({});
 	const [quizState, setQuizState] = React.useState<"taking" | "submitted">(
-		"taking"
+		"taking",
 	);
 	const [lastSubmissionData, setLastSubmissionData] =
 		React.useState<FetcherSubmitQuizResponse | null>(null);
@@ -341,7 +380,7 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 		}
 
 		const answersArray = questions.map(
-			(_, index) => selectedAnswers[index] ?? -1
+			(_, index) => selectedAnswers[index] ?? -1,
 		);
 
 		fetcher.submit(
@@ -355,12 +394,12 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 			{
 				method: "post",
 				action: "/resource/assignments",
-			}
+			},
 		);
 	};
 
 	const isAllQuestionsAnswered = questions.every(
-		(_, index) => selectedAnswers[index] !== undefined
+		(_, index) => selectedAnswers[index] !== undefined,
 	);
 
 	const isPending = fetcher.state !== "idle";
@@ -416,8 +455,8 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 													answerIndex === incorrectQ.correctAnswer
 														? "bg-green-100 border border-green-300"
 														: answerIndex === incorrectQ.selectedAnswer
-														? "bg-red-100 border border-red-300"
-														: "bg-white border border-gray-200"
+															? "bg-red-100 border border-red-300"
+															: "bg-white border border-gray-200"
 												}`}
 											>
 												<span
@@ -425,23 +464,23 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 														answerIndex === incorrectQ.correctAnswer
 															? "text-green-700"
 															: answerIndex === incorrectQ.selectedAnswer
-															? "text-red-700"
-															: "text-gray-600"
+																? "text-red-700"
+																: "text-gray-600"
 													}`}
 												>
 													{answerIndex === incorrectQ.correctAnswer
 														? "✓"
 														: answerIndex === incorrectQ.selectedAnswer
-														? "✗"
-														: " "}
+															? "✗"
+															: " "}
 												</span>
 												<span
 													className={`flex-1 ${
 														answerIndex === incorrectQ.correctAnswer
 															? "text-green-800"
 															: answerIndex === incorrectQ.selectedAnswer
-															? "text-red-800"
-															: "text-gray-700"
+																? "text-red-800"
+																: "text-gray-700"
 													}`}
 												>
 													{answer}
@@ -588,12 +627,26 @@ function LockNextLessonButton() {
 }
 
 function ProccedToNextLessonButton() {
-	const { lesson } = useLessonLoaderData();
+	const { nonCriticalData, courseSlug } = useLessonLoaderData();
+	const nextLesson = React.use(nonCriticalData.nextLesson);
+
+	// If there's no next lesson, show completion message or redirect to course overview
+	if (!nextLesson) {
+		return (
+			<PrimaryButton asChild>
+				<Link to={`/student/courses/${courseSlug}`}>
+					Return to Course Overview
+				</Link>
+			</PrimaryButton>
+		);
+	}
 
 	return (
 		<PrimaryButton asChild>
-			<Link to={`/student/courses/${lesson.moduleId}/${lesson.id}`}>
-				Procced to Next Lesson
+			<Link
+				to={`/student/courses/${nextLesson.courseSlug}/${nextLesson.moduleSlug}/${nextLesson.lessonSlug}`}
+			>
+				Proceed to Next Lesson
 			</Link>
 		</PrimaryButton>
 	);

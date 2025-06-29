@@ -1,6 +1,6 @@
 {
-	"id": "dd46f50a-86b2-4619-ac6a-eee1385cd949",
-	"prevId": "a9d5bfd4-fc58-4a79-b20d-67581f64c905",
+	"id": "8df885c9-9c50-474b-ab44-20834b4b9069",
+	"prevId": "fbb986b3-92f5-43ec-948e-b44d9e30ef4f",
 	"version": "7",
 	"dialect": "postgresql",
 	"tables": {
@@ -228,6 +228,165 @@
 			"checkConstraints": {},
 			"isRLSEnabled": false
 		},
+		"public.attachments": {
+			"name": "attachments",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"lesson_id": {
+					"name": "lesson_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"file_name": {
+					"name": "file_name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"file_url": {
+					"name": "file_url",
+					"type": "varchar(500)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"file_extension": {
+					"name": "file_extension",
+					"type": "varchar(10)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {
+				"attachment_lesson_id_index": {
+					"name": "attachment_lesson_id_index",
+					"columns": [
+						{
+							"expression": "lesson_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"attachments_lesson_id_lessons_id_fk": {
+					"name": "attachments_lesson_id_lessons_id_fk",
+					"tableFrom": "attachments",
+					"tableTo": "lessons",
+					"columnsFrom": ["lesson_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.completed_quiz_assignments": {
+			"name": "completed_quiz_assignments",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"quiz_id": {
+					"name": "quiz_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"student_id": {
+					"name": "student_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"lesson_id": {
+					"name": "lesson_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"selected_answers": {
+					"name": "selected_answers",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"number_of_questions": {
+					"name": "number_of_questions",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"total_correct_answers": {
+					"name": "total_correct_answers",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"completed_quiz_assignments_quiz_id_quizzes_id_fk": {
+					"name": "completed_quiz_assignments_quiz_id_quizzes_id_fk",
+					"tableFrom": "completed_quiz_assignments",
+					"tableTo": "quizzes",
+					"columnsFrom": ["quiz_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
+				"completed_quiz_assignments_lesson_id_lessons_id_fk": {
+					"name": "completed_quiz_assignments_lesson_id_lessons_id_fk",
+					"tableFrom": "completed_quiz_assignments",
+					"tableTo": "lessons",
+					"columnsFrom": ["lesson_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
 		"public.courses": {
 			"name": "courses",
 			"schema": "",
@@ -251,6 +410,12 @@
 					"primaryKey": false,
 					"notNull": true
 				},
+				"thumbnail_url": {
+					"name": "thumbnail_url",
+					"type": "varchar(500)",
+					"primaryKey": false,
+					"notNull": false
+				},
 				"is_public": {
 					"name": "is_public",
 					"type": "boolean",
@@ -263,6 +428,13 @@
 					"type": "varchar(255)",
 					"primaryKey": false,
 					"notNull": true
+				},
+				"order_index": {
+					"name": "order_index",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'0'"
 				},
 				"created_at": {
 					"name": "created_at",
@@ -477,13 +649,6 @@
 					"primaryKey": false,
 					"notNull": true
 				},
-				"is_public": {
-					"name": "is_public",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
 				"slug": {
 					"name": "slug",
 					"type": "varchar(255)",
@@ -501,7 +666,7 @@
 					"type": "text",
 					"primaryKey": false,
 					"notNull": true,
-					"default": "'1'"
+					"default": "'0'"
 				},
 				"created_at": {
 					"name": "created_at",
@@ -605,13 +770,6 @@
 					"primaryKey": false,
 					"notNull": false
 				},
-				"is_public": {
-					"name": "is_public",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
 				"slug": {
 					"name": "slug",
 					"type": "varchar(255)",
@@ -629,7 +787,7 @@
 					"type": "text",
 					"primaryKey": false,
 					"notNull": true,
-					"default": "'1'"
+					"default": "'0'"
 				},
 				"created_at": {
 					"name": "created_at",

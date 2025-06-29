@@ -20,7 +20,7 @@ export function ModulesList() {
 						const isModuleActive =
 							pathname === `/dashboard/courses/${courseSlug}/${module.slug}` ||
 							pathname.startsWith(
-								`/dashboard/courses/${courseSlug}/${module.slug}/`
+								`/dashboard/courses/${courseSlug}/${module.slug}/`,
 							);
 
 						// If module has no lessons, just display the module name as a clickable link

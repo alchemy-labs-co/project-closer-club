@@ -33,7 +33,7 @@ export function DeactivateTeamLeader({
 					{
 						method: "POST",
 						action: "/resource/team-leaders",
-					}
+					},
 				);
 			}}
 		>

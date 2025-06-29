@@ -107,7 +107,7 @@ export function CreateTeamLeader() {
 									{
 										action: "/resource/team-leaders",
 										method: "POST",
-									}
+									},
 								);
 							})}
 						>
@@ -228,7 +228,7 @@ function SubmittedState({
 				className="cursor-pointer"
 				onClick={() => {
 					navigator.clipboard.writeText(
-						`Email: ${email}\nPassword: ${password}`
+						`Email: ${email}\nPassword: ${password}`,
 					);
 					setHasCopied(true);
 				}}

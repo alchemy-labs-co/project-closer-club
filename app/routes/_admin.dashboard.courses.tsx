@@ -13,11 +13,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function useCoursesLoaderData() {
 	const data = useRouteLoaderData<typeof loader>(
-		"routes/_admin.dashboard.courses"
+		"routes/_admin.dashboard.courses",
 	);
 	if (!data) {
 		throw new Error(
-			"Courses Loader needs to be used within a CoursesLoader context, the route needs to be a child of the Courses route"
+			"Courses Loader needs to be used within a CoursesLoader context, the route needs to be a child of the Courses route",
 		);
 	}
 	return data;

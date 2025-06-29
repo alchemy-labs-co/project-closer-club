@@ -115,7 +115,7 @@ function AgentsDataTable({ initialData }: { initialData: Student[] }) {
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[]
+		[],
 	);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [pagination, setPagination] = React.useState({
@@ -171,7 +171,7 @@ function AgentsDataTable({ initialData }: { initialData: Student[] }) {
 									.filter(
 										(column) =>
 											typeof column.accessorFn !== "undefined" &&
-											column.getCanHide()
+											column.getCanHide(),
 									)
 									.map((column) => {
 										return (
@@ -207,8 +207,8 @@ function AgentsDataTable({ initialData }: { initialData: Student[] }) {
 													? null
 													: flexRender(
 															header.column.columnDef.header,
-															header.getContext()
-													  )}
+															header.getContext(),
+														)}
 											</TableHead>
 										);
 									})}
@@ -223,7 +223,7 @@ function AgentsDataTable({ initialData }: { initialData: Student[] }) {
 											<TableCell key={cell.id}>
 												{flexRender(
 													cell.column.columnDef.cell,
-													cell.getContext()
+													cell.getContext(),
 												)}
 											</TableCell>
 										))}

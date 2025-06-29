@@ -66,16 +66,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	const publicCourses = getAllPublicCourses(request);
 	const coursesStudentAssignedTo = getCoursesStudentEnrolledIn(
 		request,
-		studentId
+		studentId,
 	);
 	const allTeamLeaders = GetAllTeamLeaders(request);
 	const teamLeaderAssignedToAgent = getTeamLeaderAssignedToAgent(
 		request,
-		studentId
+		studentId,
 	);
 	const { success, student } = await GetStudentById(
 		request,
-		studentId as string
+		studentId as string,
 	);
 	if (!success || !student) {
 		throw redirect("/dashboard/agents");
@@ -91,7 +91,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 			teamLeaders: allTeamLeaders,
 			teamLeaderAssignedToAgent: teamLeaderAssignedToAgent,
 		},
-		{ status: 200 }
+		{ status: 200 },
 	);
 }
 
@@ -100,7 +100,7 @@ function TeamLeadersAssignedToAgent() {
 	const studentId = data.student.studentId;
 	const { teamLeaders: allTeamLeaders } = React.use(data.teamLeaders);
 	const { teamLeader: assignedTeamLeader } = React.use(
-		data.teamLeaderAssignedToAgent
+		data.teamLeaderAssignedToAgent,
 	);
 
 	const columns: {
@@ -209,7 +209,7 @@ function AgentTeamLeaderAssignmentCheckbox({
 		resolver: zodResolver(
 			z.object({
 				isAssigned: z.boolean(),
-			})
+			}),
 		),
 		defaultValues: {
 			isAssigned,
@@ -243,7 +243,7 @@ function AgentTeamLeaderAssignmentCheckbox({
 											{
 												action: "/resource/team-leaders",
 												method: "POST",
-											}
+											},
 										);
 									}}
 								/>
@@ -389,10 +389,10 @@ function CoursesStudentAssignedTo() {
 	const studentId = data.student.studentId;
 	const { courses: allPublicCourses } = React.use(data.courses);
 	const { courses: coursesStudentAssignedTo } = React.use(
-		data.coursesStudentAssignedTo
+		data.coursesStudentAssignedTo,
 	);
 	const assignedCourseIds = new Set(
-		coursesStudentAssignedTo.map((course) => course.id)
+		coursesStudentAssignedTo.map((course) => course.id),
 	);
 	const columns: {
 		header: string;
@@ -524,7 +524,7 @@ function StudentCourseAssigmentCheckbox({
 											{
 												action: "/resource/course",
 												method: "POST",
-											}
+											},
 										);
 									}}
 								/>

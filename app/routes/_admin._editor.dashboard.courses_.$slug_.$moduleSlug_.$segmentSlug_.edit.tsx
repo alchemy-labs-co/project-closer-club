@@ -51,7 +51,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	const { success, module } = await getModuleBySlug(
 		request,
 		moduleSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	if (!success || !module) {
@@ -101,11 +101,11 @@ export default function EditLesson({ loaderData }: Route.ComponentProps) {
 				toast.success(fetcher.data.message);
 				if (fetcher.data.redirectTo) {
 					navigate(
-						`/dashboard/courses/${courseSlug}/${moduleSlug}/${fetcher.data.redirectTo}`
+						`/dashboard/courses/${courseSlug}/${moduleSlug}/${fetcher.data.redirectTo}`,
 					);
 				} else {
 					navigate(
-						`/dashboard/courses/${courseSlug}/${moduleSlug}/${lesson.slug}`
+						`/dashboard/courses/${courseSlug}/${moduleSlug}/${lesson.slug}`,
 					);
 				}
 			}
@@ -167,7 +167,7 @@ export default function EditLesson({ loaderData }: Route.ComponentProps) {
 									{
 										action: "/resource/segment",
 										method: "POST",
-									}
+									},
 								);
 							})}
 						>

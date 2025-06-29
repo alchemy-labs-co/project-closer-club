@@ -24,7 +24,7 @@ export function useStudentLayoutData() {
 	const data = useRouteLoaderData<typeof loader>("routes/_agent");
 	if (!data) {
 		throw new Error(
-			"Cannot use student layout data outside of the student layout context the route must be a child of the student layout"
+			"Cannot use student layout data outside of the student layout context the route must be a child of the student layout",
 		);
 	}
 	return data;

@@ -12,7 +12,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	const { success, module } = await getModuleBySlug(
 		request,
 		moduleSlug,
-		courseSlug
+		courseSlug,
 	);
 	if (!success || !module) {
 		throw redirect(`/dashboard/courses/${courseSlug}`);

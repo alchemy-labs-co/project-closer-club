@@ -54,7 +54,7 @@ export function displayName(name: string) {
 export const updateURLParams = (
 	currentParams: URLSearchParams,
 	updates: Record<string, string | null | undefined>,
-	basePath: string = "/"
+	basePath: string = "/",
 ): string => {
 	const params = new URLSearchParams(currentParams.toString());
 
@@ -72,7 +72,7 @@ export const updateURLParams = (
 
 // Higher order function to handle errors
 export const withErrorHandling = <T, A extends unknown[]>(
-	fn: (...args: A) => Promise<T>
+	fn: (...args: A) => Promise<T>,
 ) => {
 	return async (...args: A): Promise<T> => {
 		try {
@@ -138,7 +138,7 @@ export function parseTranscript(transcript: string): TranscriptEntry[] {
 	for (const line of lines) {
 		const trimmedLine = line.trim();
 		const timeMatch = trimmedLine.match(
-			/(\d{2}:\d{2}:\d{2})\.\d{3}\s-->\s(\d{2}:\d{2}:\d{2})\.\d{3}/
+			/(\d{2}:\d{2}:\d{2})\.\d{3}\s-->\s(\d{2}:\d{2}:\d{2})\.\d{3}/,
 		);
 
 		if (timeMatch) {
@@ -188,26 +188,30 @@ export const createIframeLink = (videoId: string) =>
 export const uploadVideoDirectlyToBunny = async (
 	file: File,
 	uploadUrl: string,
-	accessKey: string
+	accessKey: string,
 ): Promise<boolean> => {
 	try {
 		const response = await fetch(uploadUrl, {
-			method: 'PUT',
+			method: "PUT",
 			headers: {
-				'AccessKey': accessKey,
-				'Content-Type': file.type,
+				AccessKey: accessKey,
+				"Content-Type": file.type,
 			},
 			body: file,
 		});
 
 		if (!response.ok) {
-			console.error('🔴 Direct video upload failed:', response.status, response.statusText);
+			console.error(
+				"🔴 Direct video upload failed:",
+				response.status,
+				response.statusText,
+			);
 			return false;
 		}
 
 		return true;
 	} catch (error) {
-		console.error('🔴 Error uploading video directly to Bunny:', error);
+		console.error("🔴 Error uploading video directly to Bunny:", error);
 		return false;
 	}
 };
@@ -215,26 +219,30 @@ export const uploadVideoDirectlyToBunny = async (
 export const uploadAttachmentDirectlyToBunny = async (
 	file: File,
 	uploadUrl: string,
-	accessKey: string
+	accessKey: string,
 ): Promise<boolean> => {
 	try {
 		const response = await fetch(uploadUrl, {
-			method: 'PUT',
+			method: "PUT",
 			headers: {
-				'AccessKey': accessKey,
-				'Content-Type': 'application/octet-stream',
+				AccessKey: accessKey,
+				"Content-Type": "application/octet-stream",
 			},
 			body: file,
 		});
 
 		if (!response.ok) {
-			console.error('🔴 Direct attachment upload failed:', response.status, response.statusText);
+			console.error(
+				"🔴 Direct attachment upload failed:",
+				response.status,
+				response.statusText,
+			);
 			return false;
 		}
 
 		return true;
 	} catch (error) {
-		console.error('🔴 Error uploading attachment directly to Bunny:', error);
+		console.error("🔴 Error uploading attachment directly to Bunny:", error);
 		return false;
 	}
 };
@@ -244,14 +252,14 @@ export const uploadWithProgress = async (
 	file: File,
 	uploadUrl: string,
 	accessKey: string,
-	onProgress?: (progress: number) => void
+	onProgress?: (progress: number) => void,
 ): Promise<boolean> => {
 	return new Promise((resolve) => {
 		const xhr = new XMLHttpRequest();
 
 		// Track upload progress
 		if (onProgress) {
-			xhr.upload.addEventListener('progress', (e) => {
+			xhr.upload.addEventListener("progress", (e) => {
 				if (e.lengthComputable) {
 					const progress = Math.round((e.loaded / e.total) * 100);
 					onProgress(progress);
@@ -259,24 +267,26 @@ export const uploadWithProgress = async (
 			});
 		}
 
-		xhr.addEventListener('load', () => {
+		xhr.addEventListener("load", () => {
 			if (xhr.status >= 200 && xhr.status < 300) {
 				resolve(true);
 			} else {
-				console.error('🔴 Upload failed:', xhr.status, xhr.statusText);
+				console.error("🔴 Upload failed:", xhr.status, xhr.statusText);
 				resolve(false);
 			}
 		});
 
-		xhr.addEventListener('error', () => {
-			console.error('🔴 Upload error');
+		xhr.addEventListener("error", () => {
+			console.error("🔴 Upload error");
 			resolve(false);
 		});
 
-		xhr.open('PUT', uploadUrl);
-		xhr.setRequestHeader('AccessKey', accessKey);
-		xhr.setRequestHeader('Content-Type', file.type.startsWith('video/') ? file.type : 'application/octet-stream');
+		xhr.open("PUT", uploadUrl);
+		xhr.setRequestHeader("AccessKey", accessKey);
+		xhr.setRequestHeader(
+			"Content-Type",
+			file.type.startsWith("video/") ? file.type : "application/octet-stream",
+		);
 		xhr.send(file);
 	});
 };
-

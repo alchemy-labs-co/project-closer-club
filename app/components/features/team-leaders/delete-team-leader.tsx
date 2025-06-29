@@ -29,7 +29,7 @@ export function DeleteTeamLeader({ teamLeaderId }: { teamLeaderId: string }) {
 					{
 						method: "POST",
 						action: "/resource/team-leaders",
-					}
+					},
 				);
 			}}
 		>

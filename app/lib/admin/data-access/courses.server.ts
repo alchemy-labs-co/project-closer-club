@@ -1,4 +1,4 @@
-import { count, desc, eq } from "drizzle-orm";
+import { asc, count, desc, eq } from "drizzle-orm";
 import { redirect } from "react-router";
 import db from "~/db/index.server";
 import { coursesTable } from "~/db/schema";
@@ -14,7 +14,7 @@ export async function getAllCourses(request: Request) {
 		const courses = await db
 			.select()
 			.from(coursesTable)
-			.orderBy(desc(coursesTable.createdAt));
+			.orderBy(asc(coursesTable.orderIndex));
 		return { success: true, courses };
 	} catch (error) {
 		console.error("🔴Error fetching courses from database:", error);

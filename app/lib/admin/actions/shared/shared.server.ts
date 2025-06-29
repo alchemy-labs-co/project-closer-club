@@ -19,7 +19,9 @@ export async function checkSegmentSlugUnique(
 ) {
 	// This function is deprecated and should not be used
 	// Use checkSegmentSlugUniqueForModule instead
-	throw new Error("checkSegmentSlugUnique is deprecated. Use checkSegmentSlugUniqueForModule instead.");
+	throw new Error(
+		"checkSegmentSlugUnique is deprecated. Use checkSegmentSlugUniqueForModule instead.",
+	);
 }
 
 // For checking segment slug uniqueness within a module

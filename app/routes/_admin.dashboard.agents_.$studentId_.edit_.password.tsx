@@ -100,7 +100,7 @@ export default function EditPasswordPage({ loaderData }: Route.ComponentProps) {
 								{
 									method: "POST",
 									action: "/resource/student",
-								}
+								},
 							);
 						})}
 					>
@@ -152,7 +152,7 @@ export default function EditPasswordPage({ loaderData }: Route.ComponentProps) {
 							className="cursor-pointer"
 							onClick={() => {
 								navigator.clipboard.writeText(
-									`Password: ${form.getValues("password")}`
+									`Password: ${form.getValues("password")}`,
 								);
 								setHasCopied(true);
 								setIsDialogOpen(false);

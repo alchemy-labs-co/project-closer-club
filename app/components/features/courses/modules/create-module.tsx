@@ -59,7 +59,7 @@ export function CreateModule() {
 				// Navigate to the newly created module
 				if (fetcher.data.moduleSlug) {
 					navigate(
-						`/dashboard/courses/${courseSlug}/${fetcher.data.moduleSlug}`
+						`/dashboard/courses/${courseSlug}/${fetcher.data.moduleSlug}`,
 					);
 				}
 			}
@@ -89,7 +89,7 @@ export function CreateModule() {
 								{
 									action: "/resource/module",
 									method: "POST",
-								}
+								},
 							);
 						})}
 					>

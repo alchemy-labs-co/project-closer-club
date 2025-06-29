@@ -148,9 +148,7 @@ export async function handleDeleteStudent(
 			await tx
 				.delete(studentCoursesTable)
 				.where(eq(studentCoursesTable.studentId, studentId));
-			await tx
-				.delete(agentsTable)
-				.where(eq(agentsTable.studentId, studentId));
+			await tx.delete(agentsTable).where(eq(agentsTable.studentId, studentId));
 		});
 
 		return data(

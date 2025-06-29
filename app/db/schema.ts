@@ -85,8 +85,7 @@ export const agentsTable = pgTable(
 		email: varchar("email", { length: 255 }).notNull().unique(),
 		phone: varchar("phone", { length: 255 }),
 		isActivated: boolean("is_activated").notNull().default(true),
-		teamLeaderId: uuid("team_leader_id")
-			.references(() => teamLeadersTable.id),
+		teamLeaderId: uuid("team_leader_id").references(() => teamLeadersTable.id),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at")
 			.notNull()
@@ -122,6 +121,7 @@ export const coursesTable = pgTable(
 		thumbnailUrl: varchar("thumbnail_url", { length: 500 }),
 		isPublic: boolean("is_public").notNull().default(false),
 		slug: varchar("slug", { length: 255 }).notNull(),
+		orderIndex: text("order_index").notNull().default("0"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at")
 			.notNull()
@@ -144,7 +144,7 @@ export const modulesTable = pgTable(
 		courseId: uuid("course_id")
 			.references(() => coursesTable.id, { onDelete: "cascade" })
 			.notNull(),
-		orderIndex: text("order_index").notNull().default("1"),
+		orderIndex: text("order_index").notNull().default("0"),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at")
 			.notNull()
@@ -169,7 +169,7 @@ export const lessonsTable = pgTable(
 		moduleId: uuid("module_id")
 			.references(() => modulesTable.id, { onDelete: "cascade" })
 			.notNull(),
-		orderIndex: text("order_index").notNull().default("1"),
+		orderIndex: text("order_index").notNull().default("0"),
 		created_at: timestamp("created_at").notNull().defaultNow(),
 		updated_at: timestamp("updated_at")
 			.notNull()
@@ -187,8 +187,7 @@ export const studentCoursesTable = pgTable(
 	"student_courses",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		studentId: text("student_id")
-			.notNull(),
+		studentId: text("student_id").notNull(),
 		courseId: uuid("course_id")
 			.references(() => coursesTable.id, { onDelete: "cascade" })
 			.notNull(),
@@ -203,45 +202,18 @@ export const studentCoursesTable = pgTable(
 		index("student_course_course_id_index").on(t.courseId),
 	],
 );
-
-// progress tracking / lesson locking
-
-export const lessonProgressTable = pgTable(
-	"lesson_progress",
-	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		studentId: text("student_id")
-			.notNull()
-			.references(() => agentsTable.studentId, { onDelete: "cascade" }),
-		lessonId: uuid("lesson_id")
-			.references(() => lessonsTable.id, { onDelete: "cascade" })
-			.notNull(),
-		isCompleted: boolean("is_completed").notNull().default(false),
-		completedAt: timestamp("completed_at"),
-		createdAt: timestamp("created_at").notNull().defaultNow(),
-		updatedAt: timestamp("updated_at")
-			.notNull()
-			.defaultNow()
-			.$onUpdate(() => new Date()),
-	},
-	(t) => [
-		index("lesson_progress_student_id_index").on(t.studentId),
-		index("lesson_progress_lesson_id_index").on(t.lessonId),
-		// Unique constraint to ensure one progress record per student per lesson
-		index("unique_student_lesson_progress").on(t.studentId, t.lessonId),
-	],
-);
-
 export const quizzesTable = pgTable("quizzes", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	lessonId: uuid("lesson_id")
 		.references(() => lessonsTable.id, { onDelete: "cascade" })
 		.notNull(),
-	questions: jsonb("questions").notNull().$type<{
-		title: string;
-		answers: string[];
-		correctAnswerIndex: number;
-	}[]>(),
+	questions: jsonb("questions").notNull().$type<
+		{
+			title: string;
+			answers: string[];
+			correctAnswerIndex: number;
+		}[]
+	>(),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at")
 		.notNull()
@@ -249,20 +221,23 @@ export const quizzesTable = pgTable("quizzes", {
 		.$onUpdate(() => new Date()),
 });
 
-export const completedQuizAssignmentsTable = pgTable("completed_quiz_assignments", {
-	id: uuid("id").primaryKey().defaultRandom(),
-	quizId: uuid("quiz_id")
-		.references(() => quizzesTable.id, { onDelete: "cascade" })
-		.notNull(),
-	studentId: text("student_id"),
-	lessonId: uuid("lesson_id")
-		.references(() => lessonsTable.id, { onDelete: "cascade" })
-		.notNull(),
-	selectedAnswers: jsonb("selected_answers").$type<number[]>(),
-	numberOfQuestions: integer("number_of_questions").notNull(),
-	totalCorrectAnswers: integer("total_correct_answers").notNull(),
-	createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const completedQuizAssignmentsTable = pgTable(
+	"completed_quiz_assignments",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		quizId: uuid("quiz_id")
+			.references(() => quizzesTable.id, { onDelete: "cascade" })
+			.notNull(),
+		studentId: text("student_id"),
+		lessonId: uuid("lesson_id")
+			.references(() => lessonsTable.id, { onDelete: "cascade" })
+			.notNull(),
+		selectedAnswers: jsonb("selected_answers").$type<number[]>(),
+		numberOfQuestions: integer("number_of_questions").notNull(),
+		totalCorrectAnswers: integer("total_correct_answers").notNull(),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+);
 
 export const attachmentsTable = pgTable(
 	"attachments",
@@ -276,9 +251,7 @@ export const attachmentsTable = pgTable(
 		fileExtension: varchar("file_extension", { length: 10 }).notNull(),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
-	(t) => [
-		index("attachment_lesson_id_index").on(t.lessonId),
-	],
+	(t) => [index("attachment_lesson_id_index").on(t.lessonId)],
 );
 
 // TYPES
@@ -288,9 +261,9 @@ export type Module = typeof modulesTable.$inferSelect;
 export type Segment = typeof lessonsTable.$inferSelect;
 export type StudentCourse = typeof studentCoursesTable.$inferSelect;
 export type TeamLeader = typeof teamLeadersTable.$inferSelect;
-export type LessonProgress = typeof lessonProgressTable.$inferSelect;
 export type Quiz = typeof quizzesTable.$inferSelect;
-export type CompletedQuizAssignment = typeof completedQuizAssignmentsTable.$inferSelect;
+export type CompletedQuizAssignment =
+	typeof completedQuizAssignmentsTable.$inferSelect;
 export type Attachment = typeof attachmentsTable.$inferSelect;
 // AUTH RELATED
 export type User = typeof user.$inferSelect;

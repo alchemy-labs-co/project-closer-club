@@ -1,4 +1,4 @@
-import { ChevronRight, CircleCheck, Lock, Pencil } from "lucide-react";
+import { ChevronRight, CircleCheck, Lock } from "lucide-react";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -10,19 +10,19 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-import { useCoursesLoaderData } from "~/routes/_admin.dashboard.courses";
-import { MarkAsPublic } from "./mark-as-public";
-import { MarkAsPrivate } from "./mark-as-private";
-import type { Course } from "~/db/schema";
-import { DeleteCourse } from "./delete-course";
-import { EditCourse } from "./edit-course";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
 } from "~/components/ui/tooltip";
+import type { Course } from "~/db/schema";
 import { cn } from "~/lib/utils";
+import { useCoursesLoaderData } from "~/routes/_admin.dashboard.courses";
+import { DeleteCourse } from "./delete-course";
+import { EditCourse } from "./edit-course";
+import { MarkAsPrivate } from "./mark-as-private";
+import { MarkAsPublic } from "./mark-as-public";
 
 export function CoursesList() {
 	const { courses } = useCoursesLoaderData();

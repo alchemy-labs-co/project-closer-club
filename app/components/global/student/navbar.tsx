@@ -31,7 +31,7 @@ export function StudentNavbar() {
 								variant={"outline"}
 								className={cn(
 									"hover:bg-brand-primary/80 border-none  bg-brand-primary  text-black",
-									isActive && "bg-brand-primary text-white"
+									isActive && "bg-brand-primary text-white",
 								)}
 								asChild
 							>
@@ -136,7 +136,7 @@ function HamburgerMenu({ pathname }: { pathname: string }) {
 							variant={"outline"}
 							className={cn(
 								"w-full hover:bg-brand-primary/80 border-none text-white",
-								isActive && "bg-brand-primary text-white"
+								isActive && "bg-brand-primary text-white",
 							)}
 							asChild
 						>
