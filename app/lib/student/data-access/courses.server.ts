@@ -1,7 +1,7 @@
-import { and, asc, count, eq, exists } from "drizzle-orm";
+import { and, asc, count, eq, exists, desc, gt } from "drizzle-orm";
 import { redirect } from "react-router";
 import db from "~/db/index.server";
-import { coursesTable, lessonsTable, modulesTable, studentCoursesTable, type Segment } from "~/db/schema";
+import { coursesTable, lessonsTable, modulesTable, studentCoursesTable, completedQuizAssignmentsTable, type Segment } from "~/db/schema";
 import { isAgentLoggedIn } from "~/lib/auth/auth.server";
 
 export async function getCourseBySlug(request: Request, slug: string) {
@@ -148,4 +148,132 @@ export async function getTotalLessonsCount(request: Request, courseId: string) {
 		.where(eq(modulesTable.courseId, courseId));
 
 	return lessons.count ?? 0;
+}
+
+// chrose potentially store in redis to reduce db calls.
+
+export async function getResumeableLessonForCourse(request: Request, courseSlug: string) {
+	const { isLoggedIn, student } = await isAgentLoggedIn(request);
+	if (!isLoggedIn || !student) {
+		throw redirect("/login");
+	}
+
+	// Get the course
+	const [course] = await db
+		.select()
+		.from(coursesTable)
+		.where(eq(coursesTable.slug, courseSlug));
+
+	if (!course) {
+		throw redirect("/student/courses");
+	}
+
+	// Get all modules for the course (ordered)
+	const modules = await db
+		.select()
+		.from(modulesTable)
+		.where(eq(modulesTable.courseId, course.id))
+		.orderBy(asc(modulesTable.orderIndex));
+
+	// Get all completed lessons for this student in this course
+	const completedLessons = await db
+		.select({
+			lessonId: lessonsTable.id,
+			orderIndex: lessonsTable.orderIndex,
+			moduleId: lessonsTable.moduleId,
+			lessonSlug: lessonsTable.slug,
+			moduleSlug: modulesTable.slug,
+			moduleOrderIndex: modulesTable.orderIndex
+		})
+		.from(completedQuizAssignmentsTable)
+		.innerJoin(lessonsTable, eq(completedQuizAssignmentsTable.lessonId, lessonsTable.id))
+		.innerJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
+		.where(
+			and(
+				eq(completedQuizAssignmentsTable.studentId, student.id),
+				eq(modulesTable.courseId, course.id)
+			)
+		)
+		.orderBy(asc(modulesTable.orderIndex), asc(lessonsTable.orderIndex));
+
+	// If there are completed lessons, find the next accessible lesson
+	if (completedLessons.length > 0) {
+		// Sort by module order, then by lesson order to find the truly last completed lesson
+		const lastCompletedLesson = completedLessons.reduce((latest, current) => {
+			const latestModuleOrder = parseInt(latest.moduleOrderIndex);
+			const currentModuleOrder = parseInt(current.moduleOrderIndex);
+
+			if (currentModuleOrder > latestModuleOrder) {
+				return current;
+			} else if (currentModuleOrder === latestModuleOrder) {
+				const latestLessonOrder = parseInt(latest.orderIndex);
+				const currentLessonOrder = parseInt(current.orderIndex);
+				return currentLessonOrder > latestLessonOrder ? current : latest;
+			}
+			return latest;
+		});
+
+		// Try to find the next lesson in the same module
+		const nextLessonInModule = await db
+			.select({
+				lesson: lessonsTable,
+				module: modulesTable
+			})
+			.from(lessonsTable)
+			.innerJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
+			.where(
+				and(
+					eq(lessonsTable.moduleId, lastCompletedLesson.moduleId),
+					gt(lessonsTable.orderIndex, lastCompletedLesson.orderIndex)
+				)
+			)
+			.orderBy(asc(lessonsTable.orderIndex))
+			.limit(1);
+
+		if (nextLessonInModule.length > 0) {
+			return {
+				lesson: nextLessonInModule[0].lesson,
+				module: nextLessonInModule[0].module
+			};
+		}
+
+		// If no next lesson in current module, find first lesson in next module
+		const currentModuleOrderIndex = parseInt(lastCompletedLesson.moduleOrderIndex);
+		const nextModule = modules.find(m => parseInt(m.orderIndex) > currentModuleOrderIndex);
+
+		if (nextModule) {
+			const [firstLessonInNextModule] = await db
+				.select()
+				.from(lessonsTable)
+				.where(eq(lessonsTable.moduleId, nextModule.id))
+				.orderBy(asc(lessonsTable.orderIndex))
+				.limit(1);
+
+			if (firstLessonInNextModule) {
+				return {
+					lesson: firstLessonInNextModule,
+					module: nextModule
+				};
+			}
+		}
+
+		// If all lessons are completed, return the last lesson in the course
+		const lastModule = modules[modules.length - 1];
+		const [lastLesson] = await db
+			.select()
+			.from(lessonsTable)
+			.where(eq(lessonsTable.moduleId, lastModule.id))
+			.orderBy(desc(lessonsTable.orderIndex))
+			.limit(1);
+
+		if (lastLesson) {
+			return {
+				lesson: lastLesson,
+				module: lastModule
+			};
+		}
+	}
+
+	// If no lessons are completed, return the first lesson (fallback to existing behavior)
+	return getFirstLessonForCourse(request, courseSlug);
 }
