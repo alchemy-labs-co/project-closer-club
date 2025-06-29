@@ -28,7 +28,10 @@ import {
 } from "~/lib/student/data-access/lessons.server.";
 import type { FetcherSubmitQuizResponse } from "~/lib/types";
 import type { Route } from "./+types/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug";
-import { canAccessLesson } from "~/lib/student/data-access/lesson-locking.server";
+import {
+	canAccessLesson,
+	getNextLessonAfterCurrent,
+} from "~/lib/student/data-access/lesson-locking.server";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
 	const { isLoggedIn, student } = await isAgentLoggedIn(request);
@@ -75,7 +78,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		moduleSlug,
 		lessonSlug,
 		courseSlug,
-		lesson.id
+		lesson.id,
+		student.id
 	);
 
 	return {
@@ -83,6 +87,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		lesson,
 		completedAssignment,
 		studentId: student.id,
+		courseSlug,
+		moduleSlug,
+		lessonSlug,
 	};
 }
 
@@ -132,7 +139,15 @@ function nonCriticalLoaderData(
 
 	const attachments = getAttachmentsForLesson(request, lessonId);
 
-	return { quizzes, attachments };
+	// Get next lesson as a promise (non-blocking)
+	const nextLesson = getNextLessonAfterCurrent(
+		studentId,
+		courseSlug,
+		moduleSlug,
+		lessonSlug
+	);
+
+	return { quizzes, attachments, nextLesson };
 }
 
 function useLessonLoaderData() {
@@ -160,7 +175,11 @@ export default function AgentEditorLesson({
 			<VideoContent />
 			<VideoContentTabs />
 			{!isAssignmentCompleted && <LockNextLessonButton />}
-			{isAssignmentCompleted && <ProccedToNextLessonButton />}
+			{isAssignmentCompleted && (
+				<Suspense fallback={<Skeleton className="w-full h-[30px]" />}>
+					<ProccedToNextLessonButton />
+				</Suspense>
+			)}
 		</div>
 	);
 }
@@ -608,12 +627,26 @@ function LockNextLessonButton() {
 }
 
 function ProccedToNextLessonButton() {
-	const { lesson } = useLessonLoaderData();
+	const { nonCriticalData, courseSlug } = useLessonLoaderData();
+	const nextLesson = React.use(nonCriticalData.nextLesson);
+
+	// If there's no next lesson, show completion message or redirect to course overview
+	if (!nextLesson) {
+		return (
+			<PrimaryButton asChild>
+				<Link to={`/student/courses/${courseSlug}`}>
+					Return to Course Overview
+				</Link>
+			</PrimaryButton>
+		);
+	}
 
 	return (
 		<PrimaryButton asChild>
-			<Link to={`/student/courses/${lesson.moduleId}/${lesson.id}`}>
-				Procced to Next Lesson
+			<Link
+				to={`/student/courses/${nextLesson.courseSlug}/${nextLesson.moduleSlug}/${nextLesson.lessonSlug}`}
+			>
+				Proceed to Next Lesson
 			</Link>
 		</PrimaryButton>
 	);

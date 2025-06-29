@@ -1,4 +1,4 @@
-import { and, eq, asc } from "drizzle-orm";
+import { and, eq, asc, gt } from "drizzle-orm";
 import db from "~/db/index.server";
 import {
     lessonsTable,
@@ -378,5 +378,123 @@ async function hasCompletedAllLessonsInModule(
     } catch (error) {
         console.error("Error checking module completion:", error);
         return false;
+    }
+}
+
+/**
+ * Get the next lesson after the current lesson (can span across modules)
+ */
+export async function getNextLessonAfterCurrent(
+    studentId: string,
+    courseSlug: string,
+    moduleSlug: string,
+    lessonSlug: string
+): Promise<{ courseSlug: string; moduleSlug: string; lessonSlug: string; lessonName: string } | null> {
+    try {
+        // Get current lesson info
+        const currentLesson = await getLessonBySlug(courseSlug, moduleSlug, lessonSlug);
+        if (!currentLesson) return null;
+
+        const currentLessonOrderIndex = parseInt(currentLesson.orderIndex);
+
+        // Try to find next lesson in current module
+        const nextLessonInModule = await db
+            .select({
+                slug: lessonsTable.slug,
+                name: lessonsTable.name,
+                orderIndex: lessonsTable.orderIndex
+            })
+            .from(lessonsTable)
+            .where(
+                and(
+                    eq(lessonsTable.moduleId, currentLesson.moduleId),
+                    gt(lessonsTable.orderIndex, currentLesson.orderIndex)
+                )
+            )
+            .orderBy(asc(lessonsTable.orderIndex))
+            .limit(1);
+
+        if (nextLessonInModule.length > 0) {
+            return {
+                courseSlug,
+                moduleSlug,
+                lessonSlug: nextLessonInModule[0].slug,
+                lessonName: nextLessonInModule[0].name
+            };
+        }
+
+        // No more lessons in current module, try next module
+        // Get course info to find next module
+        const [course] = await db
+            .select({ id: coursesTable.id })
+            .from(coursesTable)
+            .where(eq(coursesTable.slug, courseSlug))
+            .limit(1);
+
+        if (!course) return null;
+
+        // Get current module info
+        const [currentModule] = await db
+            .select({
+                id: modulesTable.id,
+                orderIndex: modulesTable.orderIndex
+            })
+            .from(modulesTable)
+            .where(
+                and(
+                    eq(modulesTable.courseId, course.id),
+                    eq(modulesTable.slug, moduleSlug)
+                )
+            )
+            .limit(1);
+
+        if (!currentModule) return null;
+
+        // Find next module
+        const [nextModule] = await db
+            .select({
+                id: modulesTable.id,
+                slug: modulesTable.slug,
+                orderIndex: modulesTable.orderIndex
+            })
+            .from(modulesTable)
+            .where(
+                and(
+                    eq(modulesTable.courseId, course.id),
+                    gt(modulesTable.orderIndex, currentModule.orderIndex)
+                )
+            )
+            .orderBy(asc(modulesTable.orderIndex))
+            .limit(1);
+
+        if (!nextModule) return null; // No more modules
+
+        // Check if student can access the next module
+        const moduleAccessResult = await canAccessModule(studentId, courseSlug, nextModule.slug);
+        if (!moduleAccessResult.canAccess) return null;
+
+        // Get first lesson in next module
+        const [firstLessonInNextModule] = await db
+            .select({
+                slug: lessonsTable.slug,
+                name: lessonsTable.name
+            })
+            .from(lessonsTable)
+            .where(eq(lessonsTable.moduleId, nextModule.id))
+            .orderBy(asc(lessonsTable.orderIndex))
+            .limit(1);
+
+        if (!firstLessonInNextModule) return null;
+
+        return {
+            courseSlug,
+            moduleSlug: nextModule.slug,
+            lessonSlug: firstLessonInNextModule.slug,
+            lessonName: firstLessonInNextModule.name
+        };
+
+    } catch (error) {
+        console.error("Error getting next lesson:", error);
+        return null;
     }
 } 
