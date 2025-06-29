@@ -1,4 +1,4 @@
-import { and, asc, eq, exists } from "drizzle-orm";
+import { and, asc, count, eq, exists } from "drizzle-orm";
 import { redirect } from "react-router";
 import db from "~/db/index.server";
 import { coursesTable, lessonsTable, modulesTable, studentCoursesTable, type Segment } from "~/db/schema";
@@ -131,4 +131,21 @@ export async function getFirstLessonForCourse(request: Request, courseSlug: stri
 		.limit(1);
 
 	return { lesson, module };
+}
+
+export async function getTotalLessonsCount(request: Request, courseId: string) {
+	const { isLoggedIn } = await isAgentLoggedIn(request);
+	if (!isLoggedIn) {
+		throw redirect("/login");
+	}
+
+	const [lessons] = await db
+		.select({
+			count: count(),
+		})
+		.from(lessonsTable)
+		.leftJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
+		.where(eq(modulesTable.courseId, courseId));
+
+	return lessons.count ?? 0;
 }

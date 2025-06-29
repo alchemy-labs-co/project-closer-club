@@ -14,13 +14,17 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "~/components/ui/dialog";
-import db from "~/db/index.server";
-import { quizzesTable } from "~/db/schema";
+import { getAllQuizzesWithLessonInfo } from "~/lib/admin/data-access/quiz/quiz.server";
 import type { Route } from "./+types/_admin.dashboard.quizzes";
 
-export async function loader({}: Route.LoaderArgs) {
-	const quizzes = await db.select().from(quizzesTable);
-	return data({ quizzes }, { status: 200 });
+export async function loader({ request }: Route.LoaderArgs) {
+	const result = await getAllQuizzesWithLessonInfo(request);
+
+	if (!result.success) {
+		return data({ quizzes: [] }, { status: 200 });
+	}
+
+	return data({ quizzes: result.quizzes }, { status: 200 });
 }
 
 export default function QuizzesPage() {
@@ -61,10 +65,38 @@ function QuizzesList() {
 	);
 }
 
-function QuizCard({ quiz }: { quiz: typeof quizzesTable.$inferSelect }) {
-	const { id, questions, createdAt } = quiz;
+function QuizCard({
+	quiz,
+}: {
+	quiz: {
+		id: string;
+		lessonId: string;
+		questions: any;
+		createdAt: Date;
+		updatedAt: Date;
+		lessonSlug: string;
+		lessonName: string;
+		moduleSlug: string;
+		moduleName: string;
+		courseSlug: string;
+		courseName: string;
+	};
+}) {
+	const {
+		id,
+		questions,
+		createdAt,
+		lessonSlug,
+		moduleSlug,
+		courseSlug,
+		lessonName,
+		moduleName,
+		courseName,
+	} = quiz;
 	const parsedQuestions = Array.isArray(questions) ? questions : [];
 	const questionCount = parsedQuestions.length;
+
+	const lessonUrl = `/dashboard/courses/${courseSlug}/${moduleSlug}/${lessonSlug}`;
 
 	return (
 		<div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -87,14 +119,31 @@ function QuizCard({ quiz }: { quiz: typeof quizzesTable.$inferSelect }) {
 					</div>
 				</div>
 
-				<div className="mb-4">
+				<div className="mb-4 space-y-1">
+					<p className="text-sm text-gray-600">
+						<span className="font-medium">Lesson:</span> {lessonName}
+					</p>
+					<p className="text-sm text-gray-600">
+						<span className="font-medium">Module:</span> {moduleName}
+					</p>
+					<p className="text-sm text-gray-600">
+						<span className="font-medium">Course:</span> {courseName}
+					</p>
 					<p className="text-sm text-gray-600">
 						Created {format(new Date(createdAt), "MMM d, yyyy")}
 					</p>
 				</div>
 
 				<div className="flex gap-2 cursor-pointer w-full">
-					<Link to={`/dashboard/quizzes/create?edit=${id}`} className="flex-1">
+					<Link to={lessonUrl} className="flex-1">
+						<Button variant="outline" className="w-full">
+							View Lesson
+						</Button>
+					</Link>
+					<Link
+						to={`/dashboard/quizzes/create?edit=${id}`}
+						className="flex-1 w-full"
+					>
 						<PrimaryButton className="w-full">Edit Quiz</PrimaryButton>
 					</Link>
 					<DeleteQuiz quizId={id} />
@@ -149,7 +198,9 @@ function DeleteQuiz({ quizId }: { quizId: string }) {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<Button variant="destructive">Delete</Button>
+				<Button variant="destructive" className="flex-1">
+					Delete
+				</Button>
 			</DialogTrigger>
 			<DialogContent>
 				<fetcher.Form

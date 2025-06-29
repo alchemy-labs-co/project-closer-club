@@ -15,7 +15,12 @@ import {
 } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { isAgentLoggedIn } from "~/lib/auth/auth.server";
-import { getModulesAndLessonsForCourse } from "~/lib/student/data-access/courses.server";
+import { getCompletedLessonsCount } from "~/lib/student/data-access/assignments.server";
+import {
+	getCourseBySlug,
+	getModulesAndLessonsForCourse,
+	getTotalLessonsCount,
+} from "~/lib/student/data-access/courses.server";
 import type { Route } from "./+types/_agent._editor";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -29,13 +34,30 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		throw redirect("/student/courses");
 	}
 
+	const { course } = await getCourseBySlug(request, courseSlug);
+
+	if (!course) {
+		throw redirect("/student/courses");
+	}
+
 	// Return a promise for modules and lessons instead of awaiting it
 	const modulesAndLessonsPromise = getModulesAndLessonsForCourse(
 		request,
 		courseSlug
 	);
 
-	return { courseSlug, studentId: student.id, modulesAndLessonsPromise };
+	const progressPromise = (async () => {
+		const totalLessons = await getTotalLessonsCount(request, course.id);
+		const completedLessons = await getCompletedLessonsCount(request, course.id);
+		return { totalLessons, completedLessons };
+	})();
+
+	return {
+		courseSlug,
+		studentId: student.id,
+		modulesAndLessonsPromise,
+		progressPromise,
+	};
 }
 
 export function useAgentEditorLoaderData() {
@@ -175,6 +197,51 @@ function ModulesAndLessonsFallback() {
 	);
 }
 
+function ProgressContent() {
+	const { progressPromise } = useAgentEditorLoaderData();
+	const { totalLessons, completedLessons } = React.use(progressPromise);
+
+	const progressPercentage =
+		totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+
+	return (
+		<div className="p-3 bg-white rounded-lg border">
+			<h3 className="font-semibold text-sm text-gray-900 mb-2">Progress</h3>
+			<div className="space-y-2">
+				<div className="flex justify-between text-xs">
+					<span className="text-gray-600">Completed</span>
+					<span className="font-medium text-gray-800">
+						{completedLessons} / {totalLessons}
+					</span>
+				</div>
+				<div className="w-full bg-gray-200 rounded-full h-2">
+					<div
+						className="bg-blue-600 h-2 rounded-full"
+						style={{ width: `${progressPercentage}%` }}
+					></div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function ProgressFallback() {
+	return (
+		<div className="p-3 bg-white rounded-lg border">
+			<h3 className="font-semibold text-sm text-gray-900 mb-2">Progress</h3>
+			<div className="space-y-2">
+				<div className="flex justify-between text-xs">
+					<span className="text-gray-600">Completed</span>
+					<div className="h-3 w-8 bg-gray-200 rounded animate-pulse"></div>
+				</div>
+				<div className="w-full bg-gray-200 rounded-full h-2">
+					<div className="bg-gray-300 h-2 rounded-full w-0 animate-pulse"></div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 function AgentCourseSidebar() {
 	return (
 		<aside className="w-full md:w-64 h-[calc(100vh-var(--navbar-height))] overflow-hidden bg-gray-50 md:border-r border-r-0 border-b md:border-b-0 border-gray-200 p-2 flex flex-col justify-between gap-4 sticky top-18">
@@ -183,18 +250,9 @@ function AgentCourseSidebar() {
 					<ModulesAndLessonsContent />
 				</Suspense>
 			</div>
-			<div className="p-3 bg-white rounded-lg border">
-				<h3 className="font-semibold text-sm text-gray-900 mb-2">Progress</h3>
-				<div className="space-y-2">
-					<div className="flex justify-between text-xs">
-						<span className="text-gray-600">Completed</span>
-						<div className="h-3 w-8 bg-gray-200 rounded animate-pulse"></div>
-					</div>
-					<div className="w-full bg-gray-200 rounded-full h-2">
-						<div className="bg-gray-300 h-2 rounded-full w-0 animate-pulse"></div>
-					</div>
-				</div>
-			</div>
+			<Suspense fallback={<ProgressFallback />}>
+				<ProgressContent />
+			</Suspense>
 		</aside>
 	);
 }

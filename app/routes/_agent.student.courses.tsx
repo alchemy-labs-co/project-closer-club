@@ -1,5 +1,6 @@
 import { BookOpen } from "lucide-react";
-import { Link, useNavigation } from "react-router";
+import React, { Suspense } from "react";
+import { Link, useNavigation, redirect } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -12,20 +13,44 @@ import {
 
 import { CourseCardSkeleton } from "~/components/global/student/student-skeleton";
 import type { Course } from "~/db/schema";
+import { isAgentLoggedIn } from "~/lib/auth/auth.server";
+import { getCompletedLessonsCount } from "~/lib/student/data-access/assignments.server";
+import { getTotalLessonsCount } from "~/lib/student/data-access/courses.server";
 import { getStudentCourses } from "~/lib/student/data-access/students.server";
 import { cn } from "~/lib/utils";
 import type { Route } from "./+types/_agent.student.courses";
+import { Skeleton } from "~/components/ui/skeleton";
 
 export async function loader({ request }: Route.LoaderArgs) {
+	// get auth info to get student ID
+	const { isLoggedIn, student } = await isAgentLoggedIn(request);
+	if (!isLoggedIn || !student) {
+		throw redirect("/login");
+	}
+
 	// get all public courses for the student
 	const { courses } = await getStudentCourses(request);
-	return { courses };
+
+	// Create progress promises for each course
+	const coursesWithProgress = courses.map((course) => ({
+		...course,
+		progressPromise: (async () => {
+			const totalLessons = await getTotalLessonsCount(course.id);
+			const completedLessons = await getCompletedLessonsCount(
+				student.id,
+				course.id
+			);
+			return { totalLessons, completedLessons };
+		})(),
+	}));
+
+	return { coursesWithProgress };
 }
 
 export default function StudentCourses({ loaderData }: Route.ComponentProps) {
 	const navigation = useNavigation();
 	const isLoading = navigation.state !== "idle";
-	const { courses } = loaderData;
+	const { coursesWithProgress } = loaderData;
 	if (isLoading) {
 		return <CourseCardSkeleton />;
 	}
@@ -33,7 +58,7 @@ export default function StudentCourses({ loaderData }: Route.ComponentProps) {
 		<div className="max-w-7xl mx-auto pt-8 md:pt-12 lg:pt-20 pb-8 px-4 xl:px-0">
 			<h1 className="text-center text-3xl font-bold mb-8">Available Courses</h1>
 
-			{courses.length === 0 ? (
+			{coursesWithProgress.length === 0 ? (
 				<div className="text-center py-12">
 					<p className="text-gray-500 text-lg">
 						No courses available at the moment.
@@ -41,7 +66,7 @@ export default function StudentCourses({ loaderData }: Route.ComponentProps) {
 				</div>
 			) : (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{courses.map((course) => (
+					{coursesWithProgress.map((course) => (
 						<CourseCard key={course.id} course={course} />
 					))}
 				</div>
@@ -50,7 +75,16 @@ export default function StudentCourses({ loaderData }: Route.ComponentProps) {
 	);
 }
 
-function CourseCard({ course }: { course: Course }) {
+function CourseCard({
+	course,
+}: {
+	course: Course & {
+		progressPromise: Promise<{
+			totalLessons: number;
+			completedLessons: number;
+		}>;
+	};
+}) {
 	const { name, description, slug, thumbnailUrl } = course;
 
 	return (
@@ -61,12 +95,29 @@ function CourseCard({ course }: { course: Course }) {
 			)}
 		>
 			{thumbnailUrl && (
-				<div className="p-0">
+				<div className="p-0 relative">
 					<img
 						src={thumbnailUrl}
 						alt={`${name} thumbnail`}
 						className="w-full h-48 object-cover rounded-t-lg"
 					/>
+					{/* Dark overlay */}
+					<div className="absolute inset-0 bg-black/20 rounded-t-lg" />
+					{/* Progress Circle - positioned over the thumbnail overlay */}
+					<div className="absolute top-3 right-3 z-10">
+						<Suspense fallback={<ProgressCircleFallback />}>
+							<ProgressCircle progressPromise={course.progressPromise} />
+						</Suspense>
+					</div>
+				</div>
+			)}
+
+			{/* Progress Circle for courses without thumbnails */}
+			{!thumbnailUrl && (
+				<div className="absolute top-3 right-3 z-10">
+					<Suspense fallback={<ProgressCircleFallback />}>
+						<ProgressCircle progressPromise={course.progressPromise} />
+					</Suspense>
 				</div>
 			)}
 			<CardHeader>
@@ -77,7 +128,7 @@ function CourseCard({ course }: { course: Course }) {
 						</div>
 					</div>
 				)}
-				<CardTitle className="text-xl">{name}</CardTitle>
+				<CardTitle className="text-xl pr-12">{name}</CardTitle>
 			</CardHeader>
 			<CardContent className="flex-grow">
 				<CardDescription className="text-base">{description}</CardDescription>
@@ -92,4 +143,57 @@ function CourseCard({ course }: { course: Course }) {
 			</CardFooter>
 		</Card>
 	);
+}
+
+function ProgressCircle({
+	progressPromise,
+}: {
+	progressPromise: Promise<{ totalLessons: number; completedLessons: number }>;
+}) {
+	const { totalLessons, completedLessons } = React.use(progressPromise);
+
+	const progressPercentage =
+		totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+	const circumference = 2 * Math.PI * 16; // radius of 16
+	const strokeDashoffset =
+		circumference - (progressPercentage / 100) * circumference;
+
+	return (
+		<div className="relative w-10 h-10">
+			<svg className="w-10 h-10 transform -rotate-90" viewBox="0 0 40 40">
+				{/* Background circle */}
+				<circle
+					cx="20"
+					cy="20"
+					r="16"
+					fill="transparent"
+					stroke="rgba(209, 213, 219, 0.3)"
+					strokeWidth="3"
+				/>
+				{/* Progress circle */}
+				<circle
+					cx="20"
+					cy="20"
+					r="16"
+					fill="transparent"
+					stroke="rgb(59, 130, 246)"
+					strokeWidth="3"
+					strokeDasharray={circumference}
+					strokeDashoffset={strokeDashoffset}
+					strokeLinecap="round"
+					className="transition-all duration-300 ease-in-out"
+				/>
+			</svg>
+			{/* Percentage text */}
+			<div className="absolute inset-0 flex items-center justify-center">
+				<span className="text-xs font-semibold text-gray-700">
+					{Math.round(progressPercentage)}%
+				</span>
+			</div>
+		</div>
+	);
+}
+
+function ProgressCircleFallback() {
+	return <Skeleton className="relative w-10 h-10 rounded-full" />;
 }

@@ -41,6 +41,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 	// Check if we're editing an existing quiz
 	const url = new URL(request.url);
 	const quizId = url.searchParams.get("edit");
+	const lessonId = url.searchParams.get("lessonId");
 
 	if (quizId) {
 		const [quiz] = await db
@@ -57,6 +58,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 			{
 				quiz: quiz,
 				isEditing: true,
+				lessonId: lessonId,
 			},
 			{ status: 200 }
 		);
@@ -66,13 +68,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 		{
 			quiz: null,
 			isEditing: false,
+			lessonId: lessonId,
 		},
 		{ status: 200 }
 	);
 }
 
 export default function CreateQuizPage({ loaderData }: Route.ComponentProps) {
-	const { quiz, isEditing } = loaderData;
+	const { quiz, isEditing, lessonId } = loaderData;
 
 	// Convert existing quiz questions to our Question format if editing
 	const getInitialQuestions = (): Question[] => {
@@ -111,7 +114,7 @@ export default function CreateQuizPage({ loaderData }: Route.ComponentProps) {
 				setQuestions={setQuestions}
 				isEditing={isEditing}
 				quizId={quiz?.id}
-				defaultLessonId={quiz?.lessonId}
+				defaultLessonId={lessonId || quiz?.lessonId}
 			/>
 			{/* Scroll mask at the bottom - contained within this component */}
 			<div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-10" />
@@ -629,7 +632,7 @@ function PublishQuiz({
 	defaultLessonId?: string;
 }) {
 	const [selectedLessonId, setSelectedLessonId] = useState<string | null>(
-		defaultLessonId || null
+		defaultLessonId ?? null
 	);
 	const fetcher = useFetcher<FetcherResponse>();
 	const navigate = useNavigate();
@@ -695,6 +698,59 @@ function PublishQuiz({
 
 	const isPending = fetcher.state !== "idle";
 
+	// If we have a defaultLessonId (came from lesson page), show direct publish button
+	if (defaultLessonId) {
+		return (
+			<div className="fixed bottom-26 right-16 flex flex-col items-end gap-3">
+				{!canPublish && (
+					<motion.div
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-200 max-w-xs text-right"
+					>
+						<AlertCircle className="w-4 h-4 shrink-0" />
+						<span>
+							{!hasQuestions
+								? "Add at least one question to publish"
+								: "Complete all questions to publish"}
+						</span>
+					</motion.div>
+				)}
+				<motion.div
+					whileHover={canPublish && !isPending ? { scale: 1.02 } : {}}
+					whileTap={canPublish && !isPending ? { scale: 0.98 } : {}}
+				>
+					<fetcher.Form
+						action="/resource/quiz"
+						method="POST"
+						onSubmit={handlePublish}
+					>
+						<PrimaryButton
+							type="submit"
+							disabled={!canPublish || isPending}
+							className={`min-w-[150px] transition-all duration-200 ${
+								!canPublish ? "opacity-50 cursor-not-allowed" : ""
+							}`}
+						>
+							{isPending ? (
+								<>
+									<Loader2 className="w-4 h-4 animate-spin" />
+									Publishing...
+								</>
+							) : (
+								<>
+									<Check className="w-4 h-4" />
+									{isEditing ? "Update" : "Publish"}
+								</>
+							)}
+						</PrimaryButton>
+					</fetcher.Form>
+				</motion.div>
+			</div>
+		);
+	}
+
+	// Otherwise, show dialog for lesson selection
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
