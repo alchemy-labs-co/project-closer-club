@@ -35,9 +35,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 	const coursesWithProgress = courses.map((course) => ({
 		...course,
 		progressPromise: (async () => {
-			const totalLessons = await getTotalLessonsCount(course.id);
+			const totalLessons = await getTotalLessonsCount(request, course.id);
 			const completedLessons = await getCompletedLessonsCount(
-				student.id,
+				request,
 				course.id
 			);
 			return { totalLessons, completedLessons };
