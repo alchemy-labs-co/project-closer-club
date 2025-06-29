@@ -12,28 +12,30 @@ export async function loader({ request }: Route.LoaderArgs) {
 	}
 	try {
 		const [agents, teamLeaders] = await Promise.all([
-			db.select()
-				.from(agentsTable)
-				.orderBy(desc(agentsTable.createdAt)),
-			db.select()
+			db.select().from(agentsTable).orderBy(desc(agentsTable.createdAt)),
+			db
+				.select()
 				.from(teamLeadersTable)
-				.orderBy(desc(teamLeadersTable.createdAt))
+				.orderBy(desc(teamLeadersTable.createdAt)),
 		]);
 
 		// Add role field to distinguish between agents and team leaders
-		const agentsWithRole = agents.map(agent => ({
+		const agentsWithRole = agents.map((agent) => ({
 			...agent,
-			role: 'agent' as const
+			role: "agent" as const,
 		}));
 
-		const teamLeadersWithRole = teamLeaders.map(teamLeader => ({
+		const teamLeadersWithRole = teamLeaders.map((teamLeader) => ({
 			...teamLeader,
 			// Map teamLeaderId to studentId for consistency
 			studentId: teamLeader.teamLeaderId,
-			role: 'team leader' as const
+			role: "team leader" as const,
 		}));
 
-		return data({ students: [...agentsWithRole, ...teamLeadersWithRole] }, { status: 200 });
+		return data(
+			{ students: [...agentsWithRole, ...teamLeadersWithRole] },
+			{ status: 200 },
+		);
 	} catch (error) {
 		console.error("🔴Error fetching all the students", error);
 		return data(

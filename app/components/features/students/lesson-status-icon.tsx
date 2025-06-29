@@ -88,7 +88,7 @@ export function LessonNavItem({
 			// Locked lesson styling
 			"text-gray-400 cursor-not-allowed opacity-60": isDisabled,
 		},
-		className
+		className,
 	);
 
 	const handleClick = () => {
@@ -157,7 +157,7 @@ export function ModuleLessonList({
 	onLessonClick,
 }: ModuleLessonListProps) {
 	const completedCount = lessons.filter(
-		(lesson) => lesson.status === "completed"
+		(lesson) => lesson.status === "completed",
 	).length;
 	const totalCount = lessons.length;
 	const progressPercentage =

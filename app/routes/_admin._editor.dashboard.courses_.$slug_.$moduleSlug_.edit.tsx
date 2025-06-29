@@ -43,7 +43,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 	const { success, module } = await getModuleBySlug(
 		request,
 		moduleSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	if (!success || !module) {
@@ -122,7 +122,7 @@ export default function EditModule() {
 									{
 										action: "/resource/module",
 										method: "POST",
-									}
+									},
 								);
 							})}
 						>

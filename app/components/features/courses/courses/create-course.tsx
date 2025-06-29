@@ -70,7 +70,7 @@ export function CreateCourse() {
 				form.resetField("thumbnail");
 			}
 		},
-		[form]
+		[form],
 	);
 
 	const { getRootProps, getInputProps, isDragActive, fileRejections } =
@@ -105,7 +105,7 @@ export function CreateCourse() {
 								formData.append("thumbnail", data.thumbnail);
 							}
 							data.students.forEach((student) =>
-								formData.append("students", student)
+								formData.append("students", student),
 							);
 
 							fetcher.submit(formData, {

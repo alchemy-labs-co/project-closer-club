@@ -54,7 +54,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 			agent: agentData.data,
 			agentCourses: coursesData.success ? coursesData.data : [],
 		},
-		{ status: 200 }
+		{ status: 200 },
 	);
 }
 

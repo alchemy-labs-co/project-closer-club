@@ -60,7 +60,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 				isEditing: true,
 				lessonId: lessonId,
 			},
-			{ status: 200 }
+			{ status: 200 },
 		);
 	}
 
@@ -70,7 +70,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 			isEditing: false,
 			lessonId: lessonId,
 		},
-		{ status: 200 }
+		{ status: 200 },
 	);
 }
 
@@ -277,14 +277,14 @@ function CreateQuestion({
 }) {
 	const updateQuestion = (updates: Partial<Question>) => {
 		setQuestions(
-			questions.map((q) => (q.id === question.id ? { ...q, ...updates } : q))
+			questions.map((q) => (q.id === question.id ? { ...q, ...updates } : q)),
 		);
 	};
 
 	const addAnswer = () => {
 		// Only allow adding new answer if all current answers are filled
 		const allAnswersFilled = question.answers.every(
-			(answer) => answer.trim().length > 0
+			(answer) => answer.trim().length > 0,
 		);
 		if (allAnswersFilled && question.answers.length < 6) {
 			const newAnswers = [...question.answers, ""];
@@ -294,7 +294,7 @@ function CreateQuestion({
 
 	const updateAnswer = (index: number, value: string) => {
 		const newAnswers = question.answers.map((answer, i) =>
-			i === index ? value : answer
+			i === index ? value : answer,
 		);
 		updateQuestion({ answers: newAnswers });
 	};
@@ -308,8 +308,8 @@ function CreateQuestion({
 				question.correctAnswerIndex === index
 					? -1
 					: question.correctAnswerIndex > index
-					? question.correctAnswerIndex - 1
-					: question.correctAnswerIndex,
+						? question.correctAnswerIndex - 1
+						: question.correctAnswerIndex,
 		});
 	};
 
@@ -561,12 +561,12 @@ function AddQuestion({
 }) {
 	// Check if all existing questions are complete
 	const allQuestionsComplete = questions.every((question) =>
-		isQuestionComplete(question)
+		isQuestionComplete(question),
 	);
 
 	// Get incomplete questions for error display
 	const incompleteQuestions = questions.filter(
-		(question) => !isQuestionComplete(question)
+		(question) => !isQuestionComplete(question),
 	);
 
 	const handleAddQuestion = () => {
@@ -632,14 +632,14 @@ function PublishQuiz({
 	defaultLessonId?: string;
 }) {
 	const [selectedLessonId, setSelectedLessonId] = useState<string | null>(
-		defaultLessonId ?? null
+		defaultLessonId ?? null,
 	);
 	const fetcher = useFetcher<FetcherResponse>();
 	const navigate = useNavigate();
 
 	// Check if all questions are complete
 	const allQuestionsComplete = questions.every((question) =>
-		isQuestionComplete(question)
+		isQuestionComplete(question),
 	);
 
 	// Check if there's at least one question
@@ -652,7 +652,7 @@ function PublishQuiz({
 		e.preventDefault();
 		if (!canPublish) {
 			toast.error(
-				"Please complete all questions and select a lesson to publish"
+				"Please complete all questions and select a lesson to publish",
 			);
 			return;
 		}
@@ -685,12 +685,12 @@ function PublishQuiz({
 				toast.success(
 					isEditing
 						? "Quiz updated successfully"
-						: "Quiz published successfully"
+						: "Quiz published successfully",
 				);
 				navigate("/dashboard/quizzes");
 			} else {
 				toast.error(
-					isEditing ? "Failed to update quiz" : "Failed to publish quiz"
+					isEditing ? "Failed to update quiz" : "Failed to publish quiz",
 				);
 			}
 		}

@@ -38,7 +38,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 			const totalLessons = await getTotalLessonsCount(request, course.id);
 			const completedLessons = await getCompletedLessonsCount(
 				request,
-				course.id
+				course.id,
 			);
 			return { totalLessons, completedLessons };
 		})(),
@@ -91,7 +91,7 @@ function CourseCard({
 		<Card
 			className={cn(
 				"flex flex-col h-full transition-all duration-300 hover:shadow-lg hover:border-brand-primary/30",
-				thumbnailUrl && "pt-0"
+				thumbnailUrl && "pt-0",
 			)}
 		>
 			{thumbnailUrl && (

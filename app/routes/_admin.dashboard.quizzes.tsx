@@ -181,7 +181,7 @@ function DeleteQuiz({ quizId }: { quizId: string }) {
 		e.preventDefault();
 		fetcher.submit(
 			{ quizId, intent: "delete-quiz" },
-			{ method: "post", action: "/resource/quiz" }
+			{ method: "post", action: "/resource/quiz" },
 		);
 	};
 

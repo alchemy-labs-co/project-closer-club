@@ -23,13 +23,14 @@ export async function loader() {
 	return data("Not Allowed", { status: 405 });
 }
 
-
 export async function clientAction({ serverAction }: Route.ClientActionArgs) {
-	const result: {
-		success: boolean;
-		message: string;
-		redirectToUrl?: string;
-	} | undefined = await serverAction();
+	const result:
+		| {
+				success: boolean;
+				message: string;
+				redirectToUrl?: string;
+		  }
+		| undefined = await serverAction();
 
 	if (result?.success) {
 		toast.success(result?.message);

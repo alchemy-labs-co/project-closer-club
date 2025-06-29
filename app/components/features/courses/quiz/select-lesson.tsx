@@ -31,7 +31,7 @@ export function SelectLesson({
 	const inputRef = React.useRef<HTMLInputElement>(null);
 
 	const selectedLesson = lessons.find(
-		(lesson) => lesson.id === selectedLessonId
+		(lesson) => lesson.id === selectedLessonId,
 	);
 
 	useEffect(() => {
@@ -57,13 +57,13 @@ export function SelectLesson({
 				}
 			}
 		},
-		[]
+		[],
 	);
 
 	const filteredLessons = lessons.filter(
 		(lesson) =>
 			lesson.name.toLowerCase().includes(inputValue.toLowerCase()) ||
-			lesson.slug.toLowerCase().includes(inputValue.toLowerCase())
+			lesson.slug.toLowerCase().includes(inputValue.toLowerCase()),
 	);
 
 	return (

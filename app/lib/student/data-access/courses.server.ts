@@ -1,7 +1,14 @@
 import { and, asc, count, eq, exists, desc, gt } from "drizzle-orm";
 import { redirect } from "react-router";
 import db from "~/db/index.server";
-import { coursesTable, lessonsTable, modulesTable, studentCoursesTable, completedQuizAssignmentsTable, type Segment } from "~/db/schema";
+import {
+	coursesTable,
+	lessonsTable,
+	modulesTable,
+	studentCoursesTable,
+	completedQuizAssignmentsTable,
+	type Segment,
+} from "~/db/schema";
 import { isAgentLoggedIn } from "~/lib/auth/auth.server";
 
 export async function getCourseBySlug(request: Request, slug: string) {
@@ -41,7 +48,10 @@ export async function getCourseBySlug(request: Request, slug: string) {
 }
 
 // get modules & lessons for a course
-export async function getModulesAndLessonsForCourse(request: Request, courseSlug: string) {
+export async function getModulesAndLessonsForCourse(
+	request: Request,
+	courseSlug: string,
+) {
 	const { isLoggedIn, student } = await isAgentLoggedIn(request);
 	if (!isLoggedIn || !student) {
 		throw redirect("/login");
@@ -57,7 +67,8 @@ export async function getModulesAndLessonsForCourse(request: Request, courseSlug
 	const modules = await db
 		.select()
 		.from(modulesTable)
-		.where(eq(modulesTable.courseId, course.id)).orderBy(asc(modulesTable.orderIndex));
+		.where(eq(modulesTable.courseId, course.id))
+		.orderBy(asc(modulesTable.orderIndex));
 
 	// go through each module and get all lessons
 	const lessons: Segment[] = [];
@@ -65,13 +76,17 @@ export async function getModulesAndLessonsForCourse(request: Request, courseSlug
 		const moduleLessons = await db
 			.select()
 			.from(lessonsTable)
-			.where(eq(lessonsTable.moduleId, module.id)).orderBy(asc(lessonsTable.orderIndex));
+			.where(eq(lessonsTable.moduleId, module.id))
+			.orderBy(asc(lessonsTable.orderIndex));
 		lessons.push(...moduleLessons);
 	}
 	return { modules, lessons: lessons };
 }
 
-export async function getModulesForCourse(request: Request, courseSlug: string) {
+export async function getModulesForCourse(
+	request: Request,
+	courseSlug: string,
+) {
 	const { isLoggedIn, student } = await isAgentLoggedIn(request);
 	if (!isLoggedIn || !student) {
 		throw redirect("/login");
@@ -95,14 +110,18 @@ export async function getModulesForCourse(request: Request, courseSlug: string) 
 		const lessons = await db
 			.select()
 			.from(lessonsTable)
-			.where(eq(lessonsTable.moduleId, module.id)).orderBy(asc(lessonsTable.orderIndex));
+			.where(eq(lessonsTable.moduleId, module.id))
+			.orderBy(asc(lessonsTable.orderIndex));
 		(module as any).lessons = lessons;
 	}
 
 	return { modules };
 }
 
-export async function getFirstLessonForCourse(request: Request, courseSlug: string) {
+export async function getFirstLessonForCourse(
+	request: Request,
+	courseSlug: string,
+) {
 	const { isLoggedIn, student } = await isAgentLoggedIn(request);
 	if (!isLoggedIn || !student) {
 		throw redirect("/login");
@@ -122,7 +141,7 @@ export async function getFirstLessonForCourse(request: Request, courseSlug: stri
 		.orderBy(asc(modulesTable.orderIndex))
 		.limit(1);
 
-	// get the first lesson		
+	// get the first lesson
 	const [lesson] = await db
 		.select()
 		.from(lessonsTable)
@@ -152,7 +171,10 @@ export async function getTotalLessonsCount(request: Request, courseId: string) {
 
 // chrose potentially store in redis to reduce db calls.
 
-export async function getResumeableLessonForCourse(request: Request, courseSlug: string) {
+export async function getResumeableLessonForCourse(
+	request: Request,
+	courseSlug: string,
+) {
 	const { isLoggedIn, student } = await isAgentLoggedIn(request);
 	if (!isLoggedIn || !student) {
 		throw redirect("/login");
@@ -183,16 +205,19 @@ export async function getResumeableLessonForCourse(request: Request, courseSlug:
 			moduleId: lessonsTable.moduleId,
 			lessonSlug: lessonsTable.slug,
 			moduleSlug: modulesTable.slug,
-			moduleOrderIndex: modulesTable.orderIndex
+			moduleOrderIndex: modulesTable.orderIndex,
 		})
 		.from(completedQuizAssignmentsTable)
-		.innerJoin(lessonsTable, eq(completedQuizAssignmentsTable.lessonId, lessonsTable.id))
+		.innerJoin(
+			lessonsTable,
+			eq(completedQuizAssignmentsTable.lessonId, lessonsTable.id),
+		)
 		.innerJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
 		.where(
 			and(
 				eq(completedQuizAssignmentsTable.studentId, student.id),
-				eq(modulesTable.courseId, course.id)
-			)
+				eq(modulesTable.courseId, course.id),
+			),
 		)
 		.orderBy(asc(modulesTable.orderIndex), asc(lessonsTable.orderIndex));
 
@@ -217,15 +242,15 @@ export async function getResumeableLessonForCourse(request: Request, courseSlug:
 		const nextLessonInModule = await db
 			.select({
 				lesson: lessonsTable,
-				module: modulesTable
+				module: modulesTable,
 			})
 			.from(lessonsTable)
 			.innerJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
 			.where(
 				and(
 					eq(lessonsTable.moduleId, lastCompletedLesson.moduleId),
-					gt(lessonsTable.orderIndex, lastCompletedLesson.orderIndex)
-				)
+					gt(lessonsTable.orderIndex, lastCompletedLesson.orderIndex),
+				),
 			)
 			.orderBy(asc(lessonsTable.orderIndex))
 			.limit(1);
@@ -233,13 +258,17 @@ export async function getResumeableLessonForCourse(request: Request, courseSlug:
 		if (nextLessonInModule.length > 0) {
 			return {
 				lesson: nextLessonInModule[0].lesson,
-				module: nextLessonInModule[0].module
+				module: nextLessonInModule[0].module,
 			};
 		}
 
 		// If no next lesson in current module, find first lesson in next module
-		const currentModuleOrderIndex = parseInt(lastCompletedLesson.moduleOrderIndex);
-		const nextModule = modules.find(m => parseInt(m.orderIndex) > currentModuleOrderIndex);
+		const currentModuleOrderIndex = parseInt(
+			lastCompletedLesson.moduleOrderIndex,
+		);
+		const nextModule = modules.find(
+			(m) => parseInt(m.orderIndex) > currentModuleOrderIndex,
+		);
 
 		if (nextModule) {
 			const [firstLessonInNextModule] = await db
@@ -252,7 +281,7 @@ export async function getResumeableLessonForCourse(request: Request, courseSlug:
 			if (firstLessonInNextModule) {
 				return {
 					lesson: firstLessonInNextModule,
-					module: nextModule
+					module: nextModule,
 				};
 			}
 		}
@@ -269,7 +298,7 @@ export async function getResumeableLessonForCourse(request: Request, courseSlug:
 		if (lastLesson) {
 			return {
 				lesson: lastLesson,
-				module: lastModule
+				module: lastModule,
 			};
 		}
 	}

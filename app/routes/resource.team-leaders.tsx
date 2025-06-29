@@ -30,7 +30,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	if (!intent || !intents.includes(intent)) {
 		return data(
 			{ success: false, message: "Invalid form submission" },
-			{ status: 400 }
+			{ status: 400 },
 		);
 	}
 

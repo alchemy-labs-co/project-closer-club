@@ -45,7 +45,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	// Return a promise for modules and lessons instead of awaiting it
 	const modulesAndLessonsPromise = getModulesAndLessonsForCourse(
 		request,
-		courseSlug
+		courseSlug,
 	);
 
 	const progressPromise = (async () => {
@@ -57,7 +57,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	// Add lesson status data for the sidebar navigation
 	const lessonStatusesPromise = getLessonStatusesForCourse(
 		student.id,
-		courseSlug
+		courseSlug,
 	);
 
 	return {
@@ -73,7 +73,7 @@ export function useAgentEditorLoaderData() {
 	const data = useRouteLoaderData<typeof loader>("routes/_agent._editor");
 	if (!data) {
 		throw new Error(
-			"Agent Editor Loader needs to be used within an Agent Editor context, the route needs to be a child of the Agent Editor route"
+			"Agent Editor Loader needs to be used within an Agent Editor context, the route needs to be a child of the Agent Editor route",
 		);
 	}
 	return data;
@@ -92,7 +92,7 @@ function ModulesAndLessonsContent() {
 	const getLessonStatus = (lessonSlug: string, moduleSlug: string) => {
 		// Find the module status data
 		const moduleStatus = lessonStatuses.find(
-			(m) => m.moduleSlug === moduleSlug
+			(m) => m.moduleSlug === moduleSlug,
 		);
 		if (!moduleStatus) return null;
 
@@ -113,12 +113,12 @@ function ModulesAndLessonsContent() {
 					<div className="space-y-2 w-full h-full overflow-y-auto [scrollbar-width:thin] pb-4">
 						{modules.map((module) => {
 							const moduleLessons = lessons.filter(
-								(lesson) => lesson.moduleId === module.id
+								(lesson) => lesson.moduleId === module.id,
 							);
 							const isModuleActive =
 								pathname === `/student/courses/${courseSlug}/${module.slug}` ||
 								pathname.startsWith(
-									`/student/courses/${courseSlug}/${module.slug}/`
+									`/student/courses/${courseSlug}/${module.slug}/`,
 								);
 
 							// If module has no lessons, just display the module name as a clickable link
@@ -165,7 +165,7 @@ function ModulesAndLessonsContent() {
 
 													const lessonStatus = getLessonStatus(
 														lesson.slug,
-														module.slug
+														module.slug,
 													);
 													const isLocked = lessonStatus
 														? !lessonStatus.canAccess
@@ -199,8 +199,8 @@ function ModulesAndLessonsContent() {
 																	isLessonActive
 																		? "bg-blue-50 text-blue-700 font-medium"
 																		: status === "completed"
-																		? "text-green-700 hover:bg-green-50"
-																		: "text-gray-600 hover:bg-gray-50"
+																			? "text-green-700 hover:bg-green-50"
+																			: "text-gray-600 hover:bg-gray-50"
 																}`}
 															>
 																<LessonStatusIcon

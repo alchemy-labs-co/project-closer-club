@@ -85,8 +85,7 @@ export const agentsTable = pgTable(
 		email: varchar("email", { length: 255 }).notNull().unique(),
 		phone: varchar("phone", { length: 255 }),
 		isActivated: boolean("is_activated").notNull().default(true),
-		teamLeaderId: uuid("team_leader_id")
-			.references(() => teamLeadersTable.id),
+		teamLeaderId: uuid("team_leader_id").references(() => teamLeadersTable.id),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 		updatedAt: timestamp("updated_at")
 			.notNull()
@@ -188,8 +187,7 @@ export const studentCoursesTable = pgTable(
 	"student_courses",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		studentId: text("student_id")
-			.notNull(),
+		studentId: text("student_id").notNull(),
 		courseId: uuid("course_id")
 			.references(() => coursesTable.id, { onDelete: "cascade" })
 			.notNull(),
@@ -238,11 +236,13 @@ export const quizzesTable = pgTable("quizzes", {
 	lessonId: uuid("lesson_id")
 		.references(() => lessonsTable.id, { onDelete: "cascade" })
 		.notNull(),
-	questions: jsonb("questions").notNull().$type<{
-		title: string;
-		answers: string[];
-		correctAnswerIndex: number;
-	}[]>(),
+	questions: jsonb("questions").notNull().$type<
+		{
+			title: string;
+			answers: string[];
+			correctAnswerIndex: number;
+		}[]
+	>(),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at")
 		.notNull()
@@ -250,20 +250,23 @@ export const quizzesTable = pgTable("quizzes", {
 		.$onUpdate(() => new Date()),
 });
 
-export const completedQuizAssignmentsTable = pgTable("completed_quiz_assignments", {
-	id: uuid("id").primaryKey().defaultRandom(),
-	quizId: uuid("quiz_id")
-		.references(() => quizzesTable.id, { onDelete: "cascade" })
-		.notNull(),
-	studentId: text("student_id"),
-	lessonId: uuid("lesson_id")
-		.references(() => lessonsTable.id, { onDelete: "cascade" })
-		.notNull(),
-	selectedAnswers: jsonb("selected_answers").$type<number[]>(),
-	numberOfQuestions: integer("number_of_questions").notNull(),
-	totalCorrectAnswers: integer("total_correct_answers").notNull(),
-	createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const completedQuizAssignmentsTable = pgTable(
+	"completed_quiz_assignments",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		quizId: uuid("quiz_id")
+			.references(() => quizzesTable.id, { onDelete: "cascade" })
+			.notNull(),
+		studentId: text("student_id"),
+		lessonId: uuid("lesson_id")
+			.references(() => lessonsTable.id, { onDelete: "cascade" })
+			.notNull(),
+		selectedAnswers: jsonb("selected_answers").$type<number[]>(),
+		numberOfQuestions: integer("number_of_questions").notNull(),
+		totalCorrectAnswers: integer("total_correct_answers").notNull(),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+);
 
 export const attachmentsTable = pgTable(
 	"attachments",
@@ -277,9 +280,7 @@ export const attachmentsTable = pgTable(
 		fileExtension: varchar("file_extension", { length: 10 }).notNull(),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
 	},
-	(t) => [
-		index("attachment_lesson_id_index").on(t.lessonId),
-	],
+	(t) => [index("attachment_lesson_id_index").on(t.lessonId)],
 );
 
 // TYPES
@@ -291,7 +292,8 @@ export type StudentCourse = typeof studentCoursesTable.$inferSelect;
 export type TeamLeader = typeof teamLeadersTable.$inferSelect;
 export type LessonProgress = typeof lessonProgressTable.$inferSelect;
 export type Quiz = typeof quizzesTable.$inferSelect;
-export type CompletedQuizAssignment = typeof completedQuizAssignmentsTable.$inferSelect;
+export type CompletedQuizAssignment =
+	typeof completedQuizAssignmentsTable.$inferSelect;
 export type Attachment = typeof attachmentsTable.$inferSelect;
 // AUTH RELATED
 export type User = typeof user.$inferSelect;

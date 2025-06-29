@@ -29,20 +29,20 @@ export default function LoginAuthForm({
 					intent: "sign-in-admin",
 					buttonStyles:
 						"bg-gradient-to-br from-brand-primary to-brand-primary/80 text-white cursor-pointer h-10 font-medium",
-			  }
+				}
 			: type === "team-leader"
-			? {
-					action: "/resource/auth",
-					intent: "sign-in-team-leader",
-					buttonStyles:
-						"bg-gradient-to-br from-brand-primary to-brand-primary/85 text-white cursor-pointer h-10 font-medium",
-			  }
-			: {
-					action: "/resource/auth",
-					intent: "sign-in-student",
-					buttonStyles:
-						"bg-gradient-to-br from-brand-primary to-brand-primary/90  text-white cursor-pointer h-10 font-medium",
-			  };
+				? {
+						action: "/resource/auth",
+						intent: "sign-in-team-leader",
+						buttonStyles:
+							"bg-gradient-to-br from-brand-primary to-brand-primary/85 text-white cursor-pointer h-10 font-medium",
+					}
+				: {
+						action: "/resource/auth",
+						intent: "sign-in-student",
+						buttonStyles:
+							"bg-gradient-to-br from-brand-primary to-brand-primary/90  text-white cursor-pointer h-10 font-medium",
+					};
 	const fetcher = useFetcher<FetcherResponse>();
 	const isPending = fetcher.state !== "idle";
 	const form = useForm<LoginSchema>({
@@ -82,7 +82,7 @@ export default function LoginAuthForm({
 							{
 								action: config.action,
 								method: "POST",
-							}
+							},
 						);
 					})}
 				>

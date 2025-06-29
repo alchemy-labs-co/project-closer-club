@@ -23,7 +23,6 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 	const studentsIds = (formData.get("students") as string).split(",");
 	const thumbnail = formData.get("thumbnail");
 
-
 	// check if is instance of File
 	if (!(thumbnail instanceof File)) {
 		return data(
@@ -37,7 +36,6 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 		students: studentsIds,
 	};
 
-
 	const unvalidatedFields = createCourseSchema.safeParse(formDataObject);
 
 	if (!unvalidatedFields.success) {
@@ -48,8 +46,6 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 	}
 
 	const validatedFields = unvalidatedFields.data;
-
-
 
 	try {
 		const slug = titleToSlug(validatedFields.name);
@@ -68,7 +64,9 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 			.from(coursesTable)
 			.limit(1);
 
-		const orderIndex = nextOrderIndex?.max ? parseInt(nextOrderIndex.max) + 1 : 0;
+		const orderIndex = nextOrderIndex?.max
+			? parseInt(nextOrderIndex.max) + 1
+			: 0;
 
 		// First create the course to get the ID
 		const [insertedCourse] = await db
@@ -88,13 +86,15 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 
 		if (thumbnail) {
 			try {
-				thumbnailUrl = await uploadThumbnailToBunny(thumbnail, insertedCourse.id);
+				thumbnailUrl = await uploadThumbnailToBunny(
+					thumbnail,
+					insertedCourse.id,
+				);
 				// Update the course with the thumbnail URL
 				await db
 					.update(coursesTable)
 					.set({ thumbnailUrl })
 					.where(eq(coursesTable.id, insertedCourse.id));
-
 			} catch (thumbnailError) {
 				console.error("🔴 Error uploading thumbnail:", thumbnailError);
 			}
@@ -119,9 +119,9 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 		);
 	} catch (error) {
 		console.error("🔴 Course creation failed:", {
-			error: error instanceof Error ? error.message : 'Unknown error',
+			error: error instanceof Error ? error.message : "Unknown error",
 			stack: error instanceof Error ? error.stack : undefined,
-			courseName: validatedFields.name
+			courseName: validatedFields.name,
 		});
 		return data(
 			{
@@ -272,9 +272,7 @@ export async function handleDeleteCourse(request: Request, formData: FormData) {
 	try {
 		// With cascade deletes, we only need to delete the course
 		// This will automatically delete all modules, lessons, and student course assignments
-		await db
-			.delete(coursesTable)
-			.where(eq(coursesTable.id, courseId));
+		await db.delete(coursesTable).where(eq(coursesTable.id, courseId));
 
 		return data(
 			{ success: true, message: "Course deleted successfully" },

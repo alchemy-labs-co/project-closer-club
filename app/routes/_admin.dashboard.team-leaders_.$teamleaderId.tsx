@@ -58,11 +58,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	const allStudents = GetAllStudents(request);
 	const agentsAssignedToTeamLeader = getAgentsAssignedToTeamLeader(
 		request,
-		teamleaderId
+		teamleaderId,
 	);
 	const { success, teamLeader } = await GetTeamLeaderById(
 		request,
-		teamleaderId as string
+		teamleaderId as string,
 	);
 
 	if (!success || !teamLeader) {
@@ -77,7 +77,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 			students: allStudents,
 			agentsAssignedToTeamLeader: agentsAssignedToTeamLeader,
 		},
-		{ status: 200 }
+		{ status: 200 },
 	);
 }
 
@@ -210,10 +210,10 @@ function AgentsAssignedToTeamLeader() {
 	const teamLeaderId = data.teamLeader.teamLeaderId;
 	const { students: allStudents } = React.use(data.students);
 	const { agents: agentsAssignedToTeamLeader } = React.use(
-		data.agentsAssignedToTeamLeader
+		data.agentsAssignedToTeamLeader,
 	);
 	const assignedAgentIds = new Set(
-		agentsAssignedToTeamLeader.map((agent) => agent.studentId)
+		agentsAssignedToTeamLeader.map((agent) => agent.studentId),
 	);
 	const columns: {
 		header: string;
@@ -309,7 +309,7 @@ function TeamLeaderAgentAssignmentCheckbox({
 		resolver: zodResolver(
 			z.object({
 				isAssigned: z.boolean(),
-			})
+			}),
 		),
 		defaultValues: {
 			isAssigned,
@@ -343,7 +343,7 @@ function TeamLeaderAgentAssignmentCheckbox({
 											{
 												action: "/resource/team-leaders",
 												method: "POST",
-											}
+											},
 										);
 									}}
 								/>

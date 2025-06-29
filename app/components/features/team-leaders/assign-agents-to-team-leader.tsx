@@ -49,22 +49,22 @@ export function AssignAgentsToTeamLeader({
 	const handleUnselect = React.useCallback(
 		(student: Student) => {
 			setSelected((prev) =>
-				prev.filter((s) => s.studentId !== student.studentId)
+				prev.filter((s) => s.studentId !== student.studentId),
 			);
 			// attach the ids of the selected students to the form
 			form.setValue(
 				"agents",
-				form.getValues("agents")?.filter((s) => s !== student.studentId) || []
+				form.getValues("agents")?.filter((s) => s !== student.studentId) || [],
 			);
 		},
-		[form]
+		[form],
 	);
 
 	const handleSelectAll = React.useCallback(() => {
 		setSelected(students);
 		form.setValue(
 			"agents",
-			students.map((student) => student.studentId)
+			students.map((student) => student.studentId),
 		);
 		setToggleSelectedAll(true);
 	}, [students, form]);
@@ -95,7 +95,7 @@ export function AssignAgentsToTeamLeader({
 				}
 			}
 		},
-		[]
+		[],
 	);
 
 	const selectables = students.filter((student) => !selected.includes(student));

@@ -98,7 +98,7 @@ export function CreateSegment() {
 				form.clearErrors("videoFile");
 			}
 		},
-		[form]
+		[form],
 	);
 
 	const onAttachmentDrop = useCallback(
@@ -107,7 +107,7 @@ export function CreateSegment() {
 			setAttachments(newAttachments);
 			form.setValue("attachments", newAttachments);
 		},
-		[attachments, form]
+		[attachments, form],
 	);
 
 	const {
@@ -168,7 +168,7 @@ export function CreateSegment() {
 				tokens.videoToken.uploadUrl,
 				tokens.videoToken.accessKey,
 				(progress) =>
-					setUploadProgress((prev) => ({ ...prev, video: progress }))
+					setUploadProgress((prev) => ({ ...prev, video: progress })),
 			);
 
 			if (!videoSuccess) {
@@ -194,7 +194,7 @@ export function CreateSegment() {
 						setUploadProgress((prev) => ({
 							...prev,
 							attachments: { ...prev.attachments, [file.name]: progress },
-						}))
+						})),
 				);
 
 				if (attachmentSuccess) {
@@ -218,7 +218,7 @@ export function CreateSegment() {
 			if (attachmentData.length > 0) {
 				confirmFormData.append(
 					"attachmentData",
-					JSON.stringify(attachmentData)
+					JSON.stringify(attachmentData),
 				);
 			}
 
@@ -239,7 +239,7 @@ export function CreateSegment() {
 				toast.success(fetcher.data.message);
 				if (fetcher.data.segmentSlug) {
 					navigate(
-						`/dashboard/courses/${courseSlug}/${moduleSlug}/${fetcher.data.segmentSlug}`
+						`/dashboard/courses/${courseSlug}/${moduleSlug}/${fetcher.data.segmentSlug}`,
 					);
 				}
 			}
@@ -522,7 +522,7 @@ export function CreateSegment() {
 														/>
 													</div>
 												</div>
-											)
+											),
 										)}
 									</div>
 								)}

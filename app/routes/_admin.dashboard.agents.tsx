@@ -13,11 +13,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function useAgentsLoaderData() {
 	const data = useRouteLoaderData<typeof loader>(
-		"routes/_admin.dashboard.agents"
+		"routes/_admin.dashboard.agents",
 	);
 	if (!data)
 		throw new Error(
-			"Cannot use students loader data if the route is not a child of the students route"
+			"Cannot use students loader data if the route is not a child of the students route",
 		);
 	return data;
 }

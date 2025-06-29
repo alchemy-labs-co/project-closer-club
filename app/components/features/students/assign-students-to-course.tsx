@@ -50,12 +50,12 @@ export function AssignStudentToCourse({
 
 	const handleUnselect = React.useCallback((student: StudentWithRole) => {
 		setSelected((prev) =>
-			prev.filter((s) => s.studentId !== student.studentId)
+			prev.filter((s) => s.studentId !== student.studentId),
 		);
 		// attach the ids of the selected students to the form
 		form.setValue(
 			"students",
-			form.getValues("students").filter((s) => s !== student.studentId)
+			form.getValues("students").filter((s) => s !== student.studentId),
 		);
 	}, []);
 
@@ -63,7 +63,7 @@ export function AssignStudentToCourse({
 		setSelected(students);
 		form.setValue(
 			"students",
-			students.map((student) => student.studentId)
+			students.map((student) => student.studentId),
 		);
 		setToggleSelectedAll(true);
 	}, [students, form]);
@@ -94,7 +94,7 @@ export function AssignStudentToCourse({
 				}
 			}
 		},
-		[]
+		[],
 	);
 
 	const selectables = students.filter((student) => !selected.includes(student));

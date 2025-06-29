@@ -1,12 +1,10 @@
 {
 	"files": {
-		"ignore": ["node_modules/**", "build/**"]
+		"ignore": ["node_modules/**", "build/**", ".react-router/**"]
 	},
 	"linter": {
 		"enabled": true,
-		"rules": {
-
-		}
+		"rules": {}
 	},
 	"formatter": {
 		"enabled": true

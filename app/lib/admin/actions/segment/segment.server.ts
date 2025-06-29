@@ -3,7 +3,10 @@ import { data, redirect } from "react-router";
 import db from "~/db/index.server";
 import { attachmentsTable, lessonsTable } from "~/db/schema";
 import { isAdminLoggedIn } from "~/lib/auth/auth.server";
-import { uploadAttachmentToBunny, createAndUploadVideoToBunnyStream } from "~/lib/bunny.server";
+import {
+	uploadAttachmentToBunny,
+	createAndUploadVideoToBunnyStream,
+} from "~/lib/bunny.server";
 import { dashboardConfig } from "~/config/dashboard";
 import { titleToSlug } from "~/lib/utils";
 import {
@@ -47,7 +50,8 @@ export async function handleCreateSegment(
 		);
 	}
 
-	const { courseSlug, moduleSlug, name, description, videoFile } = unvalidatedFields.data;
+	const { courseSlug, moduleSlug, name, description, videoFile } =
+		unvalidatedFields.data;
 
 	try {
 		// getting the module where the lesson will be created
@@ -71,7 +75,10 @@ export async function handleCreateSegment(
 		const isSlugUnique = await checkSegmentSlugUniqueForModule(slug, module.id);
 		if (!isSlugUnique) {
 			return data(
-				{ success: false, message: "a lesson with this name already exists in this module" },
+				{
+					success: false,
+					message: "a lesson with this name already exists in this module",
+				},
 				{ status: 400 },
 			);
 		}
@@ -83,7 +90,9 @@ export async function handleCreateSegment(
 			.where(eq(lessonsTable.moduleId, module.id))
 			.limit(1);
 
-		const orderIndex = nextOrderIndex?.max ? parseInt(nextOrderIndex.max) + 1 : 0;
+		const orderIndex = nextOrderIndex?.max
+			? parseInt(nextOrderIndex.max) + 1
+			: 0;
 
 		// Upload video to Bunny Stream and get the video GUID
 		let videoGuid: string;
@@ -96,7 +105,10 @@ export async function handleCreateSegment(
 		} catch (videoError) {
 			console.error("🔴 Error uploading video:", videoError);
 			return data(
-				{ success: false, message: "Failed to upload video. Please try again." },
+				{
+					success: false,
+					message: "Failed to upload video. Please try again.",
+				},
 				{ status: 500 },
 			);
 		}
@@ -126,12 +138,13 @@ export async function handleCreateSegment(
 
 		// Upload attachments if provided
 		if (attachments.length > 0) {
-			const validAttachments = attachments.filter(file => file.size > 0);
+			const validAttachments = attachments.filter((file) => file.size > 0);
 
 			if (validAttachments.length > 0) {
 				try {
 					const uploadPromises = validAttachments.map(async (file) => {
-						const { cdnUrl, fileExtension, fileName } = await uploadAttachmentToBunny(file, insertedSegment.id);
+						const { cdnUrl, fileExtension, fileName } =
+							await uploadAttachmentToBunny(file, insertedSegment.id);
 
 						// Insert attachment record into database
 						return db.insert(attachmentsTable).values({
@@ -194,7 +207,8 @@ export async function handleEditSegment(request: Request, formData: FormData) {
 		);
 	}
 
-	const { courseSlug, moduleSlug, segmentSlug, name, description, videoUrl } = unvalidatedFields.data;
+	const { courseSlug, moduleSlug, segmentSlug, name, description, videoUrl } =
+		unvalidatedFields.data;
 
 	try {
 		// getting the module where the lesson is being edited
@@ -212,7 +226,9 @@ export async function handleEditSegment(request: Request, formData: FormData) {
 		}
 
 		// check if the lesson exists in this module
-		const existingLesson = module.lessons.find(lesson => lesson.slug === segmentSlug);
+		const existingLesson = module.lessons.find(
+			(lesson) => lesson.slug === segmentSlug,
+		);
 		if (!existingLesson) {
 			return data(
 				{ success: false, message: "Lesson not found" },
@@ -224,10 +240,17 @@ export async function handleEditSegment(request: Request, formData: FormData) {
 		const slug = titleToSlug(name);
 
 		// check the slug created is unique within this module (unless it's the same as current)
-		const isSlugUnique = await checkSegmentSlugUniqueForModule(slug, module.id, segmentSlug);
+		const isSlugUnique = await checkSegmentSlugUniqueForModule(
+			slug,
+			module.id,
+			segmentSlug,
+		);
 		if (!isSlugUnique) {
 			return data(
-				{ success: false, message: "a lesson with this name already exists in this module" },
+				{
+					success: false,
+					message: "a lesson with this name already exists in this module",
+				},
 				{ status: 400 },
 			);
 		}
@@ -281,7 +304,10 @@ export async function handleEditSegment(request: Request, formData: FormData) {
 	}
 }
 
-export async function handleDeleteSegment(request: Request, formData: FormData) {
+export async function handleDeleteSegment(
+	request: Request,
+	formData: FormData,
+) {
 	const { isLoggedIn } = await isAdminLoggedIn(request);
 	if (!isLoggedIn) {
 		throw redirect("/admin/login");
@@ -299,9 +325,7 @@ export async function handleDeleteSegment(request: Request, formData: FormData) 
 	try {
 		// With cascade deletes, we only need to delete the lesson
 		// No related records need manual deletion
-		await db
-			.delete(lessonsTable)
-			.where(eq(lessonsTable.id, segmentId));
+		await db.delete(lessonsTable).where(eq(lessonsTable.id, segmentId));
 
 		return data(
 			{ success: true, message: "Lesson deleted successfully" },
@@ -320,22 +344,37 @@ export async function handleDeleteSegment(request: Request, formData: FormData) 
 	}
 }
 
-export async function handleMakeSegmentPrivate(request: Request, formData: FormData) {
+export async function handleMakeSegmentPrivate(
+	request: Request,
+	formData: FormData,
+) {
 	return data(
-		{ success: false, message: "Private/public functionality has been removed for lessons" },
+		{
+			success: false,
+			message: "Private/public functionality has been removed for lessons",
+		},
 		{ status: 400 },
 	);
 }
 
-export async function handleMakeSegmentPublic(request: Request, formData: FormData) {
+export async function handleMakeSegmentPublic(
+	request: Request,
+	formData: FormData,
+) {
 	return data(
-		{ success: false, message: "Private/public functionality has been removed for lessons" },
+		{
+			success: false,
+			message: "Private/public functionality has been removed for lessons",
+		},
 		{ status: 400 },
 	);
 }
 
 // Helper function no longer needed but keeping for compatibility
-async function checkIfFirstLessonInFirstModule(module: any, courseSlug: string): Promise<boolean> {
+async function checkIfFirstLessonInFirstModule(
+	module: any,
+	courseSlug: string,
+): Promise<boolean> {
 	return false; // Always return false since we no longer use this logic
 }
 
@@ -363,7 +402,8 @@ export async function handleGenerateUploadTokens(
 		}
 
 		// Generate video upload token
-		const { generateVideoUploadToken, generateAttachmentUploadToken } = await import("~/lib/bunny.server");
+		const { generateVideoUploadToken, generateAttachmentUploadToken } =
+			await import("~/lib/bunny.server");
 
 		const videoToken = await generateVideoUploadToken(
 			name,
@@ -372,9 +412,9 @@ export async function handleGenerateUploadTokens(
 
 		// Generate attachment upload tokens if provided
 		const attachmentTokens = await Promise.all(
-			attachmentNames.map(fileName =>
-				generateAttachmentUploadToken(lessonId || "temp", fileName)
-			)
+			attachmentNames.map((fileName) =>
+				generateAttachmentUploadToken(lessonId || "temp", fileName),
+			),
 		);
 
 		return data(
@@ -390,7 +430,10 @@ export async function handleGenerateUploadTokens(
 		return data(
 			{
 				success: false,
-				message: error instanceof Error ? error.message : "Failed to generate upload tokens",
+				message:
+					error instanceof Error
+						? error.message
+						: "Failed to generate upload tokens",
 			},
 			{ status: 500 },
 		);
@@ -446,7 +489,10 @@ export async function handleConfirmUploads(
 		const isSlugUnique = await checkSegmentSlugUniqueForModule(slug, module.id);
 		if (!isSlugUnique) {
 			return data(
-				{ success: false, message: "a lesson with this name already exists in this module" },
+				{
+					success: false,
+					message: "a lesson with this name already exists in this module",
+				},
 				{ status: 400 },
 			);
 		}
@@ -458,7 +504,9 @@ export async function handleConfirmUploads(
 			.where(eq(lessonsTable.moduleId, module.id))
 			.limit(1);
 
-		const orderIndex = nextOrderIndex?.max ? parseInt(nextOrderIndex.max) + 1 : 0;
+		const orderIndex = nextOrderIndex?.max
+			? parseInt(nextOrderIndex.max) + 1
+			: 0;
 
 		// Insert lesson into database
 		const [insertedSegment] = await db
@@ -492,13 +540,13 @@ export async function handleConfirmUploads(
 					fileExtension: string;
 				}>;
 
-				const attachmentPromises = attachments.map(attachment =>
+				const attachmentPromises = attachments.map((attachment) =>
 					db.insert(attachmentsTable).values({
 						lessonId: insertedSegment.id,
 						fileName: attachment.fileName,
 						fileUrl: attachment.fileUrl,
 						fileExtension: attachment.fileExtension,
-					})
+					}),
 				);
 
 				await Promise.all(attachmentPromises);
@@ -521,7 +569,8 @@ export async function handleConfirmUploads(
 		return data(
 			{
 				success: false,
-				message: error instanceof Error ? error.message : "Failed to confirm uploads",
+				message:
+					error instanceof Error ? error.message : "Failed to confirm uploads",
 			},
 			{ status: 500 },
 		);

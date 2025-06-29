@@ -31,7 +31,7 @@ export function useTeamLeaderLayoutLoaderData() {
 	const data = useRouteLoaderData<typeof loader>("routes/_team");
 	if (!data) {
 		throw new Error(
-			"Team Leader Loader needs to be used within a TeamLeaderLoader context, the route needs to be a child of the Team Leader route"
+			"Team Leader Loader needs to be used within a TeamLeaderLoader context, the route needs to be a child of the Team Leader route",
 		);
 	}
 	return data;

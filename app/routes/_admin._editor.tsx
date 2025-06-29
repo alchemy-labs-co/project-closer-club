@@ -17,7 +17,7 @@ export function useEditorLoaderData() {
 	const data = useRouteLoaderData<typeof loader>("routes/_admin._editor");
 	if (!data) {
 		throw new Error(
-			"Editor Loader needs to be used within a EditorLoader context, the route needs to be a child of the Editor route"
+			"Editor Loader needs to be used within a EditorLoader context, the route needs to be a child of the Editor route",
 		);
 	}
 	return data;

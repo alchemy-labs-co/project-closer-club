@@ -29,7 +29,7 @@ export function ActivateTeamLeader({ teamLeaderId }: { teamLeaderId: string }) {
 					{
 						method: "POST",
 						action: "/resource/team-leaders",
-					}
+					},
 				);
 			}}
 		>

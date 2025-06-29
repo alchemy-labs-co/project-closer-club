@@ -182,7 +182,7 @@ export function DataTable({ initialData }: { initialData: any }) {
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-		[]
+		[],
 	);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [pagination, setPagination] = React.useState({
@@ -241,7 +241,7 @@ export function DataTable({ initialData }: { initialData: any }) {
 									.filter(
 										(column) =>
 											typeof column.accessorFn !== "undefined" &&
-											column.getCanHide()
+											column.getCanHide(),
 									)
 									.map((column) => {
 										return (
@@ -277,8 +277,8 @@ export function DataTable({ initialData }: { initialData: any }) {
 													? null
 													: flexRender(
 															header.column.columnDef.header,
-															header.getContext()
-													  )}
+															header.getContext(),
+														)}
 											</TableHead>
 										);
 									})}
@@ -293,7 +293,7 @@ export function DataTable({ initialData }: { initialData: any }) {
 											<TableCell key={cell.id}>
 												{flexRender(
 													cell.column.columnDef.cell,
-													cell.getContext()
+													cell.getContext(),
 												)}
 											</TableCell>
 										))}

@@ -11,10 +11,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	// get resumeable lesson for the course (last completed or next accessible)
 	const { lesson, module } = await getResumeableLessonForCourse(
 		request,
-		courseSlug
+		courseSlug,
 	);
 
 	return redirect(
-		`/student/courses/${courseSlug}/${module.slug}/${lesson.slug}`
+		`/student/courses/${courseSlug}/${module.slug}/${lesson.slug}`,
 	);
 }

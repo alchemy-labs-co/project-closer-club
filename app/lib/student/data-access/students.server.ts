@@ -43,7 +43,8 @@ export async function getStudentCourses(request: Request) {
 						studentCourses.map((course) => course.courseId),
 					),
 				),
-			).orderBy(asc(coursesTable.orderIndex));
+			)
+			.orderBy(asc(coursesTable.orderIndex));
 
 		return { courses };
 	} catch (error) {
