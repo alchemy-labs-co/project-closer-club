@@ -202,35 +202,6 @@ export const studentCoursesTable = pgTable(
 		index("student_course_course_id_index").on(t.courseId),
 	],
 );
-
-// progress tracking / lesson locking
-
-export const lessonProgressTable = pgTable(
-	"lesson_progress",
-	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		studentId: text("student_id")
-			.notNull()
-			.references(() => agentsTable.studentId, { onDelete: "cascade" }),
-		lessonId: uuid("lesson_id")
-			.references(() => lessonsTable.id, { onDelete: "cascade" })
-			.notNull(),
-		isCompleted: boolean("is_completed").notNull().default(false),
-		completedAt: timestamp("completed_at"),
-		createdAt: timestamp("created_at").notNull().defaultNow(),
-		updatedAt: timestamp("updated_at")
-			.notNull()
-			.defaultNow()
-			.$onUpdate(() => new Date()),
-	},
-	(t) => [
-		index("lesson_progress_student_id_index").on(t.studentId),
-		index("lesson_progress_lesson_id_index").on(t.lessonId),
-		// Unique constraint to ensure one progress record per student per lesson
-		index("unique_student_lesson_progress").on(t.studentId, t.lessonId),
-	],
-);
-
 export const quizzesTable = pgTable("quizzes", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	lessonId: uuid("lesson_id")
@@ -290,7 +261,6 @@ export type Module = typeof modulesTable.$inferSelect;
 export type Segment = typeof lessonsTable.$inferSelect;
 export type StudentCourse = typeof studentCoursesTable.$inferSelect;
 export type TeamLeader = typeof teamLeadersTable.$inferSelect;
-export type LessonProgress = typeof lessonProgressTable.$inferSelect;
 export type Quiz = typeof quizzesTable.$inferSelect;
 export type CompletedQuizAssignment =
 	typeof completedQuizAssignmentsTable.$inferSelect;
