@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { redirect } from "react-router";
 import db from "~/db/index.server";
 import { completedQuizAssignmentsTable, coursesTable, lessonsTable, modulesTable } from "~/db/schema";
@@ -26,17 +26,22 @@ export async function getCompletedAssignmentForLesson(request: Request, lessonSl
 }
 
 
-export async function getCompletedLessonsCount(studentId: string, courseId: string) {
-	const completedLessons = await db
-		.select({
-			id: completedQuizAssignmentsTable.id,
-		})
-		.from(completedQuizAssignmentsTable)
-		.leftJoin(lessonsTable, eq(completedQuizAssignmentsTable.lessonId, lessonsTable.id))
-		.leftJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
-		.where(and(eq(modulesTable.courseId, courseId), eq(completedQuizAssignmentsTable.studentId, studentId)));
+export async function getCompletedLessonsCount(request: Request, courseId: string) {
+    const { isLoggedIn, student } = await isAgentLoggedIn(request);
+    if (!isLoggedIn || !student) {
+        throw redirect("/login")
+    }
 
-	return completedLessons.length;
+    const [completedLessons] = await db
+        .select({
+            count: count(),
+        })
+        .from(completedQuizAssignmentsTable)
+        .leftJoin(lessonsTable, eq(completedQuizAssignmentsTable.lessonId, lessonsTable.id))
+        .leftJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
+        .where(and(eq(modulesTable.courseId, courseId), eq(completedQuizAssignmentsTable.studentId, student.id)));
+
+    return completedLessons.count ?? 0;
 }
 
 

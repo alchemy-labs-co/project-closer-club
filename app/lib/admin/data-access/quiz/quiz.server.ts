@@ -1,7 +1,12 @@
 import { eq } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import db from "~/db/index.server";
-import { quizzesTable } from "~/db/schema";
+import {
+    coursesTable,
+    lessonsTable,
+    modulesTable,
+    quizzesTable
+} from "~/db/schema";
 import { isAdminLoggedIn } from "~/lib/auth/auth.server";
 import { insertQuizSchema } from "~/lib/zod-schemas/quiz";
 import type { Question } from "~/routes/_admin.dashboard.quizzes_.create";
@@ -95,5 +100,40 @@ export async function handleDeleteQuiz(request: Request, formData: FormData) {
     } catch (error) {
         console.error("Error deleting quiz:", error);
         return data({ success: false, message: "An unexpected error occurred" }, { status: 500 });
+    }
+}
+
+export async function getAllQuizzesWithLessonInfo(request: Request) {
+    const { isLoggedIn } = await isAdminLoggedIn(request);
+
+    if (!isLoggedIn) {
+        throw redirect("/admin/login");
+    }
+
+    try {
+        // Join quizzes with lessons, modules, and courses to get the necessary slugs for building lesson URLs
+        const quizzesWithLessonInfo = await db
+            .select({
+                id: quizzesTable.id,
+                lessonId: quizzesTable.lessonId,
+                questions: quizzesTable.questions,
+                createdAt: quizzesTable.createdAt,
+                updatedAt: quizzesTable.updatedAt,
+                lessonSlug: lessonsTable.slug,
+                lessonName: lessonsTable.name,
+                moduleSlug: modulesTable.slug,
+                moduleName: modulesTable.name,
+                courseSlug: coursesTable.slug,
+                courseName: coursesTable.name,
+            })
+            .from(quizzesTable)
+            .innerJoin(lessonsTable, eq(quizzesTable.lessonId, lessonsTable.id))
+            .innerJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
+            .innerJoin(coursesTable, eq(modulesTable.courseId, coursesTable.id));
+
+        return { success: true, quizzes: quizzesWithLessonInfo };
+    } catch (error) {
+        console.error("Error fetching quizzes with lesson info:", error);
+        return { success: false, quizzes: [] };
     }
 }

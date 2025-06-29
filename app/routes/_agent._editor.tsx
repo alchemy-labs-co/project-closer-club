@@ -47,11 +47,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	);
 
 	const progressPromise = (async () => {
-		const totalLessons = await getTotalLessonsCount(course.id);
-		const completedLessons = await getCompletedLessonsCount(
-			student.id,
-			course.id
-		);
+		const totalLessons = await getTotalLessonsCount(request, course.id);
+		const completedLessons = await getCompletedLessonsCount(request, course.id);
 		return { totalLessons, completedLessons };
 	})();
 

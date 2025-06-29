@@ -14,38 +14,17 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "~/components/ui/dialog";
-import { eq } from "drizzle-orm";
-import db from "~/db/index.server";
-import {
-	quizzesTable,
-	lessonsTable,
-	modulesTable,
-	coursesTable,
-} from "~/db/schema";
+import { getAllQuizzesWithLessonInfo } from "~/lib/admin/data-access/quiz/quiz.server";
 import type { Route } from "./+types/_admin.dashboard.quizzes";
 
-export async function loader({}: Route.LoaderArgs) {
-	// Join quizzes with lessons, modules, and courses to get the necessary slugs for building lesson URLs
-	const quizzesWithLessonInfo = await db
-		.select({
-			id: quizzesTable.id,
-			lessonId: quizzesTable.lessonId,
-			questions: quizzesTable.questions,
-			createdAt: quizzesTable.createdAt,
-			updatedAt: quizzesTable.updatedAt,
-			lessonSlug: lessonsTable.slug,
-			lessonName: lessonsTable.name,
-			moduleSlug: modulesTable.slug,
-			moduleName: modulesTable.name,
-			courseSlug: coursesTable.slug,
-			courseName: coursesTable.name,
-		})
-		.from(quizzesTable)
-		.innerJoin(lessonsTable, eq(quizzesTable.lessonId, lessonsTable.id))
-		.innerJoin(modulesTable, eq(lessonsTable.moduleId, modulesTable.id))
-		.innerJoin(coursesTable, eq(modulesTable.courseId, coursesTable.id));
+export async function loader({ request }: Route.LoaderArgs) {
+	const result = await getAllQuizzesWithLessonInfo(request);
 
-	return data({ quizzes: quizzesWithLessonInfo }, { status: 200 });
+	if (!result.success) {
+		return data({ quizzes: [] }, { status: 200 });
+	}
+
+	return data({ quizzes: result.quizzes }, { status: 200 });
 }
 
 export default function QuizzesPage() {
