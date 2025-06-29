@@ -38,7 +38,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 			const totalLessons = await getTotalLessonsCount(request, course.id);
 			const completedLessons = await getCompletedLessonsCount(
 				request,
-				course.id,
+				course.id
 			);
 			return { totalLessons, completedLessons };
 		})(),
@@ -91,7 +91,7 @@ function CourseCard({
 		<Card
 			className={cn(
 				"flex flex-col h-full transition-all duration-300 hover:shadow-lg hover:border-brand-primary/30",
-				thumbnailUrl && "pt-0",
+				thumbnailUrl && "pt-0"
 			)}
 		>
 			{thumbnailUrl && (
@@ -109,6 +109,15 @@ function CourseCard({
 							<ProgressCircle progressPromise={course.progressPromise} />
 						</Suspense>
 					</div>
+				</div>
+			)}
+
+			{/* Progress Bar below thumbnail */}
+			{thumbnailUrl && (
+				<div className="px-4 pt-3">
+					<Suspense fallback={<ProgressBarFallback />}>
+						<ProgressBar progressPromise={course.progressPromise} />
+					</Suspense>
 				</div>
 			)}
 
@@ -196,4 +205,44 @@ function ProgressCircle({
 
 function ProgressCircleFallback() {
 	return <Skeleton className="relative w-10 h-10 rounded-full" />;
+}
+
+function ProgressBar({
+	progressPromise,
+}: {
+	progressPromise: Promise<{ totalLessons: number; completedLessons: number }>;
+}) {
+	const { totalLessons, completedLessons } = React.use(progressPromise);
+
+	const progressPercentage =
+		totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+
+	return (
+		<div className="w-full">
+			<div className="flex justify-between items-center mb-1">
+				<span className="text-sm text-gray-600">Progress</span>
+				<span className="text-sm font-medium text-gray-900">
+					{completedLessons}/{totalLessons} lessons
+				</span>
+			</div>
+			<div className="w-full bg-gray-200 rounded-full h-2">
+				<div
+					className="bg-brand-primary h-2 rounded-full transition-all duration-300 ease-in-out"
+					style={{ width: `${progressPercentage}%` }}
+				/>
+			</div>
+		</div>
+	);
+}
+
+function ProgressBarFallback() {
+	return (
+		<div className="w-full">
+			<div className="flex justify-between items-center mb-1">
+				<Skeleton className="h-4 w-16" />
+				<Skeleton className="h-4 w-20" />
+			</div>
+			<Skeleton className="w-full h-2 rounded-full" />
+		</div>
+	);
 }
