@@ -63,6 +63,7 @@ import {
 import type { Student } from "~/db/schema";
 import { formatDateToString } from "~/lib/utils";
 import { DeleteDialog } from "./delete-dialog";
+import AgentAnalayticsDrawer from "~/components/features/analytics/agent-analytics-drawer";
 
 const columns: ColumnDef<Student>[] = [
 	{
@@ -103,6 +104,11 @@ const columns: ColumnDef<Student>[] = [
 				{formatDateToString(row.original.createdAt)}
 			</span>
 		),
+	},
+	{
+		accessorKey: "analytics",
+		header: "Analytics",
+		cell: ({ row }) => <AgentAnalayticsDrawer studentId={row.original.studentId} />,
 	},
 	{
 		accessorKey: "actions",

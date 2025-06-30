@@ -4,11 +4,16 @@ import { GetAllStudents } from "~/lib/admin/data-access/students.server";
 import type { Route } from "./+types/_admin.dashboard.agents";
 
 export async function loader({ request }: Route.LoaderArgs) {
+	// 
 	const { success, students } = await GetAllStudents(request);
 	if (!success) {
 		return { students: [] };
 	}
 	return { students };
+}
+
+function NonCriticalLoaderData() {
+	
 }
 
 export function useAgentsLoaderData() {
