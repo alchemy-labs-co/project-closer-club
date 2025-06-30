@@ -79,7 +79,7 @@ export const dashboardConfig: DahsboardConfig = {
 		],
 	},
 	videoPlayer: "Bunny",
-	libraryId: "455348",
+	libraryId: "461493",
 };
 
 export const teamLeaderDashboardConfig: DahsboardConfig = {

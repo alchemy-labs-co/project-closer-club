@@ -15,6 +15,7 @@ import {
 } from "../../../zod-schemas/segment";
 import { getModuleBySlug } from "../../data-access/modules/modules.server";
 import { checkSegmentSlugUniqueForModule } from "../shared/shared.server";
+import type { Module } from "~/db/schema";
 
 export async function handleCreateSegment(
 	request: Request,
@@ -91,7 +92,7 @@ export async function handleCreateSegment(
 			.limit(1);
 
 		const orderIndex = nextOrderIndex?.max
-			? parseInt(nextOrderIndex.max) + 1
+			? Number.parseInt(nextOrderIndex.max) + 1
 			: 0;
 
 		// Upload video to Bunny Stream and get the video GUID
@@ -100,7 +101,7 @@ export async function handleCreateSegment(
 			videoGuid = await createAndUploadVideoToBunnyStream(
 				videoFile,
 				name, // Use lesson name as video title
-				dashboardConfig.libraryId!, // Library ID from config
+				dashboardConfig.libraryId || "", // Library ID from config
 			);
 		} catch (videoError) {
 			console.error("🔴 Error uploading video:", videoError);
@@ -372,7 +373,7 @@ export async function handleMakeSegmentPublic(
 
 // Helper function no longer needed but keeping for compatibility
 async function checkIfFirstLessonInFirstModule(
-	module: any,
+	module: Module,
 	courseSlug: string,
 ): Promise<boolean> {
 	return false; // Always return false since we no longer use this logic
@@ -407,7 +408,7 @@ export async function handleGenerateUploadTokens(
 
 		const videoToken = await generateVideoUploadToken(
 			name,
-			dashboardConfig.libraryId!,
+			dashboardConfig.libraryId || "",
 		);
 
 		// Generate attachment upload tokens if provided
@@ -505,7 +506,7 @@ export async function handleConfirmUploads(
 			.limit(1);
 
 		const orderIndex = nextOrderIndex?.max
-			? parseInt(nextOrderIndex.max) + 1
+			? Number.parseInt(nextOrderIndex.max) + 1
 			: 0;
 
 		// Insert lesson into database

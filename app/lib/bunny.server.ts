@@ -1,9 +1,8 @@
 export const BUNNY = {
-	STORAGE_BASE_URL: "https://storage.bunnycdn.com/closer-club-dev-storage",
-	CDN_URL: "https://closer-club-dev.b-cdn.net",
+	STORAGE_BASE_URL: "https://storage.bunnycdn.com/closer-club-storage",
+	CDN_URL: "closer-club-pull-zone.b-cdn.net",
 	STREAM_BASE_URL: "https://video.bunnycdn.com/library",
 	EMBED_URL: "https://iframe.mediadelivery.net/embed",
-	TRANSCRIPT_URL: "https://vz-90e3bee1-e09.b-cdn.net",
 };
 
 const VIDEO_STREAM_BASE_URL = BUNNY.STREAM_BASE_URL;
@@ -32,9 +31,9 @@ export const bunnyApiFetch = async <T = Record<string, unknown>>(
 
 	const key =
 		process.env[
-			bunnyType === "stream"
-				? "BUNNY_STREAM_ACCESS_KEY"
-				: "BUNNY_STORAGE_ACCESS_KEY"
+		bunnyType === "stream"
+			? "BUNNY_STREAM_ACCESS_KEY"
+			: "BUNNY_STORAGE_ACCESS_KEY"
 		];
 
 	const requestHeaders = {
@@ -71,7 +70,7 @@ export const getVideoDuration = (url: string): Promise<number | null> =>
 		video.preload = "metadata";
 		video.onloadedmetadata = () => {
 			const duration =
-				isFinite(video.duration) && video.duration > 0
+				Number.isFinite(video.duration) && video.duration > 0
 					? Math.round(video.duration)
 					: null;
 			URL.revokeObjectURL(video.src);
@@ -249,7 +248,7 @@ export const deleteAttachmentFromBunny = async (
 	}
 
 	// Remove the CDN base URL to get the file path
-	const filePath = fileUrl.replace(cdnBaseUrl + "/", "");
+	const filePath = fileUrl.replace(`${cdnBaseUrl}/`, "");
 
 	// Construct the storage API delete URL
 	const deleteUrl = `${BUNNY.STORAGE_BASE_URL}/${filePath}`;
