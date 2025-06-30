@@ -41,7 +41,7 @@ export default function AgentAnalayticsDrawer({ studentId }: { studentId: string
                         <DrawerHeader>
                           <DrawerTitle>Agent Analytics</DrawerTitle>
                           <DrawerDescription>
-                            Course completion and progress analytics
+                            Course completion, quiz performance, and progress analytics
                           </DrawerDescription>
                         </DrawerHeader>
                         <div className="flex-1 overflow-hidden">

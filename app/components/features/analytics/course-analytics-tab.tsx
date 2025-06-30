@@ -11,6 +11,14 @@ interface Course {
   totalLessons: number
   completedLessons: number
   progressPercentage: number
+  // Quiz analytics
+  totalQuizzes: number
+  completedQuizzes: number
+  quizCompletionPercentage: number
+  averageQuizScore: number
+  totalQuestionsAnswered: number
+  totalCorrectAnswers: number
+  overallAccuracy: number
 }
 
 interface CourseAnalyticsTabProps {
@@ -22,6 +30,9 @@ export default function CourseAnalyticsTab({ course }: CourseAnalyticsTabProps) 
   const circumference = 2 * Math.PI * radius
   const strokeDasharray = circumference
   const strokeDashoffset = circumference - (course.progressPercentage / 100) * circumference
+
+  // Quiz analytics calculations
+  const quizStrokeDashoffset = circumference - (course.quizCompletionPercentage / 100) * circumference
 
   return (
     <div className="space-y-6 p-4">
@@ -49,56 +60,149 @@ export default function CourseAnalyticsTab({ course }: CourseAnalyticsTabProps) 
         </div>
       </div>
 
-      {/* Circular Progress */}
+      {/* Dual Progress Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Lesson Progress */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Lesson Progress</CardTitle>
+            <CardDescription>Video lesson completion</CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center">
+            <div className="relative w-32 h-32">
+              <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 144 144">
+                {/* Background circle */}
+                <circle
+                  cx="72"
+                  cy="72"
+                  r={radius}
+                  stroke="currentColor"
+                  strokeWidth="6"
+                  fill="transparent"
+                  className="text-muted/20"
+                />
+                {/* Progress circle */}
+                <circle
+                  cx="72"
+                  cy="72"
+                  r={radius}
+                  stroke="currentColor"
+                  strokeWidth="6"
+                  fill="transparent"
+                  strokeDasharray={strokeDasharray}
+                  strokeDashoffset={strokeDashoffset}
+                  className="text-blue-500 transition-all duration-500 ease-out"
+                  strokeLinecap="round"
+                />
+              </svg>
+              {/* Center content */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="text-2xl font-bold text-blue-500">
+                  {course.progressPercentage}%
+                </div>
+                <div className="text-xs text-muted-foreground text-center">
+                  {course.completedLessons}/{course.totalLessons}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quiz Progress */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quiz Progress</CardTitle>
+            <CardDescription>Quiz completion status</CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center">
+            <div className="relative w-32 h-32">
+              <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 144 144">
+                {/* Background circle */}
+                <circle
+                  cx="72"
+                  cy="72"
+                  r={radius}
+                  stroke="currentColor"
+                  strokeWidth="6"
+                  fill="transparent"
+                  className="text-muted/20"
+                />
+                {/* Progress circle */}
+                <circle
+                  cx="72"
+                  cy="72"
+                  r={radius}
+                  stroke="currentColor"
+                  strokeWidth="6"
+                  fill="transparent"
+                  strokeDasharray={strokeDasharray}
+                  strokeDashoffset={quizStrokeDashoffset}
+                  className="text-green-500 transition-all duration-500 ease-out"
+                  strokeLinecap="round"
+                />
+              </svg>
+              {/* Center content */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="text-2xl font-bold text-green-500">
+                  {course.quizCompletionPercentage}%
+                </div>
+                <div className="text-xs text-muted-foreground text-center">
+                  {course.completedQuizzes}/{course.totalQuizzes}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quiz Performance Analytics */}
       <Card>
         <CardHeader>
-          <CardTitle>Course Progress</CardTitle>
-          <CardDescription>Lesson completion overview</CardDescription>
+          <CardTitle>Quiz Performance</CardTitle>
+          <CardDescription>Detailed quiz statistics and accuracy</CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-center">
-          <div className="relative w-40 h-40">
-            <svg className="w-40 h-40 transform -rotate-90" viewBox="0 0 144 144">
-              {/* Background circle */}
-              <circle
-                cx="72"
-                cy="72"
-                r={radius}
-                stroke="currentColor"
-                strokeWidth="8"
-                fill="transparent"
-                className="text-muted/20"
-              />
-              {/* Progress circle */}
-              <circle
-                cx="72"
-                cy="72"
-                r={radius}
-                stroke="currentColor"
-                strokeWidth="8"
-                fill="transparent"
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={strokeDashoffset}
-                className="text-primary transition-all duration-500 ease-out"
-                strokeLinecap="round"
-              />
-            </svg>
-            {/* Center content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-3xl font-bold text-primary">
-                {course.progressPercentage}%
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {course.completedLessons} of {course.totalLessons}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                lessons completed
-              </div>
+        <CardContent className="space-y-6">
+          {/* Average Score */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Average Quiz Score</span>
+              <span className="text-lg font-bold text-primary">{course.averageQuizScore}%</span>
+            </div>
+            <Progress value={course.averageQuizScore} className="h-3" />
+          </div>
+
+          {/* Overall Accuracy */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Overall Accuracy</span>
+              <span className="text-lg font-bold text-green-600">{course.overallAccuracy}%</span>
+            </div>
+            <Progress value={course.overallAccuracy} className="h-3" />
+          </div>
+
+          {/* Quiz Statistics Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">{course.totalQuizzes}</div>
+              <div className="text-xs text-muted-foreground">Total Quizzes</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{course.completedQuizzes}</div>
+              <div className="text-xs text-muted-foreground">Completed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{course.totalQuestionsAnswered}</div>
+              <div className="text-xs text-muted-foreground">Questions Answered</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-emerald-600">{course.totalCorrectAnswers}</div>
+              <div className="text-xs text-muted-foreground">Correct Answers</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Progress Details */}
+      {/* Lesson Details */}
       <Card>
         <CardHeader>
           <CardTitle>Lesson Details</CardTitle>
