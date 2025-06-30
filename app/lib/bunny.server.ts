@@ -1,6 +1,6 @@
 export const BUNNY = {
 	STORAGE_BASE_URL: "https://storage.bunnycdn.com/closer-club-storage",
-	CDN_URL: "closer-club-pull-zone.b-cdn.net",
+	CDN_URL: "https://closer-club-pull-zone.b-cdn.net",
 	STREAM_BASE_URL: "https://video.bunnycdn.com/library",
 	EMBED_URL: "https://iframe.mediadelivery.net/embed",
 };
