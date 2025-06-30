@@ -20,8 +20,9 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 		throw redirect("/admin/login");
 	}
 
-	const studentsIds = (formData.get("students") as string).split(",");
+	const studentsIds = formData.getAll("students");
 	const thumbnail = formData.get("thumbnail");
+	console.log(studentsIds);
 
 	// check if is instance of File
 	if (!(thumbnail instanceof File)) {

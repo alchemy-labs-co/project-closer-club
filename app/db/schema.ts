@@ -202,6 +202,7 @@ export const studentCoursesTable = pgTable(
 		index("student_course_course_id_index").on(t.courseId),
 	],
 );
+
 export const quizzesTable = pgTable("quizzes", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	lessonId: uuid("lesson_id")
@@ -254,6 +255,21 @@ export const attachmentsTable = pgTable(
 	(t) => [index("attachment_lesson_id_index").on(t.lessonId)],
 );
 
+// certificates (agents upon a course completion will have acess to a branded certificate)
+export const certificatesTable = pgTable("certificates", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	studentId: text("student_id").notNull(),
+	courseId: uuid("course_id")
+		.references(() => coursesTable.id, { onDelete: "cascade" })
+		.notNull(),
+	certificateUrl: varchar("certificate_url", { length: 500 }).notNull(),
+	completedAt: timestamp("completed_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at")
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+});
+
 // TYPES
 export type Student = typeof agentsTable.$inferSelect;
 export type Course = typeof coursesTable.$inferSelect;
@@ -265,6 +281,8 @@ export type Quiz = typeof quizzesTable.$inferSelect;
 export type CompletedQuizAssignment =
 	typeof completedQuizAssignmentsTable.$inferSelect;
 export type Attachment = typeof attachmentsTable.$inferSelect;
+export type Certificate = typeof certificatesTable.$inferSelect;
+
 // AUTH RELATED
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;

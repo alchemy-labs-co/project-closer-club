@@ -104,6 +104,7 @@ export function CreateCourse() {
 							if (data.thumbnail) {
 								formData.append("thumbnail", data.thumbnail);
 							}
+							console.log(data.students);
 							data.students.forEach((student) =>
 								formData.append("students", student),
 							);
