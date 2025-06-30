@@ -1,7 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { Badge } from "~/components/ui/badge"
-import { Progress } from "~/components/ui/progress"
-import { ScrollArea } from "~/components/ui/scroll-area"
 import { BookOpen, CheckCircle, TrendingUp, Users } from "lucide-react"
 
 interface Course {
@@ -91,53 +89,42 @@ export default function AgentAnalyticsDisplay({ data }: AgentAnalyticsDisplayPro
         </Card>
       </div>
 
-      {/* Course Progress */}
+            {/* Course Overview */}
       <Card>
         <CardHeader>
-          <CardTitle>Course Progress</CardTitle>
+          <CardTitle>Enrolled Courses</CardTitle>
           <CardDescription>
-            Detailed progress for each enrolled course
+            Quick overview of all enrolled courses
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[350px ] w-full flex flex-col gap-4 pb-8">
-            <div className="space-y-4">
-              {courses.map((course) => (
-                <div key={course.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-4">
-                                         <div className="flex-1 min-w-0">
-                       <div className="flex items-center gap-2">
-                         <h3 className="font-semibold text-sm truncate">{course.name || "Untitled Course"}</h3>
-                         <Badge variant={course.progressPercentage === 100 ? "default" : "secondary"} className="text-xs">
-                           {course.progressPercentage === 100 ? "Completed" : "In Progress"}
-                         </Badge>
-                       </div>
-                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                         {course.description || "No description available"}
-                       </p>
-                     </div>
-                     {course.thumbnailUrl && (
-                       <div className="flex-shrink-0">
-                         <img
-                           src={`https://${course.thumbnailUrl}`}
-                           alt={course.name || "Course thumbnail"}
-                           className="w-16 h-12 rounded object-cover"
-                         />
-                       </div>
-                     )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{course.completedLessons} of {course.totalLessons} lessons completed</span>
-                      <span>{course.progressPercentage}%</span>
+          <div className="space-y-3">
+            {courses.map((course) => (
+              <div key={course.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  {course.thumbnailUrl && (
+                    <img
+                      src={`https://${course.thumbnailUrl}`}
+                      alt={course.name || "Course thumbnail"}
+                      className="w-10 h-8 rounded object-cover"
+                    />
+                  )}
+                  <div>
+                    <div className="font-medium text-sm">{course.name || "Untitled Course"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {course.completedLessons} of {course.totalLessons} lessons
                     </div>
-                    <Progress value={course.progressPercentage} className="h-2" />
                   </div>
                 </div>
-              ))}
-            </div>
-          </ScrollArea>
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-medium">{course.progressPercentage}%</div>
+                  <Badge variant={course.progressPercentage === 100 ? "default" : "secondary"} className="text-xs">
+                    {course.progressPercentage === 100 ? "Completed" : "In Progress"}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>
