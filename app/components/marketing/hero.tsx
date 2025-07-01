@@ -13,43 +13,43 @@ const menuItems = [
 
 export function HeroSection() {
     return (
-        <main>
+
+            <section className='relative min-h-screen overflow-hidden'>
             <HeroHeader />
-            <section className='overflow-x-hidden'>
-                    <div className="py-24 md:pb-32 lg:pb-36 lg:pt-72">
-                        <div className="relative z-30 mx-auto flex max-w-7xl flex-col px-6 lg:block lg:px-12">
-                            <div className="mx-auto max-w-lg text-center lg:ml-0 lg:max-w-full lg:text-left">
-                                <div className='flex flex-col gap-8'>
+                    <div className="relative z-30 py-24 md:pb-32 lg:pb-36 lg:pt-72">
+                        <div className="mx-auto flex max-w-7xl flex-col items-center lg:items-start px-6 lg:px-12">
+                            <div className="w-full flex flex-col items-center lg:items-start gap-12">
+                                <div className='flex flex-col gap-8 max-w-2xl w-full'>
                                     <div className='flex flex-col gap-6'>
-                                        <h1 className="max-w-2xl text-balance text-5xl text-white font-display md:text-6xl lg:mt-16 xl:text-7xl">Transform Your Insurance Career with Closer Club</h1>
-                                        <p className="max-w-2xl text-balance text-lg text-white/80">Elevate your insurance sales game with our comprehensive virtual training platform. Get standardized, high-quality training from anywhere, and fast-track your path to success.</p>
+                                        <h1 className="text-balance text-5xl text-white font-display md:text-6xl lg:mt-16 xl:text-7xl">Transform Your Insurance Career with Closer Club</h1>
+                                        <p className="text-lg text-white/80">Elevate your insurance sales game with our comprehensive virtual training platform. Get standardized, high-quality training from anywhere, and fast-track your path to success.</p>
                                     </div>
-                                    <div>
-                                        
-                                            <Link className=' bg-white text-black hover:bg-white/90 py-3 px-4 rounded-full  text-base' to="/login">
+                                    <div className="flex justify-center lg:justify-start">
+                                        <Link className='inline-flex items-center bg-white text-black hover:bg-white/90 py-3 px-6 rounded-full text-base font-medium transition-colors' to="/login">
                                             Join the Team
                                         </Link>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="aspect-[2/3] absolute inset-1 overflow-hidden rounded-3xl border border-black/10 sm:aspect-video lg:rounded-[3rem] dark:border-white/5">
+                    </div>
+                    <div className="absolute inset-0 w-full h-full p-4 md:p-6">
+                        <div className="absolute inset-0 overflow-hidden  sm:aspect-video">
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-black/30 z-10" />
                             <video
                                 autoPlay
                                 loop
-                                className="size-full object-cover opacity-40 invert dark:opacity-35 dark:invert-0 dark:lg:opacity-75"
-                                src="https://ik.imagekit.io/lrigu76hy/tailark/dna-video.mp4?updatedAt=1745736251477"
+                                className="h-full w-full object-cover opacity-40"
+                                src="https://closer-club-pull-zone.b-cdn.net/64c9ad48e17f578000053416.mp4"
                                 muted
                                 playsInline
                                 preload="auto"
-                                poster="https://ik.imagekit.io/lrigu76hy/tailark/dna-video.mp4?updatedAt=1745736251477"
-                                >
-                            </video>
+                                poster="https://closer-club-pull-zone.b-cdn.net/64c9ad48e17f578000053416.mp4"
+                            />
                         </div>
                     </div>
             </section>
-        </main>
+
     )
 }
 

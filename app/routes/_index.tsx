@@ -21,9 +21,9 @@ export function useMarketingPageLoaderData() {
 export default function MarketingPage({loaderData}: Route.ComponentProps) {
 
 	return (
-		<>
+		<main className="flex flex-col gap-0">
 			<HeroSection/>
 			<CTASection/>
-		</>
+		</main>
 	);
 }
