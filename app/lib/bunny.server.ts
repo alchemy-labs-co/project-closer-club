@@ -4,8 +4,6 @@ export const BUNNY = {
 	STREAM_BASE_URL: "https://video.bunnycdn.com/library",
 	EMBED_URL: "https://iframe.mediadelivery.net/embed",
 };
-
-const VIDEO_STREAM_BASE_URL = BUNNY.STREAM_BASE_URL;
 const THUMBNAIL_STORAGE_BASE_URL = BUNNY.STORAGE_BASE_URL;
 const THUMBNAIL_CDN_URL = BUNNY.CDN_URL;
 const ACCESS_KEYS = {

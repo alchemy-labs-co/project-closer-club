@@ -1,4 +1,4 @@
-import { data, type ActionFunctionArgs } from "react-router";
+import { data, redirect, type ActionFunctionArgs } from "react-router";
 import {
 	handleSignInAdmin,
 	handleSignInStudent,
@@ -6,6 +6,7 @@ import {
 } from "~/lib/admin/actions/auth/auth.server";
 import { handleSignOut } from "~/lib/auth/auth.server";
 import type { Route } from "./+types/resource.auth";
+import { toast } from "sonner";
 // import { handleSignInAdmin, handleSignInStudent, handleSignOut } from "~/lib/admin/actions/auth/auth.server"
 
 const intents = [
@@ -21,6 +22,25 @@ export async function loader() {
 	return data("Not Allowed", { status: 405 });
 }
 
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+	const result:
+		| {
+			success: boolean;
+			message: string;
+			redirectToUrl?: string;
+		}
+		| undefined = await serverAction();
+
+	if (result?.success) {
+		toast.success(result?.message);
+		if (result?.redirectToUrl) {
+			throw redirect(result?.redirectToUrl);
+		}
+	} else {
+		toast.error(result?.message);
+	}
+	return result;
+}
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData();
 	const intent = formData.get("intent") as string;

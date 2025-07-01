@@ -280,6 +280,7 @@ function LessonQuizzes() {
 														>
 															{answerIndex === question.correctAnswerIndex && (
 																<svg
+																title
 																	className="w-3 h-3 text-white"
 																	fill="currentColor"
 																	viewBox="0 0 20 20"

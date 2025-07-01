@@ -120,6 +120,13 @@
       "when": 1751208001851,
       "tag": "0016_square_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1751384670671,
+      "tag": "0017_magenta_imperial_guard",
+      "breakpoints": true
     }
   ]
 }

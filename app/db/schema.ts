@@ -270,6 +270,12 @@ export const certificatesTable = pgTable("certificates", {
 		.$onUpdate(() => new Date()),
 });
 
+export const waitlistTable = pgTable("waitlist", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	email: varchar("email", { length: 255 }).notNull(),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // TYPES
 export type Student = typeof agentsTable.$inferSelect;
 export type Course = typeof coursesTable.$inferSelect;
@@ -282,6 +288,7 @@ export type CompletedQuizAssignment =
 	typeof completedQuizAssignmentsTable.$inferSelect;
 export type Attachment = typeof attachmentsTable.$inferSelect;
 export type Certificate = typeof certificatesTable.$inferSelect;
+export type Waitlist = typeof waitlistTable.$inferSelect;
 
 // AUTH RELATED
 export type User = typeof user.$inferSelect;

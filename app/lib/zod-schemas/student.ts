@@ -1,18 +1,33 @@
 import { z } from "zod";
 
+// Valid domains for email addresses
+const VALID_DOMAINS = ["@universecoverage.com", "@spectra.com"] as const;
+
+// Custom email validation for domain restriction
+const domainRestrictedEmail = z
+	.string()
+	.min(1, { message: "Email is required" })
+	.trim()
+
+	.refine(
+		(email) => {
+			const domain = email.substring(email.lastIndexOf("@"));
+			return VALID_DOMAINS.includes(domain as typeof VALID_DOMAINS[number]);
+		},
+		{
+			message: `Email must be from one of the following domains: ${VALID_DOMAINS.join(", ")}`,
+		}
+	);
+
 export const createStudentSchema = z.object({
 	name: z.string().min(1, { message: "Name is required" }).trim(),
-	email: z
-		.string()
-		.email({ message: "Invalid email address" })
-		.min(1, { message: "Email is required" })
-		.trim(),
+	email: domainRestrictedEmail,
 	phoneNumber: z
 		.string()
-		.refine((val) => val === "" || val.length >= 10, {
+		.optional()
+		.refine((val) => !val || val.length >= 10, {
 			message: "Phone number must be at least 10 characters long",
-		})
-		.optional(),
+		}),
 	password: z
 		.string()
 		.min(8, { message: "Password must be at least 8 characters long" })
@@ -21,16 +36,13 @@ export const createStudentSchema = z.object({
 });
 export const updateStudentSchema = z.object({
 	name: z.string().min(1, { message: "Name is required" }),
-	email: z
-		.string()
-		.email({ message: "Invalid email address" })
-		.min(1, { message: "Email is required" }),
+	email: domainRestrictedEmail,
 	phoneNumber: z
 		.string()
-		.refine((val) => val === "" || val.length >= 10, {
+		.optional()
+		.refine((val) => !val || val.length >= 10, {
 			message: "Phone number must be at least 10 characters long",
-		})
-		.optional(),
+		}),
 });
 export const updateStudentPasswordSchema = z.object({
 	password: z

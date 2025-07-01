@@ -28,6 +28,7 @@ import {
 	type CreateTeamLeaderSchema,
 } from "~/lib/zod-schemas/team-leader";
 import { AssignAgentsToTeamLeader } from "./assign-agents-to-team-leader";
+import EmailDomainInput from "../students/email-domain-input";
 
 export function CreateTeamLeader() {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -65,7 +66,7 @@ export function CreateTeamLeader() {
 			form.reset();
 			setIsSubmitted(false);
 		}
-	}, [isDialogOpen]);
+	}, [isDialogOpen, form.reset]);
 
 	// when hasCopied is true, show toast
 	useEffect(() => {
@@ -164,11 +165,12 @@ export function CreateTeamLeader() {
 											Email <span className="text-xs text-red-500">*</span>
 										</FormLabel>
 										<FormControl>
-											<Input
-												placeholder="Enter team leader email"
-												type="email"
+											<EmailDomainInput
+												placeholder="Enter team leader username"
+												value={field.value}
+												onChange={field.onChange}
+												disabled={isSubmitting}
 												className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
-												{...field}
 											/>
 										</FormControl>
 										<FormMessage />

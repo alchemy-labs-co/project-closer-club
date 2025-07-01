@@ -28,6 +28,7 @@ import {
 	type CreateStudentSchema,
 } from "~/lib/zod-schemas/student";
 import { AssignCourseToStudent } from "./assign-course-to-student";
+import EmailDomainInput from "./email-domain-input";
 
 export function CreateStudent() {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -47,20 +48,12 @@ export function CreateStudent() {
 		},
 	});
 
-	// /userid/edit
-
+	// Handle successful submission for showing credentials
 	useEffect(() => {
-		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
-				setIsSubmitted(true);
-			}
-			if (!fetcher.data.success) {
-				toast.error(fetcher.data.message);
-			}
+		if (fetcher.data?.success) {
+			setIsSubmitted(true);
 		}
 	}, [fetcher.data]);
-	// null or undefined
 
 	useEffect(() => {
 		// when dialog closes reset the form
@@ -68,7 +61,7 @@ export function CreateStudent() {
 			form.reset();
 			setIsSubmitted(false);
 		}
-	}, [isDialogOpen]);
+	}, [isDialogOpen, form.reset]);
 
 	// when hasCopied is true, show toast
 	useEffect(() => {
@@ -166,11 +159,12 @@ export function CreateStudent() {
 											Email <span className="text-xs text-red-500">*</span>
 										</FormLabel>
 										<FormControl>
-											<Input
-												placeholder="Enter agent email"
-												type="email"
+											<EmailDomainInput
+												placeholder="Enter agent username"
+												value={field.value}
+												onChange={field.onChange}
+												disabled={isSubmitting}
 												className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
-												{...field}
 											/>
 										</FormControl>
 										<FormMessage />
