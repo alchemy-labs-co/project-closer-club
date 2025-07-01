@@ -1,4 +1,4 @@
-import { data, type ActionFunctionArgs } from "react-router";
+import { data, redirect, type ActionFunctionArgs } from "react-router";
 import {
 	handleActivateStudent,
 	handleCreateStudent,
@@ -7,6 +7,8 @@ import {
 	handleUpdateStudent,
 	handleUpdateStudentPassword,
 } from "~/lib/admin/actions/student/student.server";
+import type { Route } from "./+types/resource.student";
+import { toast } from "sonner";
 
 const intents = [
 	"create-student",
@@ -19,6 +21,26 @@ const intents = [
 
 export async function loader() {
 	return data("Not Allowed", { status: 405 });
+}
+
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+	const result:
+		| {
+			success: boolean;
+			message: string;
+			redirectToUrl?: string;
+		}
+		| undefined = await serverAction();
+
+	if (result?.success) {
+		toast.success(result?.message);
+		if (result?.redirectToUrl) {
+			throw redirect(result?.redirectToUrl);
+		}
+	} else {
+		toast.error(result?.message);
+	}
+	return result;
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -46,6 +68,9 @@ export async function action({ request }: ActionFunctionArgs) {
 		return handler(request, formData);
 	} catch (error) {
 		console.error("🔴Action error:", error);
-		return data({ error: "An unexpected error occurred" }, { status: 500 });
+		return data(
+			{ success: false, message: "An unexpected error occurred" },
+			{ status: 500 },
+		);
 	}
 }

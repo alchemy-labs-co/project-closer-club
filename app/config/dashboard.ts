@@ -1,11 +1,11 @@
 import {
+	BarChart3,
 	Book,
 	Home,
+	ListChecks,
 	Users,
 	Users2,
 	type LucideProps,
-	BarChart3,
-	ListChecks,
 } from "lucide-react";
 import type { VideoPlayerTypes } from "~/lib/types";
 
@@ -61,21 +61,6 @@ export const dashboardConfig: DahsboardConfig = {
 				icon: ListChecks,
 				url: "/dashboard/quizzes",
 			},
-			// {
-			//   title: "Admins",
-			//   icon: Users,
-			//   url: "/dashboard/admins",
-			// },
-			// {
-			//   title: "Messages",
-			//   icon: MessageCircle,
-			//   url: "/dashboard/messages",
-			// },
-			// {
-			//   title: "Settings",
-			//   icon: Settings,
-			//   url: "/dashboard/settings",
-			// },
 		],
 	},
 	videoPlayer: "Bunny",

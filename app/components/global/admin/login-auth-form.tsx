@@ -1,8 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useFetcher, useNavigate } from "react-router";
-import { toast } from "sonner";
+import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
 	Form,
@@ -21,7 +19,6 @@ export default function LoginAuthForm({
 }: {
 	type: "admin" | "student" | "team-leader";
 }) {
-	const navigate = useNavigate();
 	const config =
 		type === "admin"
 			? {
@@ -52,20 +49,6 @@ export default function LoginAuthForm({
 			password: "",
 		},
 	});
-	// trigger toast when fetcher data sent back from the server
-	useEffect(() => {
-		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
-			}
-			if (fetcher.data.success === false) {
-				toast.error(fetcher.data.message);
-				if (fetcher.data.redirectTo) {
-					navigate(fetcher.data.redirectTo);
-				}
-			}
-		}
-	}, [fetcher.data]);
 
 	return (
 		<div className="rounded-lg bg-gray-100 p-6 md:p-8 inset-ring-border">
@@ -101,7 +84,7 @@ export default function LoginAuthForm({
 											Email
 										</FormLabel>
 										<Input
-											type="email"
+											type="text"
 											id="email"
 											placeholder="example@gmail.com"
 											className="border-gray-300 focus:border-gray-900 focus:ring-gray-900 bg-white"
