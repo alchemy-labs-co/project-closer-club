@@ -19,7 +19,14 @@ export const promoteLeadSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters"),
     phoneNumber: z.string().optional(),
     agents: z.array(z.string()).optional(),
+    courses: z.array(z.string()).optional()
+});
+
+export const rejectLeadSchema = z.object({
+    leadId: z.string().min(1, "Lead ID is required"),
+    reason: z.string().optional()
 });
 
 export type leadCaptureSchemaType = z.infer<typeof leadCaptureSchema>;
 export type PromoteLeadSchemaType = z.infer<typeof promoteLeadSchema>;
+export type RejectLeadSchemaType = z.infer<typeof rejectLeadSchema>;

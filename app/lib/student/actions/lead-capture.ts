@@ -1,19 +1,18 @@
 import { auth, isAdminLoggedIn } from '~/lib/auth/auth.server';
 
 import { eq, inArray, type ExtractTablesWithRelations } from "drizzle-orm";
-import { createCookie, data, redirect } from "react-router";
-import db from "~/db/index.server";
-import { agentsTable, leadCaptureTable, teamLeadersTable } from "~/db/schema";
-import { leadCaptureSchema, promoteLeadSchema, type PromoteLeadSchemaType } from "~/lib/zod-schemas/lead-capture";
-import type { TransactionSql } from 'postgres';
 import type { PgTransaction } from 'drizzle-orm/pg-core';
 import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js';
+import { createCookie, data, redirect } from "react-router";
+import db from "~/db/index.server";
+import { agentsTable, leadCaptureTable, studentCoursesTable, teamLeadersTable } from "~/db/schema";
+import { leadCaptureSchema, promoteLeadSchema, rejectLeadSchema, type PromoteLeadSchemaType } from "~/lib/zod-schemas/lead-capture";
 
 export async function handleCreateLeadCapture(request: Request, formData: FormData) {
     try {
+
         const { email, firstName, lastName, phoneNumber, stateOfResidence, areYouOver18, doYouHaveAnyFeloniesOrMisdemeanors } = Object.fromEntries(formData)
-        console.log(email, firstName, lastName, phoneNumber, stateOfResidence, areYouOver18, doYouHaveAnyFeloniesOrMisdemeanors);
-        //    check if the email contains the allowed domains
+
         const unvalidatedFields = leadCaptureSchema.safeParse({ email, firstName, lastName, phoneNumber, stateOfResidence, areYouOver18: areYouOver18 === "true", doYouHaveAnyFeloniesOrMisdemeanors: doYouHaveAnyFeloniesOrMisdemeanors === "true" });
         if (!unvalidatedFields.success) {
             return {
@@ -22,7 +21,7 @@ export async function handleCreateLeadCapture(request: Request, formData: FormDa
             }
         }
         const validatedFields = unvalidatedFields.data;
-        // check if the email is already in the waitlist
+        // check if the email is already in the lead capture
         const [existingLead] = await db.select().from(leadCaptureTable).where(eq(leadCaptureTable.email, validatedFields.email));
         if (existingLead) {
             return {
@@ -74,6 +73,46 @@ export async function handleCreateLeadCapture(request: Request, formData: FormDa
 
 }
 
+export async function handleRejectLead(request: Request, formData: FormData) {
+    try {
+        const { isLoggedIn } = await isAdminLoggedIn(request);
+
+        if (!isLoggedIn) {
+            throw redirect("/admin/login");
+        }
+
+        const { leadId, reason } = Object.fromEntries(formData);
+        const unvalidatedFields = rejectLeadSchema.safeParse({ leadId, reason })
+        if (!unvalidatedFields.success) {
+            return {
+                success: false,
+                message: "Invalid form data",
+            }
+        }
+        const validatedFields = unvalidatedFields.data;
+        const [existingLead] = await db.select().from(leadCaptureTable).where(eq(leadCaptureTable.id, validatedFields.leadId));
+
+        if (!existingLead) {
+            return {
+                success: false,
+                message: "Lead not found",
+            }
+        }
+
+        await db.update(leadCaptureTable).set({ leadStatus: "rejected" as const, reason: validatedFields.reason }).where(eq(leadCaptureTable.id, validatedFields.leadId));
+        return {
+            success: true,
+            message: "Lead rejected successfully",
+        }
+    } catch (error) {
+        console.error("Error rejecting lead", error);
+        return {
+            success: false,
+            message: "Error rejecting lead",
+        }
+    }
+}
+
 export async function handlePromoteLead(request: Request, formData: FormData) {
 
     try {
@@ -85,9 +124,11 @@ export async function handlePromoteLead(request: Request, formData: FormData) {
 
         const { leadId, userType, name, email, password, phoneNumber } = Object.fromEntries(formData);
         const agents = formData.get("agents") as string;
+        const courses = formData.get("courses") as string;
         const agentsArray = agents ? agents.split(",") : [];
+        const coursesArray = courses ? courses.split(",") : [];
 
-        const unvalidatedFields = promoteLeadSchema.safeParse({ leadId, userType, name, email, password, phoneNumber, agents: agentsArray });
+        const unvalidatedFields = promoteLeadSchema.safeParse({ leadId, userType, name, email, password, phoneNumber, agents: agentsArray, courses: coursesArray });
 
         if (!unvalidatedFields.success) {
             return {
@@ -114,7 +155,6 @@ export async function handlePromoteLead(request: Request, formData: FormData) {
 
             }
             if (validatedFields.userType === "team-leader") {
-
                 const { success, message } = await handlePromoteTeamLeader(validatedFields, tx);
                 if (!success) {
                     return {
@@ -137,7 +177,6 @@ export async function handlePromoteLead(request: Request, formData: FormData) {
             message: "Error promoting lead",
         }
     }
-
 }
 
 /** 
@@ -172,6 +211,14 @@ async function handlePromoteAgent(validatedFields: PromoteLeadSchemaType, tx: Pg
         email: validatedFields.email,
         phone: validatedFields.phoneNumber,
     });
+
+    if (validatedFields.courses && validatedFields.courses.length > 0) {
+        const valuesToInsert = validatedFields.courses.map((courseId) => ({
+            studentId: user.id,
+            courseId: courseId,
+        }));
+        await tx.insert(studentCoursesTable).values(valuesToInsert);
+    }
     return { success: true, message: "Agent created successfully" }
 }
 /**
@@ -214,6 +261,14 @@ async function handlePromoteTeamLeader(validatedFields: PromoteLeadSchemaType, t
         await tx.update(agentsTable).set({
             teamLeaderId: insertedTeamLeader.id,
         }).where(inArray(agentsTable.studentId, validatedFields.agents));
+    }
+
+    if (validatedFields.courses && validatedFields.courses.length > 0) {
+        const valuesToInsert = validatedFields.courses.map((courseId) => ({
+            studentId: user.id,
+            courseId: courseId,
+        }));
+        await tx.insert(studentCoursesTable).values(valuesToInsert);
     }
 
     return { success: true, message: "Team leader created successfully" }

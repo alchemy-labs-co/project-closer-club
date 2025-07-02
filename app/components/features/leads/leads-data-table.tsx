@@ -1,8 +1,5 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
-	type ColumnDef,
-	type ColumnFiltersState,
-	type SortingState,
-	type VisibilityState,
 	flexRender,
 	getCoreRowModel,
 	getFacetedRowModel,
@@ -11,6 +8,10 @@ import {
 	getPaginationRowModel,
 	getSortedRowModel,
 	useReactTable,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type SortingState,
+	type VisibilityState,
 } from "@tanstack/react-table";
 import {
 	ChevronDown,
@@ -24,20 +25,20 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { Link, href } from "react-router";
-import { Badge } from "~/components/ui/badge";
-import { DeleteDialog } from "~/components/global/admin/delete-dialog";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useFetcher } from "react-router";
 import { toast } from "sonner";
-import PrimaryButton from "~/components/global/brand/primary-button";
+import { AssignCourseToStudent } from "~/components/features/students/assign-course-to-student";
 import EmailDomainInput from "~/components/features/students/email-domain-input";
 import { AssignAgentsToTeamLeader } from "~/components/features/team-leaders/assign-agents-to-team-leader";
+import PrimaryButton from "~/components/global/brand/primary-button";
+import { Badge } from "~/components/ui/badge";
 import { generateRandomPassword } from "~/lib/utils";
-import { 
-	promoteLeadSchema, 
-	type PromoteLeadSchemaType 
+import {
+	promoteLeadSchema,
+	type PromoteLeadSchemaType,
+	rejectLeadSchema,
+	type RejectLeadSchemaType
 } from "~/lib/zod-schemas/lead-capture";
 
 import { Button } from "~/components/ui/button";
@@ -50,6 +51,12 @@ import {
 	DialogTrigger,
 } from "~/components/ui/dialog";
 import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuTrigger
+} from "~/components/ui/dropdown-menu";
+import {
 	Form,
 	FormControl,
 	FormField,
@@ -58,13 +65,6 @@ import {
 	FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import {
-	DropdownMenu,
-	DropdownMenuCheckboxItem,
-	DropdownMenuContent,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import { Label } from "~/components/ui/label";
 import {
 	Popover,
@@ -132,8 +132,6 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const [hasCopied, setHasCopied] = useState(false);
 	const fetcher = useFetcher();
-
-    
 	const form = useForm<PromoteLeadSchemaType>({
         resolver: zodResolver(promoteLeadSchema),
 		defaultValues: {
@@ -144,6 +142,7 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 			phoneNumber: leadData.phoneNumber ?? "",
 			password: generateRandomPassword(),
 			agents: [],
+			courses: [],
 		},
 	});
     
@@ -329,7 +328,23 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 								)}
 							/>
 
-						
+							<FormField
+								control={form.control}
+								name="courses"
+								disabled={isSubmitting}
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>
+											Courses{" "}
+											<span className="text-xs text-gray-500">(optional)</span>
+										</FormLabel>
+										<FormControl>
+											<AssignCourseToStudent form={form} {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 
 							<PrimaryButton type="submit" disabled={isSubmitting}>
 								{isSubmitting 
@@ -341,6 +356,102 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 					</Form>
 				</DialogContent>
 			)}
+		</Dialog>
+	);
+}
+
+// Reject Dialog Component
+function RejectDialog({ leadData }: { leadData: LeadCapture }) {
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const fetcher = useFetcher();
+	const form = useForm<RejectLeadSchemaType>({
+        resolver: zodResolver(rejectLeadSchema),
+		defaultValues: {
+            leadId: leadData.id,
+			reason: "",
+		},
+	});
+    
+    const isSubmitting = fetcher.state !== "idle";
+
+	useEffect(() => {
+		if (!isDialogOpen) {
+			form.reset();
+		}
+	}, [isDialogOpen, form]);
+
+	return (
+		<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+			<DialogTrigger asChild>
+				<Button type="button" variant="ghost" className="cursor-pointer text-red-600 hover:text-red-700">
+					Reject
+				</Button>
+			</DialogTrigger>
+			<DialogContent className="flex flex-col gap-8">
+				<DialogHeader>
+					<DialogTitle>Reject Lead</DialogTitle>
+					<DialogDescription>
+						Are you sure you want to reject this lead? This action cannot be undone.
+					</DialogDescription>
+				</DialogHeader>
+				<Form {...form}>
+					<fetcher.Form
+						method="POST"
+						action="/resource/lead-capture"
+						className="flex flex-col gap-4 w-full"
+						onSubmit={form.handleSubmit((data) => {
+							fetcher.submit(
+								{ ...data, intent: "reject-lead" },
+								{
+									action: "/resource/lead-capture",
+									method: "POST",
+								},
+							);
+						})}
+					>
+						<FormField
+							control={form.control}
+							name="reason"
+							disabled={isSubmitting}
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>
+										Reason for Rejection{" "}
+										<span className="text-xs text-gray-500">(optional)</span>
+									</FormLabel>
+									<FormControl>
+										<Input
+											placeholder="Enter reason for rejection"
+											type="text"
+											className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
+											{...field}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
+						<div className="flex gap-2 justify-end">
+							<Button 
+								type="button" 
+								variant="outline" 
+								onClick={() => setIsDialogOpen(false)}
+								disabled={isSubmitting}
+							>
+								Cancel
+							</Button>
+							<Button 
+								type="submit" 
+								variant="destructive" 
+								disabled={isSubmitting}
+							>
+								{isSubmitting ? "Rejecting..." : "Reject Lead"}
+							</Button>
+						</div>
+					</fetcher.Form>
+				</Form>
+			</DialogContent>
 		</Dialog>
 	);
 }
@@ -371,14 +482,23 @@ const columns: ColumnDef<LeadCapture>[] = [
 		id: "Lead Status",
 		accessorKey: "leadStatus",
 		header: "Status",
-		cell: ({ row }) => (
-			<Badge 
-				variant={row.original.leadStatus === "promoted" ? "default" : "secondary"}
-				className={row.original.leadStatus === "promoted" ? "bg-brand-primary hover:bg-brand-primary/80" : "bg-yellow-500 hover:bg-yellow-600 text-white"}
-			>
-				{row.original.leadStatus === "promoted" ? "Promoted" : "Pending"}
-			</Badge>
-		),
+		cell: ({ row }) => {
+			const status = row.original.leadStatus;
+			return (
+				<Badge 
+					variant={status === "promoted" ? "default" : status === "rejected" ? "destructive" : "secondary"}
+					className={
+						status === "promoted" 
+							? "bg-brand-primary hover:bg-brand-primary/80" 
+							: status === "rejected"
+							? "bg-red-500 hover:bg-red-600 text-white"
+							: "bg-yellow-500 hover:bg-yellow-600 text-white"
+					}
+				>
+					{status === "promoted" ? "Promoted" : status === "rejected" ? "Rejected" : "Pending"}
+				</Badge>
+			);
+		},
 	},
 	{
 		id: "Over 18",
@@ -416,6 +536,8 @@ const columns: ColumnDef<LeadCapture>[] = [
 		cell: ({ row }) => 
 			row.original.leadStatus === "promoted" ? (
 				<span className="text-green-600 font-medium">Promoted!</span>
+			) : row.original.leadStatus === "rejected" ? (
+				<span className="text-red-600 font-medium">Rejected</span>
 			) : (
 				<Popover>
 					<PopoverTrigger asChild>
@@ -429,8 +551,9 @@ const columns: ColumnDef<LeadCapture>[] = [
 						</Button>
 					</PopoverTrigger>
 					<PopoverContent align="end" className="max-w-32">
-						<div className="flex flex-col gap-4">
+						<div className="flex flex-col gap-2">
 							<PromoteDialog leadData={row.original} />
+							<RejectDialog leadData={row.original} />
 						</div>
 					</PopoverContent>
 				</Popover>
@@ -481,13 +604,52 @@ export function LeadsDataTable({ initialData }: { initialData: any }) {
 		setData(initialData);
 	}, [initialData]);
 
+	const isFiltered = table.getState().columnFilters.length > 0;
+
 	return (
 		<div className="w-full flex flex-col justify-between h-full gap-6 overflow-hidden">
 			{/* Header */}
 			<div className="flex flex-col gap-6 overflow-hidden">
 				<div className="flex items-center justify-between">
-					{/* Customize Columns */}
+					{/* Filters and Controls */}
 					<div className="flex items-center gap-2">
+						{/* Status Filter */}
+						<Select
+							value={
+								(table.getColumn("Lead Status")?.getFilterValue() as string) ?? "all"
+							}
+							onValueChange={(value) => {
+								if (value === "all") {
+									table.getColumn("Lead Status")?.setFilterValue(undefined);
+								} else {
+									table.getColumn("Lead Status")?.setFilterValue(value);
+								}
+							}}
+						>
+							<SelectTrigger className="w-[140px]">
+								<SelectValue placeholder="Filter by status" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All Status</SelectItem>
+								<SelectItem value="pending">Pending</SelectItem>
+								<SelectItem value="promoted">Promoted</SelectItem>
+								<SelectItem value="rejected">Rejected</SelectItem>
+							</SelectContent>
+						</Select>
+
+						{/* Clear Filters */}
+						{isFiltered && (
+							<Button
+								variant="ghost"
+								onClick={() => table.resetColumnFilters()}
+								className="h-8 px-2 lg:px-3"
+							>
+								Reset
+								<X />
+							</Button>
+						)}
+
+						{/* Customize Columns */}
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="outline" size="sm">

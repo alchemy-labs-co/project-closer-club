@@ -1,14 +1,36 @@
-import { data } from "react-router";
-import { handleCreateLeadCapture, handlePromoteLead } from "~/lib/student/actions/lead-capture";
+import { data, redirect } from "react-router";
+import { handleCreateLeadCapture, handlePromoteLead, handleRejectLead } from "~/lib/student/actions/lead-capture";
 import type { Route } from "./+types/resource.lead-capture";
+import { toast } from "sonner";
 
 const intents = [
     "create-lead-capture",
     "promote-lead",
+    "reject-lead"
 ];
 
 export async function loader() {
     return data("Not Allowed", { status: 405 });
+}
+
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+    const result:
+        | {
+            success: boolean;
+            message: string;
+            redirectToUrl?: string;
+        }
+        | undefined = await serverAction();
+
+    if (result?.success) {
+        toast.success(result?.message);
+        if (result?.redirectToUrl) {
+            throw redirect(result?.redirectToUrl);
+        }
+    } else {
+        toast.error(result?.message);
+    }
+    return result;
 }
 
 
@@ -27,6 +49,7 @@ export async function action({ request }: Route.ActionArgs) {
         const handlers = {
             "create-lead-capture": handleCreateLeadCapture,
             "promote-lead": handlePromoteLead,
+            "reject-lead": handleRejectLead,
         } as const;
 
         const handler = handlers[intent as keyof typeof handlers];

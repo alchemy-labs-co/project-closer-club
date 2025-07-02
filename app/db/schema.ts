@@ -280,6 +280,7 @@ export const leadCaptureTable = pgTable("lead_capture", {
 	areYouOver18: boolean("are_you_over_18").notNull(),
 	doYouHaveAnyFeloniesOrMisdemeanors: boolean("do_you_have_any_felonies_or_misdemeanors").notNull(),
 	leadStatus: text("lead_status").notNull().default("pending"),
+	reason: text("reason"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

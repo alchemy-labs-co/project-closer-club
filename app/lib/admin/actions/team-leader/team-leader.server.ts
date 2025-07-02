@@ -90,7 +90,10 @@ export async function handleCreateTeamLeader(
 				});
 
 			if (!insertedTeamLeader) {
-				throw new Error("Something went wrong");
+				return {
+					success: false,
+					message: "Failed to create team leader",
+				}
 			}
 
 			if (agentsArray.length > 0) {
@@ -101,10 +104,10 @@ export async function handleCreateTeamLeader(
 			}
 		});
 
-		return data(
-			{ success: true, message: "Team leader created successfully" },
-			{ status: 200 },
-		);
+		return {
+			success: true,
+			message: "Team leader created successfully",
+		}
 	} catch (error) {
 		return data(
 			{
@@ -369,7 +372,10 @@ export async function handleUpdateTeamLeader(
 				});
 
 			if (!updatedTeamLeader) {
-				throw new Error("Team leader not found");
+				return {
+					success: false,
+					message: "Team leader not found",
+				}
 			}
 
 			// update user table

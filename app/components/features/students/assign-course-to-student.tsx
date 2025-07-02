@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
 import * as React from "react";
-
 import { Command as CommandPrimitive } from "cmdk";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -13,16 +12,18 @@ import {
 	CommandList,
 } from "~/components/ui/command";
 import type { Course } from "~/db/schema";
+import type { PromoteLeadSchemaType } from "~/lib/zod-schemas/lead-capture";
 import type { CreateStudentSchema } from "~/lib/zod-schemas/student";
 import LoadingInputShimmer from "../loading/input-skeleton";
 
 type FetcherResponse = {
 	courses: Course[];
 };
+
 export function AssignCourseToStudent({
 	form,
 }: {
-	form: UseFormReturn<CreateStudentSchema>;
+	form: UseFormReturn<CreateStudentSchema | PromoteLeadSchemaType>;
 }) {
 	const fetcher = useFetcher<FetcherResponse>();
 	const [courses, setCourses] = useState<Course[] | []>([]);
@@ -50,7 +51,7 @@ export function AssignCourseToStudent({
 			"courses",
 			form.getValues("courses")?.filter((s) => s !== course.id) ?? [],
 		);
-	}, []);
+	}, [form]);
 
 	const handleKeyDown = React.useCallback(
 		(e: React.KeyboardEvent<HTMLDivElement>) => {

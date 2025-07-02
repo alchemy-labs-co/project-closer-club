@@ -1,4 +1,6 @@
-import { data, type ActionFunctionArgs } from "react-router";
+import { data, redirect } from "react-router";
+import type { Route } from "./+types/resource.team-leaders";
+import { toast } from "sonner";
 import {
 	handleActivateTeamLeader,
 	handleCreateTeamLeader,
@@ -23,7 +25,27 @@ export async function loader() {
 	return data("Not Allowed", { status: 405 });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+    const result:
+        | {
+            success: boolean;
+            message: string;
+            redirectToUrl?: string;
+        }
+        | undefined = await serverAction();
+
+    if (result?.success) {
+        toast.success(result?.message);
+        if (result?.redirectToUrl) {
+            throw redirect(result?.redirectToUrl);
+        }
+    } else {
+        toast.error(result?.message);
+    }
+    return result;
+}
+
+export async function action({ request }: Route.ActionArgs) {
 	const formData = await request.formData();
 	const intent = formData.get("intent") as string;
 
@@ -49,6 +71,6 @@ export async function action({ request }: ActionFunctionArgs) {
 		return handler(request, formData);
 	} catch (error) {
 		console.error("🔴Action error:", error);
-		return data({ error: "An unexpected error occurred" }, { status: 500 });
+		return data({ success: false, message: "An unexpected error occurred" }, { status: 500 });
 	}
 }
