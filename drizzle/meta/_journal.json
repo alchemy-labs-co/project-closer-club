@@ -127,6 +127,13 @@
       "when": 1751384670671,
       "tag": "0017_magenta_imperial_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1751450378900,
+      "tag": "0018_nice_loners",
+      "breakpoints": true
     }
   ]
 }

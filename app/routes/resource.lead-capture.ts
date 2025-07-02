@@ -1,9 +1,9 @@
 import { data } from "react-router";
-import { handleCreateWaitlist } from "~/lib/student/actions/waitlist.server";
-import type { Route } from "./+types/resource.waitlist";
+import { handleCreateLeadCapture } from "~/lib/student/actions/lead-capture";
+import type { Route } from "./+types/resource.lead-capture";
 
 const intents = [
-    "create-waitlist",
+    "create-lead-capture",
 ];
 
 export async function loader() {
@@ -24,7 +24,7 @@ export async function action({ request }: Route.ActionArgs) {
 
     try {
         const handlers = {
-            "create-waitlist": handleCreateWaitlist,
+            "create-lead-capture": handleCreateLeadCapture,
         } as const;
 
         const handler = handlers[intent as keyof typeof handlers];

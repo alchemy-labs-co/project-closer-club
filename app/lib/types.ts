@@ -1,3 +1,5 @@
+import type { leadCaptureSchemaType } from "./zod-schemas/lead-capture";
+
 export type FetcherResponse = {
 	success: boolean;
 	message: string;
@@ -24,3 +26,10 @@ export type FetcherSubmitQuizResponse = {
 		answers: string[];
 	}[];
 };
+
+export type Step = {
+	id: string
+	title: string
+	component: React.ReactNode
+	inputs: (keyof leadCaptureSchemaType)[]
+}

@@ -1,36 +1,8 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Link, useFetcher } from "react-router";
-import { Button } from "~/components/ui/button";
-import { Form, FormField, FormItem, FormMessage } from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { type WaitlistSchema, waitlistSchema } from "~/lib/zod-schemas/waitlist";
-import { useMarketingPageLoaderData } from "~/routes/_index";
+import { Link } from "react-router";
+import { LeadCaptureForm } from "./lead-capture/config/lead-capture-form";
 
 export function CTASection() {
-  const {waitlist} = useMarketingPageLoaderData();
-  const fetcher = useFetcher();
-  const optimisticResult = fetcher.formData?.get("email") ?? waitlist;
-
-  const form = useForm<WaitlistSchema>({
-		resolver: zodResolver(waitlistSchema),
-		defaultValues: {
-			email: "",
-		},
-	});
-
-
-const handleSubmit = (data: WaitlistSchema) => {
-  fetcher.submit({
-    ...data,
-    intent: "create-waitlist",
-  }, {
-    method: "post",
-    action: "/resource/waitlist",
-  });
-};
-
-
+  
   return (
     <section className="relative min-h-[600px] overflow-hidden">
         <div className="absolute inset-0 w-full h-full">
@@ -56,41 +28,7 @@ const handleSubmit = (data: WaitlistSchema) => {
                         </p>
                     </div>
                     
-                    {optimisticResult && <p className="text-sm text-white/60 text-center">You are on the waitlist</p>}
-                    
-                    {!optimisticResult && (
-                        <Form {...form}>
-                            <fetcher.Form 
-                                method="post" 
-                                action="/resource/waitlist" 
-                                className="flex flex-col gap-4 sm:flex-row sm:gap-3 max-w-md mx-auto w-full" 
-                                onSubmit={form.handleSubmit(handleSubmit)}
-                            >
-                                <FormField
-                                    control={form.control}
-                                    name="email"
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <Input
-                                                {...field}
-                                                type="email"
-                                                placeholder="Enter your email address"
-                                                className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/20 focus:border-white/40"
-                                            />
-                                            <FormMessage className="text-red-400 text-left" />
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button 
-                                    type="submit" 
-                                    className="bg-white text-black hover:bg-white/90 py-3 px-6 rounded-md text-base font-medium whitespace-nowrap"
-                                >
-                                    Get Started
-                                </Button>
-                            </fetcher.Form>
-                        </Form>
-                    )}
-                    
+                    <LeadCaptureForm />
                     <p className="text-sm text-white/60 text-center">
                         By signing up, you agree to our{" "}
                         <Link to="/terms" className="text-white/80 hover:text-white underline">
