@@ -86,6 +86,12 @@ import {
 	TableHeader,
 	TableRow,
 } from "~/components/ui/table";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "~/components/ui/tooltip";
 import type { LeadCapture } from "~/db/schema";
 import { formatDateToString } from "~/lib/utils";
 
@@ -484,12 +490,14 @@ const columns: ColumnDef<LeadCapture>[] = [
 		header: "Status",
 		cell: ({ row }) => {
 			const status = row.original.leadStatus;
-			return (
+			const reason = row.original.reason;
+			
+			const badgeElement = (
 				<Badge 
 					variant={status === "promoted" ? "default" : status === "rejected" ? "destructive" : "secondary"}
 					className={
 						status === "promoted" 
-							? "bg-brand-primary hover:bg-brand-primary/80" 
+							? "bg-green-500 hover:bg-green-600 text-white" 
 							: status === "rejected"
 							? "bg-red-500 hover:bg-red-600 text-white"
 							: "bg-yellow-500 hover:bg-yellow-600 text-white"
@@ -498,6 +506,26 @@ const columns: ColumnDef<LeadCapture>[] = [
 					{status === "promoted" ? "Promoted" : status === "rejected" ? "Rejected" : "Pending"}
 				</Badge>
 			);
+
+			// If status is rejected and there's a reason, wrap with tooltip
+			if (status === "rejected" && reason) {
+				return (
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								{badgeElement}
+							</TooltipTrigger>
+							<TooltipContent>
+								<p className="max-w-xs">
+									<span className="font-medium">Reason:</span> {reason}
+								</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				);
+			}
+
+			return badgeElement;
 		},
 	},
 	{
@@ -533,31 +561,45 @@ const columns: ColumnDef<LeadCapture>[] = [
 	{
 		accessorKey: "actions",
 		header: "Actions",
-		cell: ({ row }) => 
-			row.original.leadStatus === "promoted" ? (
-				<span className="text-green-600 font-medium">Promoted!</span>
-			) : row.original.leadStatus === "rejected" ? (
-				<span className="text-red-600 font-medium">Rejected</span>
-			) : (
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button
-							variant="ghost"
-							className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
-							size="icon"
-						>
-							<MoreVertical />
-							<span className="sr-only">Open menu</span>
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="end" className="max-w-32">
-						<div className="flex flex-col gap-2">
-							<PromoteDialog leadData={row.original} />
-							<RejectDialog leadData={row.original} />
-						</div>
-					</PopoverContent>
-				</Popover>
-			),
+		cell: ({ row }) => {
+			const lead = row.original;
+			
+			if (lead.leadStatus === "promoted") {
+				return <span className="text-green-600 font-medium">Promoted!</span>;
+			} else if (lead.leadStatus === "rejected") {
+				return (
+					<div className="flex flex-col gap-1">
+						<span className="text-red-600 font-medium">Rejected</span>
+						{lead.reason && (
+							<span className="text-xs text-gray-500 max-w-32 truncate" title={lead.reason}>
+								{lead.reason}
+							</span>
+						)}
+					</div>
+				);
+			} else {
+				return (
+					<Popover>
+						<PopoverTrigger asChild>
+							<Button
+								variant="ghost"
+								className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
+								size="icon"
+							>
+								<MoreVertical />
+								<span className="sr-only">Open menu</span>
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent align="end" className="max-w-32">
+							<div className="flex flex-col gap-2">
+								<PromoteDialog leadData={lead} />
+								<RejectDialog leadData={lead} />
+							</div>
+						</PopoverContent>
+					</Popover>
+				);
+			}
+		},
 	},
 ];
 
