@@ -95,48 +95,9 @@ import {
 import type { LeadCapture } from "~/db/schema";
 import { formatDateToString } from "~/lib/utils";
 
-// Submitted State Component
-function PromoteSubmittedState({
-	email,
-	password,
-	userType,
-	setHasCopied,
-}: {
-	email: string;
-	password: string;
-	userType: string;
-	setHasCopied: (hasCopied: boolean) => void;
-}) {
-	return (
-		<DialogContent className="flex flex-col gap-8">
-			<DialogHeader>
-				<DialogTitle>{userType === "team-leader" ? "Team Leader" : "Agent"} Created</DialogTitle>
-			</DialogHeader>
-			<div className="flex flex-col gap-2">
-				<p>Email: {email}</p>
-				<p>Password: {password}</p>
-			</div>
-			<Button
-				variant={"outline"}
-				className="cursor-pointer"
-				onClick={() => {
-					navigator.clipboard.writeText(
-						`Email: ${email}\nPassword: ${password}`,
-					);
-					setHasCopied(true);
-				}}
-			>
-				Copy to Clipboard
-			</Button>
-		</DialogContent>
-	);
-}
-
 // Promote Dialog Component
 function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const [isSubmitted, setIsSubmitted] = useState(false);
-	const [hasCopied, setHasCopied] = useState(false);
 	const fetcher = useFetcher();
 	
 	const form = useForm<PromoteLeadSchemaType>({
@@ -159,25 +120,60 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 	useEffect(() => {
 		if (fetcher.data) {
 			if (fetcher.data.success) {
-				setIsSubmitted(true);
+				const email = form.getValues("email");
+				const password = form.getValues("password");
+				const userType = form.getValues("userType");
+				
+				// Auto-copy to clipboard
+				navigator.clipboard.writeText(
+					`Email: ${email}\nPassword: ${password}`
+				);
+				
+				// Show persistent toast with credentials
+				toast.success(
+					<div className="flex flex-col gap-2">
+						<div className="font-medium">
+							{userType === "team-leader" ? "Team Leader" : "Agent"} Created Successfully!
+						</div>
+						<div className="text-sm">
+							<div>Email: {email}</div>
+							<div>Password: {password}</div>
+						</div>
+						<div className="text-xs text-gray-600">
+							Credentials copied to clipboard
+						</div>
+					</div>,
+					{
+						duration: 10000, // Show for 10 seconds
+						position: "bottom-right",
+						action: {
+							label: "Copy Again",
+							onClick: () => {
+								navigator.clipboard.writeText(
+									`Email: ${email}\nPassword: ${password}`
+								);
+								toast.success("Copied to clipboard", {
+									position: "bottom-right"
+								});
+							},
+						},
+					}
+				);
+				
+				// Close dialog after a brief delay
+				setTimeout(() => {
+					setIsDialogOpen(false);
+				}, 1000);
 			}
 		}
-	}, [fetcher.data]);
+	}, [fetcher.data, form]);
 
 	useEffect(() => {
 		// when dialog closes reset the form
 		if (!isDialogOpen) {
 			form.reset();
-			setIsSubmitted(false);
 		}
 	}, [isDialogOpen, form.reset]);
-
-	useEffect(() => {
-		if (hasCopied) {
-			toast.success("Copied to clipboard");
-			setHasCopied(false);
-		}
-	}, [hasCopied]);
 
 	return (
 		<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -186,181 +182,172 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 					Promote
 				</Button>
 			</DialogTrigger>
-			{isSubmitted ? (
-				<PromoteSubmittedState
-					email={form.getValues("email")}
-					password={form.getValues("password")}
-					userType={form.getValues("userType")}
-					setHasCopied={setHasCopied}
-				/>
-			) : (
-				<DialogContent className="flex flex-col gap-8 max-h-[80vh] overflow-y-auto">
-					<DialogHeader>
-						<DialogTitle>Promote Lead</DialogTitle>
-						<DialogDescription>
-							Promote this lead to an agent or team leader in the system.
-						</DialogDescription>
-					</DialogHeader>
-					<Form {...form}>
-						<fetcher.Form
-							method="POST"
-							action="/resource/lead-capture"
-							className="flex flex-col gap-4 w-full"
-							onSubmit={form.handleSubmit((data) => {
-								fetcher.submit(
-									{ ...data, intent: "promote-lead" },
-									{
-										action: "/resource/lead-capture",
-										method: "POST",
-									},
-								);
-							})}
-						>
-							<FormField
-								control={form.control}
-								name="userType"
-								disabled={isSubmitting}
-								render={({ field }) => (
-									<FormItem className="w-full">
-										<FormLabel>
-											User Type <span className="text-xs text-red-500">*</span>
-										</FormLabel>
-										<FormControl>
-											<Select
-												value={field.value}
-												onValueChange={field.onChange}
-												disabled={isSubmitting}
-											>
-												<SelectTrigger className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0 w-full">
-													<SelectValue placeholder="Select user type" />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectItem value="agent">Agent</SelectItem>
-													<SelectItem value="team-leader">Team Leader</SelectItem>
-												</SelectContent>
-											</Select>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-{watchedUserType === "team-leader" && (
-								<FormField
-									control={form.control}
-									name="agents"
-									disabled={isSubmitting}
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>
-												Agents{" "}
-												<span className="text-xs text-gray-500">(optional)</span>
-											</FormLabel>
-											<FormControl>
-												<AssignAgentsToTeamLeader form={form as any} {...field} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+			<DialogContent className="flex flex-col gap-8 max-h-[80vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>Promote Lead</DialogTitle>
+					<DialogDescription>
+						Promote this lead to an agent or team leader in the system.
+					</DialogDescription>
+				</DialogHeader>
+				<Form {...form}>
+					<fetcher.Form
+						method="POST"
+						action="/resource/lead-capture"
+						className="flex flex-col gap-4 w-full"
+						onSubmit={form.handleSubmit((data) => {
+							fetcher.submit(
+								{ ...data, intent: "promote-lead" },
+								{
+									action: "/resource/lead-capture",
+									method: "POST",
+								},
+							);
+						})}
+					>
+						<FormField
+							control={form.control}
+							name="userType"
+							disabled={isSubmitting}
+							render={({ field }) => (
+								<FormItem className="w-full">
+									<FormLabel>
+										User Type <span className="text-xs text-red-500">*</span>
+									</FormLabel>
+									<FormControl>
+										<Select
+											value={field.value}
+											onValueChange={field.onChange}
+											disabled={isSubmitting}
+										>
+											<SelectTrigger className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0 w-full">
+												<SelectValue placeholder="Select user type" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="agent">Agent</SelectItem>
+												<SelectItem value="team-leader">Team Leader</SelectItem>
+											</SelectContent>
+										</Select>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
 							)}
+						/>
 
+						{watchedUserType === "team-leader" && (
 							<FormField
 								control={form.control}
-								name="name"
+								name="agents"
 								disabled={isSubmitting}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>
-											Name <span className="text-xs text-red-500">*</span>
-										</FormLabel>
-										<FormControl>
-											<Input
-												placeholder={`Enter ${watchedUserType === "team-leader" ? "team leader" : "agent"} name`}
-												type="text"
-												className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={form.control}
-								name="phoneNumber"
-								disabled={isSubmitting}
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											Phone Number{" "}
+											Agents{" "}
 											<span className="text-xs text-gray-500">(optional)</span>
 										</FormLabel>
 										<FormControl>
-											<Input
-												placeholder={`Enter ${watchedUserType === "team-leader" ? "team leader" : "agent"} phone number`}
-												type="tel"
-												className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
-												{...field}
-											/>
+											<AssignAgentsToTeamLeader form={form as any} {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
 								)}
 							/>
+						)}
 
-							<FormField
-								control={form.control}
-								name="email"
-								disabled={isSubmitting}
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											Email <span className="text-xs text-red-500">*</span>
-										</FormLabel>
-										<FormControl>
-											<EmailDomainInput
-												placeholder={`Enter ${watchedUserType === "team-leader" ? "team leader" : "agent"} username`}
-												value={field.value}
-												onChange={field.onChange}
-												disabled={isSubmitting}
-												className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						<FormField
+							control={form.control}
+							name="name"
+							disabled={isSubmitting}
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>
+										Name <span className="text-xs text-red-500">*</span>
+									</FormLabel>
+									<FormControl>
+										<Input
+											placeholder={`Enter ${watchedUserType === "team-leader" ? "team leader" : "agent"} name`}
+											type="text"
+											className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
+											{...field}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-							<FormField
-								control={form.control}
-								name="courses"
-								disabled={isSubmitting}
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											Courses{" "}
-											<span className="text-xs text-gray-500">(optional)</span>
-										</FormLabel>
-										<FormControl>
-											<AssignCourseToStudent form={form as any} {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						<FormField
+							control={form.control}
+							name="phoneNumber"
+							disabled={isSubmitting}
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>
+										Phone Number{" "}
+										<span className="text-xs text-gray-500">(optional)</span>
+									</FormLabel>
+									<FormControl>
+										<Input
+											placeholder={`Enter ${watchedUserType === "team-leader" ? "team leader" : "agent"} phone number`}
+											type="tel"
+											className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
+											{...field}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-							<PrimaryButton type="submit" disabled={isSubmitting}>
-								{isSubmitting 
-									? `Promoting to ${watchedUserType === "team-leader" ? "Team Leader" : "Agent"}...` 
-									: `Promote to ${watchedUserType === "team-leader" ? "Team Leader" : "Agent"}`
-								}
-							</PrimaryButton>
-						</fetcher.Form>
-					</Form>
-				</DialogContent>
-			)}
+						<FormField
+							control={form.control}
+							name="email"
+							disabled={isSubmitting}
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>
+										Email <span className="text-xs text-red-500">*</span>
+									</FormLabel>
+									<FormControl>
+										<EmailDomainInput
+											placeholder={`Enter ${watchedUserType === "team-leader" ? "team leader" : "agent"} username`}
+											value={field.value}
+											onChange={field.onChange}
+											disabled={isSubmitting}
+											className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
+						<FormField
+							control={form.control}
+							name="courses"
+							disabled={isSubmitting}
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>
+										Courses{" "}
+										<span className="text-xs text-gray-500">(optional)</span>
+									</FormLabel>
+									<FormControl>
+										<AssignCourseToStudent form={form as any} {...field} />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
+						<PrimaryButton type="submit" disabled={isSubmitting}>
+							{isSubmitting 
+								? `Promoting to ${watchedUserType === "team-leader" ? "Team Leader" : "Agent"}...` 
+								: `Promote to ${watchedUserType === "team-leader" ? "Team Leader" : "Agent"}`
+							}
+						</PrimaryButton>
+					</fetcher.Form>
+				</Form>
+			</DialogContent>
 		</Dialog>
 	);
 }
@@ -544,9 +531,11 @@ const columns: ColumnDef<LeadCapture>[] = [
 			
 			if (lead.leadStatus === "promoted") {
 				return <span className="text-green-600 font-medium">Promoted!</span>;
-			} else if (lead.leadStatus === "rejected") {
+			} 
+			
+			if (lead.leadStatus === "rejected") {
 				return <span className="text-red-600 font-medium">Rejected</span>
-			} else {
+			}
 				return (
 					<Popover>
 						<PopoverTrigger asChild>
@@ -569,10 +558,9 @@ const columns: ColumnDef<LeadCapture>[] = [
 				);
 			}
 		},
-	},
 ];
 
-export function LeadsDataTable({ initialData }: { initialData: any }) {
+export function LeadsDataTable({ initialData }: { initialData: LeadCapture[] }) {
 	const [data, setData] = React.useState(initialData);
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [columnVisibility, setColumnVisibility] =
