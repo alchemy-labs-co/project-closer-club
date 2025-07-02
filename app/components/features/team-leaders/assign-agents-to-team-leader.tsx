@@ -15,6 +15,7 @@ import {
 import type { Student } from "~/db/schema";
 import type { CreateTeamLeaderSchema } from "~/lib/zod-schemas/team-leader";
 import LoadingInputShimmer from "../loading/input-skeleton";
+import type { PromoteLeadSchemaType } from "~/lib/zod-schemas/lead-capture";
 
 type FetcherResponse = {
 	students: Student[];
@@ -23,7 +24,7 @@ type FetcherResponse = {
 export function AssignAgentsToTeamLeader({
 	form,
 }: {
-	form: UseFormReturn<CreateTeamLeaderSchema>;
+	form: UseFormReturn<CreateTeamLeaderSchema | PromoteLeadSchemaType>;
 }) {
 	const fetcher = useFetcher<FetcherResponse>();
 	const [students, setStudents] = useState<Student[] | []>([]);
@@ -189,7 +190,7 @@ function SelectableAgentsList({
 	selectables: Student[];
 	setSelected: React.Dispatch<React.SetStateAction<Student[]>>;
 	setInputValue: React.Dispatch<React.SetStateAction<string>>;
-	form: UseFormReturn<CreateTeamLeaderSchema>;
+	form: UseFormReturn<CreateTeamLeaderSchema | PromoteLeadSchemaType>;
 }) {
 	return (
 		open &&

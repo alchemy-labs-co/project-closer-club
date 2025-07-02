@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import db from "~/db/index.server";
 import {
@@ -72,6 +72,7 @@ export async function handleCreateTeamLeader(
 					name: validatedFields.name,
 					// @ts-ignore
 					role: "team_leader",
+
 				},
 			});
 
@@ -96,7 +97,7 @@ export async function handleCreateTeamLeader(
 				await tx
 					.update(agentsTable)
 					.set({ teamLeaderId: insertedTeamLeader.id })
-					.where(eq(agentsTable.studentId, agentsArray[0])); // Update this logic as needed
+					.where(inArray(agentsTable.studentId, agentsArray));
 			}
 		});
 

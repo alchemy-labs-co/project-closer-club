@@ -1,0 +1,1 @@
+ALTER TABLE "lead_capture" ADD COLUMN "lead_status" text DEFAULT 'pending' NOT NULL;

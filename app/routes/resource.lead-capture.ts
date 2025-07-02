@@ -1,9 +1,10 @@
 import { data } from "react-router";
-import { handleCreateLeadCapture } from "~/lib/student/actions/lead-capture";
+import { handleCreateLeadCapture, handlePromoteLead } from "~/lib/student/actions/lead-capture";
 import type { Route } from "./+types/resource.lead-capture";
 
 const intents = [
     "create-lead-capture",
+    "promote-lead",
 ];
 
 export async function loader() {
@@ -25,6 +26,7 @@ export async function action({ request }: Route.ActionArgs) {
     try {
         const handlers = {
             "create-lead-capture": handleCreateLeadCapture,
+            "promote-lead": handlePromoteLead,
         } as const;
 
         const handler = handlers[intent as keyof typeof handlers];

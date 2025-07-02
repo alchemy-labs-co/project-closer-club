@@ -3,6 +3,8 @@ import {
 	Book,
 	Home,
 	ListChecks,
+	Magnet,
+	Pipette,
 	Users,
 	Users2,
 	type LucideProps,
@@ -47,6 +49,11 @@ export const dashboardConfig: DahsboardConfig = {
 				url: "/dashboard/courses",
 			},
 			{
+				title: "Quizzes",
+				icon: ListChecks,
+				url: "/dashboard/quizzes",
+			},
+			{
 				title: "Agents",
 				icon: Users,
 				url: "/dashboard/agents",
@@ -57,10 +64,11 @@ export const dashboardConfig: DahsboardConfig = {
 				url: "/dashboard/team-leaders",
 			},
 			{
-				title: "Quizzes",
-				icon: ListChecks,
-				url: "/dashboard/quizzes",
-			},
+				title: "Leads",
+				icon: Magnet,
+				url: "/dashboard/leads",
+			}
+
 		],
 	},
 	videoPlayer: "Bunny",
