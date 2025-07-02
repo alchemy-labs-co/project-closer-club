@@ -270,9 +270,17 @@ export const certificatesTable = pgTable("certificates", {
 		.$onUpdate(() => new Date()),
 });
 
-export const waitlistTable = pgTable("waitlist", {
+export const leadCaptureTable = pgTable("lead_capture", {
 	id: uuid("id").primaryKey().defaultRandom(),
+	firstName: varchar("first_name", { length: 255 }).notNull(),
+	lastName: varchar("last_name", { length: 255 }).notNull(),
 	email: varchar("email", { length: 255 }).notNull(),
+	phoneNumber: varchar("phone_number", { length: 255 }),
+	stateOfResidence: varchar("state_of_residence", { length: 255 }),
+	areYouOver18: boolean("are_you_over_18").notNull(),
+	doYouHaveAnyFeloniesOrMisdemeanors: boolean("do_you_have_any_felonies_or_misdemeanors").notNull(),
+	leadStatus: text("lead_status").notNull().default("pending"),
+	reason: text("reason"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -288,7 +296,7 @@ export type CompletedQuizAssignment =
 	typeof completedQuizAssignmentsTable.$inferSelect;
 export type Attachment = typeof attachmentsTable.$inferSelect;
 export type Certificate = typeof certificatesTable.$inferSelect;
-export type Waitlist = typeof waitlistTable.$inferSelect;
+export type LeadCapture = typeof leadCaptureTable.$inferSelect;
 
 // AUTH RELATED
 export type User = typeof user.$inferSelect;

@@ -5,9 +5,9 @@ import { useRouteLoaderData } from "react-router";
 
 export async function loader({request}: Route.LoaderArgs) {
 	// retrive cookie waitlist
-	const waitlist = Boolean(request.headers.get("cookie")?.split(";").find(cookie => cookie.trim().startsWith("waitlist="))?.split("=")[1]) || false;
+	const leadCapture = Boolean(request.headers.get("cookie")?.split(";").find(cookie => cookie.trim().startsWith("lead-capture="))?.split("=")[1]) || false;
 	return {
-		waitlist,
+		leadCapture,
 	};
 }
 

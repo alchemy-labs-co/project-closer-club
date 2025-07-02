@@ -1,0 +1,1 @@
+ALTER TABLE "lead_capture" ADD COLUMN "reason" text;

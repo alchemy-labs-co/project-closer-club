@@ -1,0 +1,58 @@
+import { useFormContext } from "react-hook-form";
+import {
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
+import type { leadCaptureSchemaType } from "~/lib/zod-schemas/lead-capture";
+
+export function ContactInformation() {
+	const { control } = useFormContext<leadCaptureSchemaType>();
+	return (
+		<div className="flex flex-col gap-4 relative z-50">
+			<FormField
+				control={control}
+				name="phoneNumber"
+				render={({ field }) => (
+					<FormItem {...field} className="flex flex-col gap-4 relative z-50">
+						<FormLabel id="phone" className="text-white relative z-50">
+							What is your Phone Number?
+						</FormLabel>
+						<FormControl>
+							<Input
+								placeholder="Enter your phone number"
+								type="tel"
+								className="bg-white/20 border border-white/30 placeholder:text-white/60 text-white focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white/50 relative z-50"
+								{...field}
+							/>
+						</FormControl>
+						<FormMessage className="w-full text-center text-red-300 relative z-50" />
+					</FormItem>
+				)}
+			/>
+			<FormField
+				control={control}
+				name="email"
+				render={({ field }) => (
+					<FormItem {...field} className="flex flex-col gap-4 relative z-50">
+						<FormLabel id="email" className="text-white relative z-50">
+							What is your Email Address?
+						</FormLabel>
+						<FormControl>
+							<Input
+								placeholder="Enter your email address"
+								type="email"
+								className="bg-white/20 border border-white/30 placeholder:text-white/60 text-white focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white/50 relative z-50"
+								{...field}
+							/>
+						</FormControl>
+						<FormMessage className="w-full text-center text-red-300 relative z-50" />
+					</FormItem>
+				)}
+			/>
+		</div>
+	);
+} 

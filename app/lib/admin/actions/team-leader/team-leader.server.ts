@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { data, redirect } from "react-router";
 import db from "~/db/index.server";
 import {
@@ -72,6 +72,7 @@ export async function handleCreateTeamLeader(
 					name: validatedFields.name,
 					// @ts-ignore
 					role: "team_leader",
+
 				},
 			});
 
@@ -89,21 +90,24 @@ export async function handleCreateTeamLeader(
 				});
 
 			if (!insertedTeamLeader) {
-				throw new Error("Something went wrong");
+				return {
+					success: false,
+					message: "Failed to create team leader",
+				}
 			}
 
 			if (agentsArray.length > 0) {
 				await tx
 					.update(agentsTable)
 					.set({ teamLeaderId: insertedTeamLeader.id })
-					.where(eq(agentsTable.studentId, agentsArray[0])); // Update this logic as needed
+					.where(inArray(agentsTable.studentId, agentsArray));
 			}
 		});
 
-		return data(
-			{ success: true, message: "Team leader created successfully" },
-			{ status: 200 },
-		);
+		return {
+			success: true,
+			message: "Team leader created successfully",
+		}
 	} catch (error) {
 		return data(
 			{
@@ -368,7 +372,10 @@ export async function handleUpdateTeamLeader(
 				});
 
 			if (!updatedTeamLeader) {
-				throw new Error("Team leader not found");
+				return {
+					success: false,
+					message: "Team leader not found",
+				}
 			}
 
 			// update user table
