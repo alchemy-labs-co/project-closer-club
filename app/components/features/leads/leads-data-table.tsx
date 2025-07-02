@@ -36,8 +36,8 @@ import { Badge } from "~/components/ui/badge";
 import { generateRandomPassword } from "~/lib/utils";
 import {
 	promoteLeadSchema,
-	type PromoteLeadSchemaType,
 	rejectLeadSchema,
+	type PromoteLeadSchemaType,
 	type RejectLeadSchemaType
 } from "~/lib/zod-schemas/lead-capture";
 
@@ -138,6 +138,7 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const [hasCopied, setHasCopied] = useState(false);
 	const fetcher = useFetcher();
+	
 	const form = useForm<PromoteLeadSchemaType>({
         resolver: zodResolver(promoteLeadSchema),
 		defaultValues: {
@@ -160,18 +161,16 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 			if (fetcher.data.success) {
 				setIsSubmitted(true);
 			}
-			if (!fetcher.data.success) {
-			}
 		}
 	}, [fetcher.data]);
 
 	useEffect(() => {
-		// Reset form when dialog closes
+		// when dialog closes reset the form
 		if (!isDialogOpen) {
 			form.reset();
 			setIsSubmitted(false);
 		}
-	}, [isDialogOpen, form]);
+	}, [isDialogOpen, form.reset]);
 
 	useEffect(() => {
 		if (hasCopied) {
@@ -258,7 +257,7 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 												<span className="text-xs text-gray-500">(optional)</span>
 											</FormLabel>
 											<FormControl>
-												<AssignAgentsToTeamLeader form={form} {...field} />
+												<AssignAgentsToTeamLeader form={form as any} {...field} />
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -345,7 +344,7 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 											<span className="text-xs text-gray-500">(optional)</span>
 										</FormLabel>
 										<FormControl>
-											<AssignCourseToStudent form={form} {...field} />
+											<AssignCourseToStudent form={form as any} {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -464,13 +463,12 @@ function RejectDialog({ leadData }: { leadData: LeadCapture }) {
 
 const columns: ColumnDef<LeadCapture>[] = [
 	{
-		accessorKey: "firstName",
-		header: "First Name",
+		id: "name",
+		header: "Name",
 		enableHiding: false,
-	},
-	{
-		accessorKey: "lastName",
-		header: "Last Name",
+		cell: ({ row }) => (
+			<span>{row.original.firstName} {row.original.lastName}</span>
+		),
 	},
 	{
 		accessorKey: "email",
@@ -529,26 +527,6 @@ const columns: ColumnDef<LeadCapture>[] = [
 		},
 	},
 	{
-		id: "Over 18",
-		accessorKey: "areYouOver18",
-		header: "Over 18",
-		cell: ({ row }) => (
-			<Badge variant={row.original.areYouOver18 ? "default" : "destructive"}>
-				{row.original.areYouOver18 ? "Yes" : "No"}
-			</Badge>
-		),
-	},
-	{
-		id: "Felonies",
-		accessorKey: "doYouHaveAnyFeloniesOrMisdemeanors",
-		header: "No Felonies",
-		cell: ({ row }) => (
-			<Badge variant={!row.original.doYouHaveAnyFeloniesOrMisdemeanors ? "destructive" : "default"}>
-				{!row.original.doYouHaveAnyFeloniesOrMisdemeanors ? "Yes" : "No"}
-			</Badge>
-		),
-	},
-	{
 		id: "Created at",
 		accessorKey: "createdAt",
 		header: "Created At",
@@ -567,16 +545,7 @@ const columns: ColumnDef<LeadCapture>[] = [
 			if (lead.leadStatus === "promoted") {
 				return <span className="text-green-600 font-medium">Promoted!</span>;
 			} else if (lead.leadStatus === "rejected") {
-				return (
-					<div className="flex flex-col gap-1">
-						<span className="text-red-600 font-medium">Rejected</span>
-						{lead.reason && (
-							<span className="text-xs text-gray-500 max-w-32 truncate" title={lead.reason}>
-								{lead.reason}
-							</span>
-						)}
-					</div>
-				);
+				return <span className="text-red-600 font-medium">Rejected</span>
 			} else {
 				return (
 					<Popover>

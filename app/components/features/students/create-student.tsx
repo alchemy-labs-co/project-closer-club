@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useFetcher, useParams } from "react-router";
+import { useFetcher } from "react-router";
 import { toast } from "sonner";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import { Button } from "~/components/ui/button";
