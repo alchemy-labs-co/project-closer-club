@@ -507,3 +507,70 @@ export const confirmVideoUpload = async (
 		throw error;
 	}
 };
+
+export const getCertificateUploadUrl = async (
+	studentId: string,
+	courseSlug: string,
+) => {
+	const timestampedFileName = `${Date.now()}-${studentId}-${courseSlug}-certificate`;
+	const uploadUrl = `${BUNNY.STORAGE_BASE_URL}/certificates/${timestampedFileName}.png`;
+	const cdnUrl = `${BUNNY.CDN_URL}/certificates/${timestampedFileName}.png`;
+
+	return {
+		uploadUrl,
+		cdnUrl,
+		accessKey: ACCESS_KEYS.storageAccessKey,
+		fileName: `${timestampedFileName}.png`,
+	};
+};
+
+export const uploadCertificateToBunny = async (
+	imageBuffer: ArrayBuffer,
+	studentId: string,
+	courseSlug: string,
+): Promise<string> => {
+	const { uploadUrl, cdnUrl, accessKey } = await getCertificateUploadUrl(
+		studentId,
+		courseSlug,
+	);
+
+	if (!accessKey) {
+		console.error("🔴 Missing Bunny storage access key");
+		throw new Error("Bunny storage access key not configured");
+	}
+
+	try {
+		const buffer = Buffer.from(imageBuffer);
+
+		const response = await fetch(uploadUrl, {
+			method: "PUT",
+			headers: {
+				AccessKey: accessKey,
+				"Content-Type": "image/png",
+			},
+			body: buffer,
+		});
+
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error("🔴 Certificate upload failed:", {
+				status: response.status,
+				statusText: response.statusText,
+				errorText,
+				uploadUrl,
+			});
+			throw new Error(
+				`Failed to upload certificate: ${response.status} - ${errorText}`,
+			);
+		}
+
+		return cdnUrl;
+	} catch (error) {
+		console.error("🔴 Certificate upload process error:", {
+			error: error instanceof Error ? error.message : "Unknown error",
+			studentId,
+			courseSlug,
+		});
+		throw error;
+	}
+};

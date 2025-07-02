@@ -106,7 +106,7 @@ export const getVideoDuration = (url: string): Promise<number | null> =>
 		video.preload = "metadata";
 		video.onloadedmetadata = () => {
 			const duration =
-				isFinite(video.duration) && video.duration > 0
+				Number.isFinite(video.duration) && video.duration > 0
 					? Math.round(video.duration)
 					: null;
 			URL.revokeObjectURL(video.src);
@@ -289,4 +289,10 @@ export const uploadWithProgress = async (
 		);
 		xhr.send(file);
 	});
+};
+
+// convert slug to title
+// replace the dashes + capitalize the first letter of each word
+export const slugToTitle = (slug: string) => {
+	return slug.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 };

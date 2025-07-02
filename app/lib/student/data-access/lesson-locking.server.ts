@@ -51,7 +51,7 @@ export async function canAccessLesson(
 		}
 
 		// If it's the first lesson (orderIndex = 0), always allow access (since module is already accessible)
-		if (parseInt(targetLesson.orderIndex) === 0) {
+		if (Number.parseInt(targetLesson.orderIndex) === 0) {
 			return {
 				canAccess: true,
 				reason: "First lesson in accessible module",
@@ -59,7 +59,7 @@ export async function canAccessLesson(
 		}
 
 		// Get the previous lesson (orderIndex - 1)
-		const previousLessonIndex = parseInt(targetLesson.orderIndex) - 1;
+		const previousLessonIndex = Number.parseInt(targetLesson.orderIndex) - 1;
 		const previousLesson = await getLessonByOrderIndex(
 			targetLesson.moduleId,
 			previousLessonIndex,
@@ -215,7 +215,7 @@ export async function getCompletedLessonsInModule(
 				),
 			);
 
-		return completedLessons.map((lesson) => parseInt(lesson.orderIndex));
+		return completedLessons.map((lesson) => Number.parseInt(lesson.orderIndex));
 	} catch (error) {
 		console.error("Error getting completed lessons:", error);
 		return [];
@@ -265,7 +265,7 @@ export async function getNextAccessibleLesson(
 
 		// Find the first lesson that's not completed
 		for (const lesson of allLessons) {
-			const orderIndex = parseInt(lesson.orderIndex);
+			const orderIndex = Number.parseInt(lesson.orderIndex);
 
 			// If it's the first lesson (0) or previous lesson is completed
 			if (orderIndex === 0 || completedLessons.includes(orderIndex - 1)) {
@@ -318,12 +318,12 @@ export async function canAccessModule(
 		}
 
 		// If it's the first module (orderIndex = 0), always allow access
-		if (parseInt(targetModule.orderIndex) === 0) {
+		if (Number.parseInt(targetModule.orderIndex) === 0) {
 			return { canAccess: true, reason: "First module is always accessible" };
 		}
 
 		// Get previous module
-		const previousModuleIndex = parseInt(targetModule.orderIndex) - 1;
+		const previousModuleIndex = Number.parseInt(targetModule.orderIndex) - 1;
 		const [previousModule] = await db
 			.select({
 				id: modulesTable.id,
@@ -418,8 +418,6 @@ export async function getNextLessonAfterCurrent(
 			lessonSlug,
 		);
 		if (!currentLesson) return null;
-
-		const currentLessonOrderIndex = parseInt(currentLesson.orderIndex);
 
 		// Try to find next lesson in current module
 		const nextLessonInModule = await db

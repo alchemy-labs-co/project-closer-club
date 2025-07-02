@@ -5,6 +5,7 @@ export type FetcherResponse = {
 	message: string;
 	redirectTo?: string;
 	redirectToUrl?: string;
+	certificateUrl?: string;
 };
 
 export type VideoPlayerTypes = {
