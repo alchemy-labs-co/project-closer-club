@@ -63,6 +63,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	return {
 		courseSlug,
 		studentId: student.id,
+		studentName: student.name,
 		modulesAndLessonsPromise,
 		progressPromise,
 		lessonStatusesPromise,
@@ -252,13 +253,13 @@ function ModulesAndLessonsFallback() {
 				{/* Loading skeleton for modules */}
 				{[1, 2, 3].map((i) => (
 					<div key={i} className="space-y-2">
-						<div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+						<div className="h-4 bg-gray-200 rounded animate-pulse" />
 						<div className="space-y-1 pl-2">
 							{[1, 2].map((j) => (
 								<div
 									key={j}
 									className="h-3 bg-gray-100 rounded animate-pulse"
-								></div>
+								/>
 							))}
 						</div>
 					</div>
@@ -286,10 +287,10 @@ function ProgressContent() {
 					</span>
 				</div>
 				<div className="w-full bg-gray-200 rounded-full h-2">
-					<div
+					<div	
 						className="bg-blue-600 h-2 rounded-full"
 						style={{ width: `${progressPercentage}%` }}
-					></div>
+					/>
 				</div>
 			</div>
 		</div>
@@ -303,10 +304,10 @@ function ProgressFallback() {
 			<div className="space-y-2">
 				<div className="flex justify-between text-xs">
 					<span className="text-gray-600">Completed</span>
-					<div className="h-3 w-8 bg-gray-200 rounded animate-pulse"></div>
+					<div className="h-3 w-8 bg-gray-200 rounded animate-pulse" />
 				</div>
 				<div className="w-full bg-gray-200 rounded-full h-2">
-					<div className="bg-gray-300 h-2 rounded-full w-0 animate-pulse"></div>
+					<div className="bg-gray-300 h-2 rounded-full w-0 animate-pulse" />
 				</div>
 			</div>
 		</div>
@@ -335,7 +336,7 @@ export default function AgentEditorLayout() {
 			<div className="flex-1 rounded-lg p-4 overflow-y-auto">
 				<div className="max-w-7xl mx-auto flex flex-col gap-8">
 					<Button variant="secondary" asChild>
-						<Link to={`/student/courses`} className="w-fit">
+						<Link to="/student/courses" className="w-fit">
 							<ArrowLeft className="mr-2 h-4 w-4" />
 							Back to Courses
 						</Link>
