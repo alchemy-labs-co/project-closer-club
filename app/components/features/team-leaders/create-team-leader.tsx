@@ -51,11 +51,7 @@ export function CreateTeamLeader() {
 	useEffect(() => {
 		if (fetcher.data) {
 			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
 				setIsSubmitted(true);
-			}
-			if (!fetcher.data.success) {
-				toast.error(fetcher.data.message);
 			}
 		}
 	}, [fetcher.data]);

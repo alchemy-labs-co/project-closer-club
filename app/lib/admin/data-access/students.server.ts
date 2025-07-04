@@ -107,3 +107,44 @@ export async function getCoursesStudentEnrolledIn(
 		return { courses: [] };
 	}
 }
+
+export async function getCoursesTeamLeaderEnrolledIn(
+	request: Request,
+	teamLeaderId: string,
+) {
+	// auth check
+	const { isLoggedIn, admin } = await isAdminLoggedIn(request);
+	if (!isLoggedIn) {
+		throw redirect("/login");
+	}
+	if (!admin) {
+		console.error("Admin not found");
+		return { courses: [] };
+	}
+	try {
+		const teamLeaderCourses = await db
+			.select()
+			.from(studentCoursesTable)
+			.where(eq(studentCoursesTable.studentId, teamLeaderId));
+		// find all the courses that the team leader is assigned to
+		const courses = await db
+			.select()
+			.from(coursesTable)
+			.where(
+				and(
+					eq(coursesTable.isPublic, true),
+					inArray(
+						coursesTable.id,
+						teamLeaderCourses.map((course) => course.courseId),
+					),
+				),
+			);
+
+		return { courses };
+	} catch (error) {
+		console.error(
+			`Error fetching team leader courses: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+		return { courses: [] };
+	}
+}

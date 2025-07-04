@@ -43,19 +43,28 @@ import {
 	TableHeader,
 	TableRow,
 } from "~/components/ui/table";
-import type { Student } from "~/db/schema";
-import { GetAllStudents } from "~/lib/admin/data-access/students.server";
+import type { Student, Course } from "~/db/schema";
+import { getAllPublicCourses } from "~/lib/admin/data-access/courses.server";
+import { 
+	GetAllStudents,
+	getCoursesTeamLeaderEnrolledIn,
+} from "~/lib/admin/data-access/students.server";
 import {
 	GetTeamLeaderById,
 	getAgentsAssignedToTeamLeader,
 } from "~/lib/admin/data-access/team-leader/team-leaders.server";
 import { formatDateToString } from "~/lib/utils";
+import {
+	type AssignCourseShema,
+	assignCourseSchema,
+} from "~/lib/zod-schemas/course";
 import type { Route } from "./+types/_admin.dashboard.team-leaders_.$teamleaderId";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
 	const { teamleaderId } = params;
 
 	const allStudents = GetAllStudents(request);
+	const publicCourses = getAllPublicCourses(request);
 	const agentsAssignedToTeamLeader = getAgentsAssignedToTeamLeader(
 		request,
 		teamleaderId,
@@ -68,13 +77,20 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	if (!success || !teamLeader) {
 		throw redirect("/dashboard/team-leaders");
 	}
-	// non critical data
+
+	// Get courses assigned to team leader
+	const coursesTeamLeaderAssignedTo = getCoursesTeamLeaderEnrolledIn(
+		request,
+		teamLeader.teamLeaderId,
+	);
 
 	return data(
 		{
 			success: true,
 			teamLeader,
 			students: allStudents,
+			courses: publicCourses,
+			coursesTeamLeaderAssignedTo: coursesTeamLeaderAssignedTo,
 			agentsAssignedToTeamLeader: agentsAssignedToTeamLeader,
 		},
 		{ status: 200 },
@@ -100,6 +116,10 @@ export default function TeamLeaderProfilePage() {
 					<AgentsAssignedToTeamLeader />
 				</Suspense>
 			</div>
+
+			<Suspense fallback={<p>loading...</p>}>
+				<CoursesTeamLeaderAssignedTo />
+			</Suspense>
 		</div>
 	);
 }
@@ -342,6 +362,156 @@ function TeamLeaderAgentAssignmentCheckbox({
 											},
 											{
 												action: "/resource/team-leaders",
+												method: "POST",
+											},
+										);
+									}}
+								/>
+							</FormControl>
+						</FormItem>
+					)}
+				/>
+			</fetcher.Form>
+		</Form>
+	);
+}
+
+function CoursesTeamLeaderAssignedTo() {
+	const data = useLoaderData<typeof loader>();
+	const teamLeaderId = data.teamLeader.teamLeaderId;
+	const { courses: allPublicCourses } = React.use(data.courses);
+	const { courses: coursesTeamLeaderAssignedTo } = React.use(
+		data.coursesTeamLeaderAssignedTo,
+	);
+	const assignedCourseIds = new Set(
+		coursesTeamLeaderAssignedTo.map((course) => course.id),
+	);
+	const columns: {
+		header: string;
+		accessorKey: keyof Course;
+		cell?: (course: Course) => React.ReactNode;
+	}[] = [
+		{ header: "Name", accessorKey: "name" },
+		{ header: "Description", accessorKey: "description" },
+	];
+
+	const areTherePublicCourses = allPublicCourses.length > 0;
+
+	return (
+		<div className="col-span-3 flex flex-col gap-4 md:gap-6">
+			<h3 className="text-xl md:text-3xl font-medium">
+				Courses team leader is assigned to:
+			</h3>
+			{areTherePublicCourses && (
+				<Table>
+					<TableHeader>
+						<TableRow className="bg-muted/50">
+							{columns.map((column) => (
+								<TableHead
+									key={String(column.accessorKey)}
+									className={`h-9 py-2 ${
+										column.accessorKey === "name"
+											? "sticky left-0 bg-muted font-medium xl:static xl:bg-inherit"
+											: ""
+									}`}
+								>
+									{column.header}
+								</TableHead>
+							))}
+							<TableHead>Assign</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{allPublicCourses.map((course) => (
+							<TableRow key={course.id}>
+								{columns.map((column) => (
+									<TableCell
+										key={String(column.accessorKey)}
+										className={`py-2 ${
+											column.accessorKey === "name"
+												? "sticky left-0 z-10 bg-muted font-medium xl:static xl:bg-inherit"
+												: ""
+										}`}
+									>
+										{column.cell ? (
+											column.cell(course)
+										) : (
+											<>{String(course[column.accessorKey])}</>
+										)}
+									</TableCell>
+								))}
+								<TableCell>
+									<TeamLeaderCourseAssignmentCheckbox
+										isAssigned={assignedCourseIds.has(course.id)}
+										teamLeaderId={teamLeaderId}
+										courseId={course.id}
+									/>
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			)}
+			{!areTherePublicCourses && (
+				<div className="flex flex-col gap-4 justify-center items-center w-full">
+					<p className="text-sm text-muted-foreground">
+						No public courses available.
+					</p>
+					<Link to={href("/dashboard/courses")}>
+						<PrimaryButton variant="outline">
+							Go to Courses <ArrowRight className="h-4 w-4 ml-2" />
+						</PrimaryButton>
+					</Link>
+				</div>
+			)}
+		</div>
+	);
+}
+
+function TeamLeaderCourseAssignmentCheckbox({
+	isAssigned,
+	teamLeaderId,
+	courseId,
+}: {
+	isAssigned: boolean;
+	teamLeaderId: string;
+	courseId: string;
+}) {
+	const fetcher = useFetcher();
+
+	const form = useForm<AssignCourseShema>({
+		resolver: zodResolver(assignCourseSchema),
+		defaultValues: {
+			isAssigned,
+		},
+	});
+
+	return (
+		<Form {...form}>
+			<fetcher.Form
+				action="/resource/course"
+				method="POST"
+				className="space-y-6"
+			>
+				<FormField
+					control={form.control}
+					name="isAssigned"
+					render={({ field }) => (
+						<FormItem>
+							<FormControl>
+								<Checkbox
+									checked={field.value}
+									onCheckedChange={(checked) => {
+										field.onChange(checked);
+										fetcher.submit(
+											{
+												isAssigned: checked,
+												studentId: teamLeaderId,
+												courseId,
+												intent: "update-course-assignment",
+											},
+											{
+												action: "/resource/course",
 												method: "POST",
 											},
 										);

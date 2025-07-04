@@ -91,22 +91,17 @@ export async function handleDownloadCertificate(request: Request, formData: Form
             }
         }
 
-        console.log("🎓 Generating certificate for:", {
-            studentName: validatedFields.studentName,
-            courseName: validatedFields.courseName,
-        });
+
 
         // 1. Generate ImageKit URL with transformations for student name and course name
         const certificateImageUrl = generateCertificateUrl(
             validatedFields.studentName,
         );
 
-        console.log("📸 Certificate image URL:", certificateImageUrl);
 
         // 2. Fetch the transformed certificate image from ImageKit
         const certificateImageBuffer = await fetchCertificateImage(certificateImageUrl);
 
-        console.log("⬆️ Uploading certificate to Bunny storage...");
 
         // 3. Upload the certificate to Bunny storage CDN
         const certificateUrl = await uploadCertificateToBunny(
@@ -115,7 +110,6 @@ export async function handleDownloadCertificate(request: Request, formData: Form
             validatedFields.courseSlug
         );
 
-        console.log("✅ Certificate uploaded to:", certificateUrl);
 
         // 4. Update the database with the certificate URL
         if (existingCertificate.length > 0) {
@@ -132,7 +126,6 @@ export async function handleDownloadCertificate(request: Request, formData: Form
             });
         }
 
-        console.log("🎉 Certificate generation completed successfully!");
 
         // 5. TODO: Send emails to student and admin (future enhancement)
         // await sendCertificateEmails(validatedFields.studentName, validatedFields.courseName, certificateUrl);

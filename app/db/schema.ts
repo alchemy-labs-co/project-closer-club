@@ -80,7 +80,7 @@ export const agentsTable = pgTable(
 	"agents",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		studentId: text("student_id").unique().notNull(),
+		studentId: text("student_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
 		name: varchar("name", { length: 255 }).notNull(),
 		email: varchar("email", { length: 255 }).notNull().unique(),
 		phone: varchar("phone", { length: 255 }),
@@ -100,7 +100,7 @@ export const agentsTable = pgTable(
 
 export const teamLeadersTable = pgTable("team_leaders", {
 	id: uuid("id").primaryKey().defaultRandom(),
-	teamLeaderId: text("team_leader_id").unique().notNull(),
+	teamLeaderId: text("team_leader_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
 	name: varchar("name", { length: 255 }).notNull(),
 	email: varchar("email", { length: 255 }).notNull().unique(),
 	phone: varchar("phone", { length: 255 }),
@@ -187,7 +187,7 @@ export const studentCoursesTable = pgTable(
 	"student_courses",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		studentId: text("student_id").notNull(),
+		studentId: text("student_id").notNull().references(() => user.id, { onDelete: "cascade" }),
 		courseId: uuid("course_id")
 			.references(() => coursesTable.id, { onDelete: "cascade" })
 			.notNull(),

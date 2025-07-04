@@ -656,7 +656,6 @@ function ProccedToNextLessonButton() {
 	const { nonCriticalData } = useLessonLoaderData();
 	const nextLesson = React.use(nonCriticalData.nextLesson);
 
-	console.log(nextLesson);
 
 	// If there's no next lesson, show completion message or redirect to course overview
 	if (!nextLesson) {
