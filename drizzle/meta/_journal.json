@@ -155,6 +155,13 @@
       "when": 1751640215411,
       "tag": "0021_absent_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1751644051454,
+      "tag": "0022_hesitant_quasar",
+      "breakpoints": true
     }
   ]
 }
