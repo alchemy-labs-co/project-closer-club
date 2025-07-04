@@ -19,17 +19,15 @@ import {
 	ChevronsLeft,
 	ChevronsRight,
 	Columns,
-	MoreVertical,
-	X,
+	MoreVertical
 } from "lucide-react";
 import * as React from "react";
 import { useEffect } from "react";
-import { Link, href } from "react-router";
+import { Link } from "react-router";
+import { StatusBadge } from "~/components/features/students/status-badge";
 import { ActivateTeamLeader } from "~/components/features/team-leaders/activate-team-leader";
 import { CreateTeamLeader } from "~/components/features/team-leaders/create-team-leader";
 import { DeactivateTeamLeader } from "~/components/features/team-leaders/deactivate-team-leader";
-import { DeleteTeamLeader } from "~/components/features/team-leaders/delete-team-leader";
-import { StatusBadge } from "~/components/features/students/status-badge";
 import { DeleteDialog } from "~/components/global/admin/delete-dialog";
 
 import { Button } from "~/components/ui/button";
@@ -170,7 +168,11 @@ const columns: ColumnDef<TeamLeader>[] = [
 	},
 ];
 
-export function TeamLeadersDataTable({ initialData }: { initialData: any }) {
+export function TeamLeadersDataTable({
+	initialData,
+}: {
+	initialData: TeamLeader[];
+}) {
 	const [data, setData] = React.useState(initialData);
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [columnVisibility, setColumnVisibility] =

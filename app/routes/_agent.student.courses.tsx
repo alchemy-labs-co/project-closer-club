@@ -169,7 +169,7 @@ function ProgressCircle({
 
 	return (
 		<div className="relative w-10 h-10">
-			<svg className="w-10 h-10 transform -rotate-90" viewBox="0 0 40 40">
+			<svg className="w-10 h-10 transform -rotate-90" viewBox="0 0 40 40" aria-label="Progress circle" role="img">
 				{/* Background circle */}
 				<circle
 					cx="20"
