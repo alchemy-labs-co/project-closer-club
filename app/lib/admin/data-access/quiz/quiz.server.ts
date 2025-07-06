@@ -95,7 +95,7 @@ export async function handleUpdateQuiz(request: Request, formData: FormData) {
 			.where(eq(quizzesTable.id, quizId));
 
 		return data(
-			{ success: true, message: "Quiz updated successfully" },
+			{ success: true, message: "Quiz updated successfully", redirectToUrl: "/dashboard/quizzes" },
 			{ status: 200 },
 		);
 	} catch (error) {

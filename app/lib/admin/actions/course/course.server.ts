@@ -66,7 +66,7 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 			.limit(1);
 
 		const orderIndex = nextOrderIndex?.max
-			? parseInt(nextOrderIndex.max) + 1
+			? Number.parseInt(nextOrderIndex.max) + 1
 			: 0;
 
 		// First create the course to get the ID
@@ -162,8 +162,10 @@ export async function handleEditCourse(request: Request, formData: FormData) {
 	const formDataObject = {
 		name: formData.get("name"),
 		description: formData.get("description"),
-		thumbnail: thumbnail,
+		...(thumbnail && { thumbnail: thumbnail }),
 	};
+
+
 
 	// validate the form data
 	const unavlidatedFields = updateCourseSchema.safeParse(formDataObject);

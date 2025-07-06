@@ -32,6 +32,7 @@ export const createTeamLeaderSchema = z.object({
 		.min(8, { message: "Password must be at least 8 characters long" })
 		.trim(),
 	agents: z.array(z.string()),
+	courses: z.array(z.string()).optional(),
 });
 
 export const updateTeamLeaderSchema = z.object({

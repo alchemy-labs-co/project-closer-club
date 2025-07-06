@@ -29,6 +29,7 @@ import {
 } from "~/lib/zod-schemas/team-leader";
 import { AssignAgentsToTeamLeader } from "./assign-agents-to-team-leader";
 import EmailDomainInput from "../students/email-domain-input";
+import { AssignCourseToStudent } from "../students/assign-course-to-student";
 
 export function CreateTeamLeader() {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -45,6 +46,7 @@ export function CreateTeamLeader() {
 			phoneNumber: "",
 			password: generateRandomPassword(),
 			agents: [],
+			courses: [],
 		},
 	});
 
@@ -168,6 +170,22 @@ export function CreateTeamLeader() {
 												disabled={isSubmitting}
 												className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
 											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="courses"
+								disabled={isSubmitting}
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>
+											Courses
+										</FormLabel>
+										<FormControl>
+											<AssignCourseToStudent form={form} {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>

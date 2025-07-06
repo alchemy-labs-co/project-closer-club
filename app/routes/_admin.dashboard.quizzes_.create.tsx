@@ -8,8 +8,8 @@ import {
 	XIcon,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
-import { data, Link, redirect, useFetcher, useNavigate } from "react-router";
+import { useState } from "react";
+import { data, Link, redirect, useFetcher } from "react-router";
 import { toast } from "sonner";
 import { SelectLesson } from "~/components/features/courses/quiz/select-lesson";
 import PrimaryButton from "~/components/global/brand/primary-button";
@@ -26,9 +26,9 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import db from "~/db/index.server";
 import { quizzesTable } from "~/db/schema";
-import { type FetcherResponse } from "~/lib/types";
 import { isQuestionComplete } from "~/lib/zod-schemas/quiz";
 import type { Route } from "./+types/_admin.dashboard.quizzes_.create";
+import type { FetcherResponse } from "~/lib/types";
 
 export type Question = {
 	id: number;
@@ -396,7 +396,7 @@ function AnswersList({
 			<div className="space-y-3">
 				{question.answers.map((answer, index) => (
 					<AnswerItem
-						key={index}
+						key={answer}
 						answer={answer}
 						index={index}
 						question={question}
@@ -635,7 +635,6 @@ function PublishQuiz({
 		defaultLessonId ?? null,
 	);
 	const fetcher = useFetcher<FetcherResponse>();
-	const navigate = useNavigate();
 
 	// Check if all questions are complete
 	const allQuestionsComplete = questions.every((question) =>
@@ -678,23 +677,6 @@ function PublishQuiz({
 			action: "/resource/quiz",
 		});
 	};
-
-	useEffect(() => {
-		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(
-					isEditing
-						? "Quiz updated successfully"
-						: "Quiz published successfully",
-				);
-				navigate("/dashboard/quizzes");
-			} else {
-				toast.error(
-					isEditing ? "Failed to update quiz" : "Failed to publish quiz",
-				);
-			}
-		}
-	}, [fetcher.data, isEditing]);
 
 	const isPending = fetcher.state !== "idle";
 

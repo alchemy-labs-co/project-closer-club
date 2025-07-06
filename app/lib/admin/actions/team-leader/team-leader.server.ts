@@ -7,6 +7,7 @@ import {
 	teamLeadersTable,
 	agentsTable,
 	user,
+	studentCoursesTable,
 } from "~/db/schema";
 import {
 	createTeamLeaderSchema,
@@ -29,7 +30,9 @@ export async function handleCreateTeamLeader(
 
 	const { name, email, phoneNumber, password } = Object.fromEntries(formData);
 	const agents = formData.get("agents") as string;
+	const courses = formData.get("courses") as string;
 	const agentsArray = agents ? agents.split(",") : [];
+	const coursesArray = courses ? courses.split(",") : [];
 
 	// validate the data
 	const unvalidatedFields = createTeamLeaderSchema.safeParse({
@@ -38,6 +41,7 @@ export async function handleCreateTeamLeader(
 		phoneNumber,
 		password,
 		agents: agentsArray,
+		courses: coursesArray,
 	});
 
 	if (!unvalidatedFields.success) {
@@ -101,6 +105,15 @@ export async function handleCreateTeamLeader(
 					.update(agentsTable)
 					.set({ teamLeaderId: insertedTeamLeader.id })
 					.where(inArray(agentsTable.studentId, agentsArray));
+			}
+
+			// insert into studentCoursesTable for team leader course assignments
+			if (coursesArray.length > 0) {
+				const valuesToInsert = coursesArray.map((courseId) => ({
+					studentId: user.id,
+					courseId: courseId,
+				}));
+				await tx.insert(studentCoursesTable).values(valuesToInsert);
 			}
 		});
 

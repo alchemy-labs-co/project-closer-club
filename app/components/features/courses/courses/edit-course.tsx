@@ -43,18 +43,20 @@ export function EditCourse({
 	slug: string;
 	thumbnailUrl?: string;
 }) {
+	
 	const [preview, setPreview] = useState<string | ArrayBuffer | null>(
 		thumbnailUrl || null,
 	);
+	
 	const fetcher = useFetcher<FetcherResponse>();
 	const isSubmitting = fetcher.state === "submitting";
 
 	const form = useForm<UpdateCourseSchema>({
 		resolver: zodResolver(updateCourseSchema),
 		defaultValues: {
-			thumbnail: thumbnailUrl ? new File([""], "filename") : undefined,
 			name: name,
 			description: description,
+			thumbnail: undefined,
 		},
 	});
 
@@ -108,6 +110,8 @@ export function EditCourse({
 							formData.append("description", data.description);
 							if (data.thumbnail && data.thumbnail.size > 0) {
 								formData.append("thumbnail", data.thumbnail);
+							} else if (thumbnailUrl) {
+								formData.append("thumbnail", "");
 							}
 
 							fetcher.submit(formData, {

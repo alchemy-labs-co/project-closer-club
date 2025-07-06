@@ -1,9 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { data, Link, redirect, useFetcher } from "react-router";
-import { toast } from "sonner";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import { Button } from "~/components/ui/button";
 import {
@@ -62,18 +60,6 @@ export default function EditTeamLeaderPage({
 	});
 
 	const isThereAnyChanges = form.formState.isDirty;
-
-	useEffect(() => {
-		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
-			}
-			if (!fetcher.data.success) {
-				toast.error(fetcher.data.message);
-				form.reset();
-			}
-		}
-	}, [fetcher.data, form.reset]);
 
 	return (
 		<div className="flex flex-col gap-6 py-4">

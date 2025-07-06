@@ -17,8 +17,13 @@ import type { CreateTeamLeaderSchema } from "~/lib/zod-schemas/team-leader";
 import LoadingInputShimmer from "../loading/input-skeleton";
 import type { PromoteLeadSchemaType } from "~/lib/zod-schemas/lead-capture";
 
+type StudentWithRole = Student & {
+	role: "agent" | "team leader";
+	assignedTeamLeaderName?: string | null;
+};
+
 type FetcherResponse = {
-	students: Student[];
+	students: StudentWithRole[];
 };
 
 export function AssignAgentsToTeamLeader({
@@ -27,10 +32,10 @@ export function AssignAgentsToTeamLeader({
 	form: UseFormReturn<CreateTeamLeaderSchema | PromoteLeadSchemaType>;
 }) {
 	const fetcher = useFetcher<FetcherResponse>();
-	const [students, setStudents] = useState<Student[] | []>([]);
+	const [students, setStudents] = useState<StudentWithRole[] | []>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [open, setOpen] = React.useState(false);
-	const [selected, setSelected] = React.useState<Student[]>([]);
+	const [selected, setSelected] = React.useState<StudentWithRole[]>([]);
 	const [inputValue, setInputValue] = React.useState("");
 	const [toggleSelectedAll, setToggleSelectedAll] = useState<boolean>(false);
 	const inputRef = React.useRef<HTMLInputElement>(null);
@@ -39,16 +44,19 @@ export function AssignAgentsToTeamLeader({
 		const isDataLoaded = students.length > 0;
 		if (!isDataLoaded) {
 			fetcher.load("/resource/students-all");
-			if (fetcher.data) {
-				const { students } = fetcher.data;
-				setIsLoading(false);
-				setStudents(students);
-			}
+		}
+	}, [fetcher.load, students.length]);
+
+	useEffect(() => {
+		if (fetcher.data) {
+			const { students } = fetcher.data;
+			setIsLoading(false);
+			setStudents(students);
 		}
 	}, [fetcher.data]);
 
 	const handleUnselect = React.useCallback(
-		(student: Student) => {
+		(student: StudentWithRole) => {
 			setSelected((prev) =>
 				prev.filter((s) => s.studentId !== student.studentId),
 			);
@@ -99,7 +107,7 @@ export function AssignAgentsToTeamLeader({
 		[],
 	);
 
-	const selectables = students.filter((student) => !selected.includes(student));
+	const selectables = students.filter((student) => !selected.includes(student) && student.role === "agent");
 
 	return (
 		<div>
@@ -112,8 +120,14 @@ export function AssignAgentsToTeamLeader({
 							{selected.map((student) => {
 								return (
 									<Badge key={student.studentId} variant="secondary">
-										{student.name}
+										{student.name} ({student.role === "team leader" ? "leader" : "agent"})
+										{student.assignedTeamLeaderName && (
+											<span className="text-xs text-muted-foreground ml-1">
+												{student.assignedTeamLeaderName}
+											</span>
+										)}
 										<button
+											type="button"
 											className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
 											onKeyDown={(e) => {
 												if (e.key === "Enter") {
@@ -187,8 +201,8 @@ function SelectableAgentsList({
 	form,
 }: {
 	open: boolean;
-	selectables: Student[];
-	setSelected: React.Dispatch<React.SetStateAction<Student[]>>;
+	selectables: StudentWithRole[];
+	setSelected: React.Dispatch<React.SetStateAction<StudentWithRole[]>>;
 	setInputValue: React.Dispatch<React.SetStateAction<string>>;
 	form: UseFormReturn<CreateTeamLeaderSchema | PromoteLeadSchemaType>;
 }) {
@@ -215,7 +229,16 @@ function SelectableAgentsList({
 								}}
 								className={"cursor-pointer"}
 							>
-								{student.name}
+								<div className="flex items-center justify-between w-full">
+									<span>
+										{student.name} ({student.role === "team leader" ? "leader" : "agent"})
+									</span>
+									{student.assignedTeamLeaderName && (
+										<span className="text-xs text-muted-foreground ml-2">
+											Currently assigned to: {student.assignedTeamLeaderName}
+										</span>
+									)}
+								</div>
 							</CommandItem>
 						);
 					})}
