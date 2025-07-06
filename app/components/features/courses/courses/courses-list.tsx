@@ -36,7 +36,6 @@ export function CoursesList() {
 }
 function CourseCard({ course }: { course: Course }) {
 	const { id, name, description, isPublic, slug, thumbnailUrl } = course;
-	console.log(course);
 	return (
 		<Card className={cn("relative", thumbnailUrl && "pt-0")}>
 			{thumbnailUrl && (

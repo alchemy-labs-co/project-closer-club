@@ -19,6 +19,7 @@ import type { PromoteLeadSchemaType } from "~/lib/zod-schemas/lead-capture";
 
 type StudentWithRole = Student & {
 	role: "agent" | "team leader";
+	assignedTeamLeaderName?: string | null;
 };
 
 type FetcherResponse = {
@@ -120,6 +121,11 @@ export function AssignAgentsToTeamLeader({
 								return (
 									<Badge key={student.studentId} variant="secondary">
 										{student.name} ({student.role === "team leader" ? "leader" : "agent"})
+										{student.assignedTeamLeaderName && (
+											<span className="text-xs text-muted-foreground ml-1">
+												{student.assignedTeamLeaderName}
+											</span>
+										)}
 										<button
 											type="button"
 											className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -223,7 +229,16 @@ function SelectableAgentsList({
 								}}
 								className={"cursor-pointer"}
 							>
-								{student.name} ({student.role === "team leader" ? "leader" : "agent"})
+								<div className="flex items-center justify-between w-full">
+									<span>
+										{student.name} ({student.role === "team leader" ? "leader" : "agent"})
+									</span>
+									{student.assignedTeamLeaderName && (
+										<span className="text-xs text-muted-foreground ml-2">
+											Currently assigned to: {student.assignedTeamLeaderName}
+										</span>
+									)}
+								</div>
 							</CommandItem>
 						);
 					})}
