@@ -68,7 +68,7 @@ export default function Page({ loaderData }: Route.ComponentProps) {
 					{isLoading ? (
 						<DashboardSkeleton />
 					) : (
-						<div className="overflow-y-auto h-full">
+						<div className="overflow-hidden min-h-[calc(100dvh-76.8px)]">
 							<Outlet />
 						</div>
 					)}

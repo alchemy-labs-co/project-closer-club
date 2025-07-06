@@ -216,9 +216,9 @@ function TeamLeaderCourseSidebar() {
 
 export default function TeamLeaderEditorLayout() {
 	return (
-		<div className="flex flex-col-reverse gap-8 md:gap-0 md:flex-row  min-h-[calc(100dvh-76.8px)]">
+		<div className="flex flex-col-reverse gap-8 md:gap-0 md:flex-row  overflow-hidden min-h-[calc(100dvh-76.8px)]">
 			<TeamLeaderCourseSidebar />
-			<div className="flex-1 rounded-lg p-4 overflow-y-auto">
+			<div className="flex-1 rounded-lg p-4 overflow-y-auto max-h-[calc(100dvh-76.8px)]">
 				<div className="max-w-7xl mx-auto flex flex-col gap-8">
 					<Button variant="secondary" asChild>
 						<Link to="/team/courses" className="w-fit">
