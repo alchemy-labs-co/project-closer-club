@@ -4,7 +4,7 @@ import db from "~/db/index.server";
 import { session, user } from "~/db/schema";
 import { auth } from "~/lib/auth/auth.server";
 import { isStudentAccountActivated } from "~/lib/student/data-access/students.server";
-import { loginSchema } from "../../../zod-schemas/auth";
+import { loginSchema, adminLoginSchema } from "../../../zod-schemas/auth";
 
 // Admin Login
 export async function handleSignInAdmin(request: Request, formData: FormData) {
@@ -12,7 +12,7 @@ export async function handleSignInAdmin(request: Request, formData: FormData) {
 		email: formData.get("email"),
 		password: formData.get("password"),
 	};
-	const unvalidatedFields = loginSchema.safeParse(loginData);
+	const unvalidatedFields = adminLoginSchema.safeParse(loginData);
 	if (!unvalidatedFields.success)
 		return data(
 			{
