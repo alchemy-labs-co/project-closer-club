@@ -1,4 +1,4 @@
-import { useLoaderData, useFetcher } from "react-router";
+import { useLoaderData, useFetcher, Link } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { data, redirect } from "react-router";
 import { useEffect } from "react";
@@ -32,6 +32,7 @@ import {
 	editModuleSchema,
 	type EditModuleSchema,
 } from "~/lib/zod-schemas/module";
+import { Button } from "~/components/ui/button";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const { slug: courseSlug, moduleSlug } = params;
@@ -68,29 +69,20 @@ export default function EditModule() {
 		resolver: zodResolver(editModuleSchema),
 		defaultValues: {
 			name: module.name,
-			description: module.description || "",
+			description: module.description ?? "",
 			courseSlug,
 			moduleSlug,
 		},
 	});
 
-	useEffect(() => {
-		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
-				// If there's a redirect slug (module slug changed), navigate to it
-				if (fetcher.data.redirectTo) {
-					window.location.href = `/dashboard/courses/${courseSlug}/${fetcher.data.redirectTo}/edit`;
-				}
-			}
-			if (!fetcher.data.success) {
-				toast.error(fetcher.data.message);
-			}
-		}
-	}, [fetcher.data, courseSlug]);
 
 	return (
 		<div className="space-y-6 p-8">
+			<PrimaryButton asChild>
+				<Link to={`/dashboard/courses/${courseSlug}/${moduleSlug}`}>
+					Back to Module
+				</Link>
+			</PrimaryButton>
 			<div className="flex items-center justify-between">
 				<div className="space-y-1">
 					<h1 className="text-2xl font-semibold tracking-tight">Edit Module</h1>

@@ -1,5 +1,5 @@
-import { data, redirect } from "react-router";
 import { and, desc, eq, max } from "drizzle-orm";
+import { data, redirect } from "react-router";
 import db from "~/db/index.server";
 import { coursesTable, modulesTable } from "~/db/schema";
 import { isAdminLoggedIn } from "~/lib/auth/auth.server";
@@ -61,7 +61,7 @@ export async function handleCreateModule(request: Request, formData: FormData) {
 			.limit(1);
 
 		const orderIndex = nextOrderIndex?.max
-			? parseInt(nextOrderIndex.max) + 1
+			? Number.parseInt(nextOrderIndex.max) + 1
 			: 0;
 
 		// Create the module
@@ -79,7 +79,7 @@ export async function handleCreateModule(request: Request, formData: FormData) {
 		return data({
 			success: true,
 			message: "Module created successfully",
-			moduleSlug: newModule.slug,
+			redirectToUrl: `/dashboard/courses/${validatedData.courseSlug}/${newModule.slug}/edit`,
 		});
 	} catch (error) {
 		console.error("Create module error:", error);
@@ -243,7 +243,6 @@ export async function handleEditModule(request: Request, formData: FormData) {
 			{
 				success: true,
 				message: "Module updated successfully",
-				redirectTo: updatedModule.slug,
 			},
 			{ status: 200 },
 		);

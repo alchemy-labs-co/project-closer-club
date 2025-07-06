@@ -1,17 +1,39 @@
-import { data, type ActionFunctionArgs } from "react-router";
+import { data, redirect } from "react-router";
 import {
 	handleCreateModule,
 	handleDeleteModule,
 	handleEditModule,
 } from "~/lib/admin/actions/modules/modules.server";
-
+import type { Route } from "./+types/resource.module";
+import { toast } from "sonner";
 const intents = ["create-module", "delete-module", "edit-module"];
 
 export async function loader() {
 	return data("Not Allowed", { status: 405 });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+	const result:
+		| {
+			success: boolean;
+			message: string;
+			redirectToUrl?: string;
+		}
+		| undefined = await serverAction();
+
+	if (result?.success) {
+		toast.success(result?.message);
+		if (result?.redirectToUrl) {
+			throw redirect(result?.redirectToUrl);
+		}
+	} else {
+		toast.error(result?.message);
+	}
+	return result;
+}
+
+export async function action({ request }: Route.ActionArgs) {
 	const formData = await request.formData();
 	const intent = formData.get("intent") as string;
 
