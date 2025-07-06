@@ -1,4 +1,4 @@
-import { data, type ActionFunctionArgs } from "react-router";
+import { data, redirect, type ActionFunctionArgs } from "react-router";
 import {
 	handleCreateSegment,
 	handleDeleteSegment,
@@ -6,6 +6,8 @@ import {
 	handleGenerateUploadTokens,
 	handleConfirmUploads,
 } from "~/lib/admin/actions/segment/segment.server";
+import { toast } from "sonner";
+import type { Route } from "./+types/resource.segment";
 
 const intents = [
 	"create-segment",
@@ -19,7 +21,8 @@ export async function loader() {
 	return data("Not Allowed", { status: 405 });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+
+export async function action({ request }: Route.ActionArgs) {
 	const formData = await request.formData();
 	const intent = formData.get("intent") as string;
 

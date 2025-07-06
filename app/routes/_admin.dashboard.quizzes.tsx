@@ -16,6 +16,7 @@ import {
 } from "~/components/ui/dialog";
 import { getAllQuizzesWithLessonInfo } from "~/lib/admin/data-access/quiz/quiz.server";
 import type { Route } from "./+types/_admin.dashboard.quizzes";
+import type { Question } from "./_admin.dashboard.quizzes_.create";
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const result = await getAllQuizzesWithLessonInfo(request);
@@ -71,7 +72,11 @@ function QuizCard({
 	quiz: {
 		id: string;
 		lessonId: string;
-		questions: any;
+		questions: {
+			title: string;
+			answers: string[];
+			correctAnswerIndex: number;
+		}[];
 		createdAt: Date;
 		updatedAt: Date;
 		lessonSlug: string;
@@ -185,15 +190,7 @@ function DeleteQuiz({ quizId }: { quizId: string }) {
 		);
 	};
 
-	useEffect(() => {
-		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
-			} else {
-				toast.error(fetcher.data.message);
-			}
-		}
-	}, [fetcher.data]);
+	
 
 	return (
 		<Dialog>
