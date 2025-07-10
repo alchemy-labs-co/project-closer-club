@@ -1,16 +1,14 @@
-# PLAT4ME Client Onboarding
+# Closer Club - Online Course Platform
 
-> Welcome to the PLAT4ME client onboarding process for **[CLIENT_NAME]**!
->
-> This guide walks you through setting up a new client project from cloning the repo to handing over the final site.
+> A comprehensive learning management system for teams, agents, and students with course management, analytics, and lead capture capabilities.
 
-## 🚀 Setup Steps
+## 🚀 Quick Start
 
-### 1. Clone the GitHub Repository
+### 1. Clone the Repository
 
 ```bash
 git clone [REPO_URL]
-cd [PROJECT_DIRECTORY]
+cd closer-club-dev
 ```
 
 ### 2. Install Dependencies
@@ -19,66 +17,72 @@ cd [PROJECT_DIRECTORY]
 bun install
 ```
 
-### 3. Update Project Name
+### 3. Environment Setup
 
-Update the project name in `package.json` and other relevant metadata:
-
-- Project Name: `[PROJECT_NAME]`
-- Description: `[PROJECT_DESCRIPTION]`
-
-## 🛠️ Supabase Setup
-
-### 4. Create Supabase Instance
-
-- Create a new Supabase organization named `[CLIENT_NAME]`
-- Set up a new project under that organization called `[PROJECT_NAME]`
-- Database Password: `[SUPABASE_DB_PASSWORD]`
-
-## ☁️ Vercel Deployment
-
-### 5. Create Vercel Instance
-
-- Connect the GitHub repository to a new Vercel deployment
-- Project name: `[VERCEL_PROJECT_NAME]`
-
-### 6. Connect Client Domain
-
-- Primary domain: `[CLIENT_DOMAIN]`
-- Additional domains: `[ADDITIONAL_DOMAINS]` (if needed)
-
-## 🔑 Environment Variables (ENVs)
-
-### 7. Setup Environment Variables
+Create a `.env` file with the following variables:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=[SUPABASE_URL]
-NEXT_PUBLIC_SUPABASE_ANON_KEY=[SUPABASE_ANON_KEY]
-SUPABASE_SERVICE_ROLE_KEY=[SUPABASE_SERVICE_ROLE_KEY]
+DATABASE_URL=[YOUR_DATABASE_URL]
 AUTH_SECRET=[GENERATE_STRONG_SECRET]
+BUNNY_STREAM_API_KEY=[BUNNY_CDN_API_KEY]
+BUNNY_STORAGE_API_KEY=[BUNNY_STORAGE_API_KEY]
+REDIS_URL=[REDIS_CONNECTION_URL]
 ```
 
 ## 🗄️ Database Setup
 
-### 8. Generate & Run Migrations
+### 4. Generate & Run Migrations
 
 ```bash
 npx drizzle-kit generate
 npx drizzle-kit migrate
 ```
 
-## 🎨 Branding and Assets
+## 👥 User Roles & Features
 
-### 9. Update Public Assets
+### Admin Dashboard
+- Course creation and management
+- Student and agent management
+- Team leader administration
+- Analytics and reporting
+- Lead management
 
-- Logo: Replace `/public/logo.svg` with `[CLIENT_LOGO]`
-- Favicon: Replace `/public/favicon.ico` with `[CLIENT_FAVICON]`
-- Primary colors: Update from default blue/gold to:
-  - Primary: `[PRIMARY_COLOR_HEX]`
-  - Secondary: `[SECONDARY_COLOR_HEX]`
+### Team Leaders
+- Manage assigned agents
+- View team analytics
+- Access course assignments
+- Monitor team progress
+
+### Agents/Students
+- Access assigned courses
+- Complete modules and segments
+- Take quizzes and assessments
+- View progress and certificates
+
+## 🏗️ Project Structure
+
+```
+app/
+├── components/
+│   ├── features/          # Feature-specific components
+│   │   ├── analytics/     # Analytics dashboards
+│   │   ├── courses/       # Course management
+│   │   ├── students/      # Student management
+│   │   └── team-leaders/  # Team leader features
+│   ├── global/           # Shared components
+│   ├── marketing/        # Landing page components
+│   └── ui/              # UI components library
+├── lib/
+│   ├── admin/           # Admin-specific logic
+│   ├── student/         # Student-specific logic
+│   ├── team-leaders/    # Team leader logic
+│   └── zod-schemas/     # Validation schemas
+└── routes/             # File-based routing
+```
 
 ## 👤 Admin Account Setup
 
-### 10. Create Admin Accounts
+### Create Admin User
 
 Use the following code to create an admin user:
 
@@ -106,35 +110,48 @@ if (!response.user.id) {
 }
 ```
 
-## 🖼️ Personal Landing Page
+## 🎯 Key Features
 
-### 11. Setup Personal Landing Page
+- **Course Management**: Create courses with modules, segments, and quizzes
+- **Video Integration**: Bunny CDN integration for video streaming
+- **Role-Based Access**: Admin, Team Leader, and Agent/Student roles
+- **Analytics Dashboard**: Comprehensive analytics for all user types
+- **Lead Capture**: Marketing funnel with lead capture forms
+- **File Attachments**: Support for course materials and attachments
+- **Progress Tracking**: Monitor student progress through courses
+- **Certificate Generation**: Automatic certificate generation upon completion
 
-- Update content in `/pages/landing.js` with:
-  - Client Name: `[CLIENT_NAME]`
-  - Tagline: `[CLIENT_TAGLINE]`
-  - Description: `[CLIENT_DESCRIPTION]`
+## 🛠️ Development
 
-## 📢 Final Step: Share the Website
+### Start Development Server
 
-Deliver the final live website link to the client at `[FINAL_WEBSITE_URL]`!
+```bash
+bun run dev
+```
 
-## ✅ Onboarding Checklist
+### Build for Production
 
-- [ ] Clone Repo
-- [ ] Install Dependencies
-- [ ] Update Project Name
-- [ ] Create Supabase Instance
-- [ ] Setup Vercel Deployment
-- [ ] Connect Domain
-- [ ] Insert ENVs
-- [ ] Secure Auth Secret
-- [ ] Run DB Generations & Migrations
-- [ ] Update Branding
-- [ ] Create Admin Accounts
-- [ ] Set up Personal Landing Page
-- [ ] Share Website
+```bash
+bun run build
+```
+
+## 📱 Routes Overview
+
+- `/admin` - Admin dashboard and management
+- `/team` - Team leader interface
+- `/agent` - Agent/student learning interface
+- `/` - Marketing landing page with lead capture
+
+## 🔧 Tech Stack
+
+- **Framework**: Remix (React Router v7)
+- **Database**: PostgreSQL with Drizzle ORM
+- **Styling**: Tailwind CSS
+- **CDN**: Bunny.net for video and file storage
+- **Caching**: Redis
+- **UI Components**: Radix UI primitives
+- **Authentication**: Custom auth implementation
 
 ---
 
-_Last Updated: [DATE]_
+_Built for modern learning management and team collaboration._
