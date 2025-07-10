@@ -7,8 +7,20 @@ import { createCookie, data, redirect } from "react-router";
 import db from "~/db/index.server";
 import { agentsTable, leadCaptureTable, studentCoursesTable, teamLeadersTable } from "~/db/schema";
 import { leadCaptureSchema, promoteLeadSchema, rejectLeadSchema, type PromoteLeadSchemaType } from "~/lib/zod-schemas/lead-capture";
+import { ratelimit } from '~/lib/redis';
 
 export async function handleCreateLeadCapture(request: Request, formData: FormData) {
+    const ip = request.headers.get("x-forwarded-for") ?? "127.0.0.1";
+    const { success } = await ratelimit.limit(ip);
+    if (!success) {
+        return data({
+            success: false,
+            message: "You have reached the maximum number of requests. Please try again later.",
+        }, {
+            status: 429,
+        })
+    }
+
     try {
 
         const { email, firstName, lastName, phoneNumber, stateOfResidence, areYouOver18, doYouHaveAnyFeloniesOrMisdemeanors } = Object.fromEntries(formData)
@@ -46,7 +58,8 @@ export async function handleCreateLeadCapture(request: Request, formData: FormDa
                 message: "Error creating waitlist entry",
             }
         }
-        // throw error;
+
+        // TODO: send email to admins
         // set cookie
         const leadCaptureCookie = createCookie("lead-capture", {
             httpOnly: true,
@@ -55,9 +68,11 @@ export async function handleCreateLeadCapture(request: Request, formData: FormDa
             sameSite: "lax",
         });
 
+
+
         return data({
             success: true,
-            message: "Lead capture created successfully",
+            message: "Successfully added to waitlist",
         }, {
             headers: {
                 "Set-Cookie": await leadCaptureCookie.serialize(insertedLead.id),
