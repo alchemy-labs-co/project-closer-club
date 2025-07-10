@@ -24,11 +24,10 @@ import { Input } from "~/components/ui/input";
 import type { FetcherResponse } from "~/lib/types";
 import { generateRandomPassword } from "~/lib/utils";
 import {
-	createStudentSchema,
 	type CreateStudentSchema,
+	createStudentSchema,
 } from "~/lib/zod-schemas/student";
 import { AssignCourseToStudent } from "./assign-course-to-student";
-import EmailDomainInput from "./email-domain-input";
 
 export function CreateStudent() {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -159,12 +158,12 @@ export function CreateStudent() {
 											Email <span className="text-xs text-red-500">*</span>
 										</FormLabel>
 										<FormControl>
-											<EmailDomainInput
-												placeholder="Enter agent username"
-												value={field.value}
-												onChange={field.onChange}
+											<Input
+												placeholder="Enter agent email"
+												type="email"
 												disabled={isSubmitting}
 												className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
+												{...field}
 											/>
 										</FormControl>
 										<FormMessage />
