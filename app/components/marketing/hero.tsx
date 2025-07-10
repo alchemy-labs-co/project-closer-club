@@ -5,15 +5,15 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/lib/utils'
 
 const menuItems = [
-    { name: 'Features', href: '#link' },
-    { name: 'About', href: '#link' },
+    { name: 'Features', href: '#features' },
+    { name: 'About', href: '#about' },
 ]
 
 export function HeroSection() {
     return (
             <section className='relative min-h-screen overflow-hidden'>
             <HeroHeader />
-                    <div className="relative z-30 py-24 md:pb-32 lg:pb-36 lg:pt-72">
+                    <div className="relative z-30 py-24 pb-12 lg:pt-72">
                         <div className="mx-auto flex max-w-7xl flex-col items-center lg:items-start px-6 lg:px-12">
                             <div className="w-full flex flex-col items-center lg:items-start gap-12">
                                 <div className='flex flex-col gap-8 max-w-2xl w-full'>
