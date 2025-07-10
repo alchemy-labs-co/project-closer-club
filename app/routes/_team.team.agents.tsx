@@ -21,7 +21,6 @@ import {
 	Columns,
 } from "lucide-react";
 import * as React from "react";
-import { useEffect } from "react";
 import { Link, href } from "react-router";
 import { StatusBadge } from "~/components/features/students/status-badge";
 import { Button } from "~/components/ui/button";
@@ -111,7 +110,6 @@ const columns: ColumnDef<Student>[] = [
 ];
 
 function AgentsDataTable({ initialData }: { initialData: Student[] }) {
-	const [data, setData] = React.useState(initialData);
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -124,7 +122,7 @@ function AgentsDataTable({ initialData }: { initialData: Student[] }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: initialData,
 		columns,
 		state: {
 			sorting,
@@ -144,10 +142,6 @@ function AgentsDataTable({ initialData }: { initialData: Student[] }) {
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	});
-
-	useEffect(() => {
-		setData(initialData);
-	}, [initialData]);
 
 	return (
 		<div className="w-full flex flex-col justify-between h-full gap-6 overflow-hidden">
@@ -191,7 +185,7 @@ function AgentsDataTable({ initialData }: { initialData: Student[] }) {
 						</DropdownMenu>
 					</div>
 					<div className="text-sm text-muted-foreground">
-						Total: {data.length} agents
+						Total: {initialData.length} agents
 					</div>
 				</div>
 				{/* Table */}
@@ -244,7 +238,7 @@ function AgentsDataTable({ initialData }: { initialData: Student[] }) {
 				</div>
 			</div>
 			{/* Pagination */}
-			{data.length > 0 && (
+			{initialData.length > 0 && (
 				<div className="flex items-center justify-between px-4">
 					<div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
 						Showing {table.getFilteredRowModel().rows.length} of{" "}

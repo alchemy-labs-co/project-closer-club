@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { useFetcher, useNavigate, useParams, redirect } from "react-router";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { redirect, useFetcher, useNavigate, useParams } from "react-router";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import {
 	Dialog,
@@ -20,11 +19,11 @@ import {
 	FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
 import {
 	createModuleSchema,
 	type CreateModuleSchema,
 } from "~/lib/zod-schemas/module";
-import { Textarea } from "~/components/ui/textarea";
 
 type CreateModuleFetcherResponse = {
 	success: boolean;
@@ -49,25 +48,6 @@ export function CreateModule() {
 			courseSlug,
 		},
 	});
-
-	useEffect(() => {
-		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
-				setIsDialogOpen(false);
-				form.reset();
-				// Navigate to the newly created module
-				if (fetcher.data.moduleSlug) {
-					navigate(
-						`/dashboard/courses/${courseSlug}/${fetcher.data.moduleSlug}`,
-					);
-				}
-			}
-			if (!fetcher.data.success) {
-				toast.error(fetcher.data.message);
-			}
-		}
-	}, [fetcher.data, courseSlug, navigate, form]);
 
 	return (
 		<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -1,7 +1,5 @@
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
 import { useFetcher } from "react-router";
-import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import type { FetcherResponse } from "~/lib/types";
 

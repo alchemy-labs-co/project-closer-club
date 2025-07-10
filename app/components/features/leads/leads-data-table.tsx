@@ -560,7 +560,6 @@ const columns: ColumnDef<LeadCapture>[] = [
 ];
 
 export function LeadsDataTable({ initialData }: { initialData: LeadCapture[] }) {
-	const [data, setData] = React.useState(initialData);
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
@@ -574,7 +573,7 @@ export function LeadsDataTable({ initialData }: { initialData: LeadCapture[] }) 
 	});
 
 	const table = useReactTable({
-		data,
+		data: initialData,
 		columns,
 		state: {
 			sorting,
@@ -598,9 +597,6 @@ export function LeadsDataTable({ initialData }: { initialData: LeadCapture[] }) 
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	});
 
-	useEffect(() => {
-		setData(initialData);
-	}, [initialData]);
 
 	const isFiltered = table.getState().columnFilters.length > 0;
 

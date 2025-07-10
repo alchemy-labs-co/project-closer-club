@@ -92,6 +92,7 @@ export function AssignCourseToStudent({
 									<Badge key={course.id} variant="secondary">
 										{course.name}
 										<button
+											type="button"
 											className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
 											onKeyDown={(e) => {
 												if (e.key === "Enter") {

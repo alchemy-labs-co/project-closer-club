@@ -1,9 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeftIcon } from "lucide-react";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, redirect, useFetcher, useNavigate } from "react-router";
-import { toast } from "sonner";
 import { DeleteSegment } from "~/components/features/courses/segments/delete-segment";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import { Button } from "~/components/ui/button";
@@ -94,26 +92,6 @@ export default function EditLesson({ loaderData }: Route.ComponentProps) {
 			segmentSlug: lesson.slug,
 		},
 	});
-
-	useEffect(() => {
-		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
-				if (fetcher.data.redirectTo) {
-					navigate(
-						`/dashboard/courses/${courseSlug}/${moduleSlug}/${fetcher.data.redirectTo}`,
-					);
-				} else {
-					navigate(
-						`/dashboard/courses/${courseSlug}/${moduleSlug}/${lesson.slug}`,
-					);
-				}
-			}
-			if (!fetcher.data.success) {
-				toast.error(fetcher.data.message);
-			}
-		}
-	}, [fetcher.data, courseSlug, moduleSlug, lesson.slug, navigate]);
 
 	return (
 		<div className="p-4 flex flex-col gap-4 overflow-y-auto h-full">

@@ -79,7 +79,7 @@ export async function handleCreateModule(request: Request, formData: FormData) {
 		return data({
 			success: true,
 			message: "Module created successfully",
-			redirectToUrl: `/dashboard/courses/${validatedData.courseSlug}/${newModule.slug}/edit`,
+			redirectTo: `/dashboard/courses/${validatedData.courseSlug}/${newModule.slug}/edit`,
 		});
 	} catch (error) {
 		console.error("Create module error:", error);

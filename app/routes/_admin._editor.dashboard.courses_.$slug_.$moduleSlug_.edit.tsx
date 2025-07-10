@@ -1,11 +1,8 @@
-import { useLoaderData, useFetcher, Link } from "react-router";
-import type { LoaderFunctionArgs } from "react-router";
-import { data, redirect } from "react-router";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { Loader2, Edit3 } from "lucide-react";
+import { Edit3, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import type { LoaderFunctionArgs } from "react-router";
+import { data, Link, redirect, useFetcher, useLoaderData } from "react-router";
 
 import {
 	Card,
@@ -25,14 +22,13 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 
-import { getModuleBySlug } from "~/lib/admin/data-access/modules/modules.server";
 import { DeleteModule } from "~/components/features/courses/modules/delete-module";
 import PrimaryButton from "~/components/global/brand/primary-button";
+import { getModuleBySlug } from "~/lib/admin/data-access/modules/modules.server";
 import {
 	editModuleSchema,
 	type EditModuleSchema,
 } from "~/lib/zod-schemas/module";
-import { Button } from "~/components/ui/button";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const { slug: courseSlug, moduleSlug } = params;

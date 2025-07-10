@@ -23,12 +23,10 @@ import {
 	X,
 } from "lucide-react";
 import * as React from "react";
-import { useEffect } from "react";
 import { Link, href } from "react-router";
 import { ActivateStudent } from "~/components/features/students/activate-student";
 import { CreateStudent } from "~/components/features/students/create-student";
-import { DeactivateStudent } from "~/components/features/students/deactivate-student";
-import { DeleteStudent } from "~/components/features/students/delete-student";
+import { DeactivateStudent } from "~/components/features/students/deactivate-student";	
 import { StatusBadge } from "~/components/features/students/status-badge";
 
 import { Button } from "~/components/ui/button";
@@ -182,8 +180,7 @@ const columns: ColumnDef<Student>[] = [
 	},
 ];
 
-export function DataTable({ initialData }: { initialData: any }) {
-	const [data, setData] = React.useState(initialData);
+export function DataTable({ initialData }: { initialData: Student[] }) {
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
@@ -197,7 +194,7 @@ export function DataTable({ initialData }: { initialData: any }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: initialData,
 		columns,
 		state: {
 			sorting,
@@ -220,10 +217,6 @@ export function DataTable({ initialData }: { initialData: any }) {
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	});
-
-	useEffect(() => {
-		setData(initialData);
-	}, [initialData]);
 
 	return (
 		<div className="w-full flex flex-col justify-between h-full gap-6 overflow-hidden">

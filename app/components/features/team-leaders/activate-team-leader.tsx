@@ -1,22 +1,10 @@
-import { useEffect } from "react";
 import { useFetcher } from "react-router";
-import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import type { FetcherResponse } from "~/lib/types";
 
 export function ActivateTeamLeader({ teamLeaderId }: { teamLeaderId: string }) {
 	const fetcher = useFetcher<FetcherResponse>();
 	const isSubmitting = fetcher.state === "submitting";
-	useEffect(() => {
-		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
-			}
-			if (!fetcher.data.success) {
-				toast.error(fetcher.data.message);
-			}
-		}
-	}, [fetcher.data]);
 	return (
 		<fetcher.Form
 			method="POST"

@@ -30,7 +30,7 @@ export default function CourseEditorLayout() {
 	return (
 		<div className="flex flex-col-reverse gap-8 md:gap-0 md:flex-row h-full overflow-hidden">
 			<CourseEditSidebar isInModuleView={!!moduleSlug} />
-			<div className="flex-1">
+			<div className="flex-1 overflow-y-auto [scrollbar-width:thin]">
 				<Outlet />
 			</div>
 		</div>
