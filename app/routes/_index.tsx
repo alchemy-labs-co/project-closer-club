@@ -1,5 +1,8 @@
 import { HeroSection } from "~/components/marketing/hero";
+import { FeaturesSection } from "~/components/marketing/features";
+import { AboutSection } from "~/components/marketing/about";
 import { CTASection } from "~/components/marketing/cta-section";
+import { Footer } from "~/components/marketing/footer";
 import type { Route } from "./+types/_index";
 import { useRouteLoaderData } from "react-router";
 
@@ -23,7 +26,10 @@ export default function MarketingPage({loaderData}: Route.ComponentProps) {
 	return (
 		<main className="flex flex-col gap-0">
 			<HeroSection/>
+			<FeaturesSection/>
+			<AboutSection/>
 			<CTASection/>
+			<Footer/>
 		</main>
 	);
 }

@@ -225,14 +225,15 @@ export async function getResumeableLessonForCourse(
 	if (completedLessons.length > 0) {
 		// Sort by module order, then by lesson order to find the truly last completed lesson
 		const lastCompletedLesson = completedLessons.reduce((latest, current) => {
-			const latestModuleOrder = parseInt(latest.moduleOrderIndex);
-			const currentModuleOrder = parseInt(current.moduleOrderIndex);
+			const latestModuleOrder = Number.parseInt(latest.moduleOrderIndex);
+			const currentModuleOrder = Number.parseInt(current.moduleOrderIndex);
 
 			if (currentModuleOrder > latestModuleOrder) {
 				return current;
-			} else if (currentModuleOrder === latestModuleOrder) {
-				const latestLessonOrder = parseInt(latest.orderIndex);
-				const currentLessonOrder = parseInt(current.orderIndex);
+			}
+			if (currentModuleOrder === latestModuleOrder) {
+				const latestLessonOrder = Number.parseInt(latest.orderIndex);
+				const currentLessonOrder = Number.parseInt(current.orderIndex);
 				return currentLessonOrder > latestLessonOrder ? current : latest;
 			}
 			return latest;
@@ -263,11 +264,11 @@ export async function getResumeableLessonForCourse(
 		}
 
 		// If no next lesson in current module, find first lesson in next module
-		const currentModuleOrderIndex = parseInt(
+		const currentModuleOrderIndex = Number.parseInt(
 			lastCompletedLesson.moduleOrderIndex,
 		);
 		const nextModule = modules.find(
-			(m) => parseInt(m.orderIndex) > currentModuleOrderIndex,
+			(m) => Number.parseInt(m.orderIndex) > currentModuleOrderIndex,
 		);
 
 		if (nextModule) {

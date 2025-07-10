@@ -5,18 +5,15 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/lib/utils'
 
 const menuItems = [
-    { name: 'Features', href: '#link' },
-    { name: 'Solution', href: '#link' },
-    { name: 'Pricing', href: '#link' },
-    { name: 'About', href: '#link' },
+    { name: 'Features', href: '#features' },
+    { name: 'About', href: '#about' },
 ]
 
 export function HeroSection() {
     return (
-
             <section className='relative min-h-screen overflow-hidden'>
             <HeroHeader />
-                    <div className="relative z-30 py-24 md:pb-32 lg:pb-36 lg:pt-72">
+                    <div className="relative z-30 py-24 pb-12 lg:pt-72">
                         <div className="mx-auto flex max-w-7xl flex-col items-center lg:items-start px-6 lg:px-12">
                             <div className="w-full flex flex-col items-center lg:items-start gap-12">
                                 <div className='flex flex-col gap-8 max-w-2xl w-full'>
@@ -25,7 +22,7 @@ export function HeroSection() {
                                         <p className="text-lg text-white/80">Elevate your insurance sales game with our comprehensive virtual training platform. Get standardized, high-quality training from anywhere, and fast-track your path to success.</p>
                                     </div>
                                     <div className="flex justify-center lg:justify-start">
-                                        <Link className='inline-flex items-center bg-white text-black hover:bg-white/90 py-3 px-6 rounded-full text-base font-medium transition-colors' to="/login">
+                                        <Link className='inline-flex items-center bg-white text-black hover:bg-white/90 py-3 px-6 rounded-full text-base font-medium transition-colors' to="#join-team">
                                             Join the Team
                                         </Link>
                                     </div>
@@ -53,8 +50,6 @@ export function HeroSection() {
     )
 }
 
-
-
 const HeroHeader = () => {
     const [scrolled, setScrolled] = React.useState(false)
     const { scrollYProgress } = useScroll()
@@ -70,7 +65,7 @@ const HeroHeader = () => {
         <header>
             <nav
                 className="group fixed z-50 w-full pt-2">
-                <div className={cn('mx-auto max-w-7xl rounded-3xl px-6 transition-all duration-300 lg:px-12', scrolled && 'bg-background/50 backdrop-blur-2xl')}>
+                <div className={cn('mx-auto max-w-7xl rounded-3xl px-6 transition-all duration-300 lg:px-12', scrolled && 'bg-background/50 backdrop-blur-3xl')}>
                     <motion.div
                         key={1}
                         className={cn('relative flex flex-wrap items-center justify-between gap-6 py-3 duration-200 lg:gap-0 lg:py-6', scrolled && 'lg:py-4')}>
@@ -79,7 +74,7 @@ const HeroHeader = () => {
                                 to="/"
                                 aria-label="home"
                                 className="flex items-center space-x-2">
-                                <span className="text-xl font-semibold text-white">Closer Club</span>
+                                <span className={cn("text-xl font-semibold text-white", scrolled && 'text-black')}>Closer Club</span>
                             </Link>
 
 
@@ -89,7 +84,7 @@ const HeroHeader = () => {
                                         <li key={item.name}>
                                             <Link
                                                 to={item.href}
-                                                className="text-white hover:text-white/80 block duration-150">
+                                                className={cn("text-white hover:text-white/80 block duration-150", scrolled && 'text-black')}>
                                                 <span>{item.name}</span>
                                             </Link>
                                         </li>
@@ -117,15 +112,15 @@ const HeroHeader = () => {
                                     asChild
                                     variant="outline"
                                     size="sm">
-                                    <Link to="#">
-                                        <span>Login</span>
+                                    <Link to="/login">
+                                        <span>Agent Login</span>
                                     </Link>
                                 </Button>
                                 <Button
                                     asChild
                                     size="sm">
-                                    <Link to="#">
-                                        <span>Sign Up</span>
+                                    <Link to="/team-leader/login">
+                                        <span>Team Leader Login</span>
                                     </Link>
                                 </Button>
                             </div>
