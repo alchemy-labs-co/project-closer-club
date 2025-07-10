@@ -6,6 +6,8 @@ import { isAdminLoggedIn } from "~/lib/auth/auth.server";
 import {
 	uploadAttachmentToBunny,
 	createAndUploadVideoToBunnyStream,
+	generateVideoUploadToken,
+	generateAttachmentUploadToken,
 } from "~/lib/bunny.server";
 import { dashboardConfig } from "~/config/dashboard";
 import { titleToSlug } from "~/lib/utils";
@@ -170,6 +172,7 @@ export async function handleCreateSegment(
 				success: true,
 				message: "Lesson created successfully",
 				segmentSlug: insertedSegment.slug,
+				redirectTo: `/dashboard/courses/${courseSlug}/${moduleSlug}/${insertedSegment.slug}`,
 			},
 			{ status: 200 },
 		);
@@ -286,7 +289,7 @@ export async function handleEditSegment(request: Request, formData: FormData) {
 			{
 				success: true,
 				message: "Lesson updated successfully",
-				redirectTo: updatedLesson.slug,
+				redirectTo: `/dashboard/courses/${courseSlug}/${moduleSlug}/${updatedLesson.slug}`,
 			},
 			{ status: 200 },
 		);
@@ -403,8 +406,6 @@ export async function handleGenerateUploadTokens(
 		}
 
 		// Generate video upload token
-		const { generateVideoUploadToken, generateAttachmentUploadToken } =
-			await import("~/lib/bunny.server");
 
 		const videoToken = await generateVideoUploadToken(
 			name,
@@ -421,6 +422,7 @@ export async function handleGenerateUploadTokens(
 		return data(
 			{
 				success: true,
+				message: "Upload tokens generated successfully",
 				videoToken,
 				attachmentTokens,
 			},
@@ -553,7 +555,6 @@ export async function handleConfirmUploads(
 				await Promise.all(attachmentPromises);
 			} catch (attachmentError) {
 				console.error("🔴 Error saving attachments:", attachmentError);
-				// Note: We don't fail the entire operation if attachments fail
 			}
 		}
 

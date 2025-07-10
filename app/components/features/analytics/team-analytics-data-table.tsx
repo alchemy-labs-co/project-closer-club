@@ -14,7 +14,6 @@ import {
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Columns, X } from "lucide-react";
 import * as React from "react";
-import { useEffect } from "react";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -134,7 +133,6 @@ export function TeamAnalyticsDataTable({
 }: {
 	agentData: TeamLeaderAnalytics["agentAnalytics"]["agents"];
 }) {
-	const [data, setData] = React.useState(agentData);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -144,7 +142,7 @@ export function TeamAnalyticsDataTable({
 	});
 
 	const table = useReactTable({
-		data,
+		data: agentData,
 		columns,
 		state: {
 			sorting,
@@ -165,9 +163,6 @@ export function TeamAnalyticsDataTable({
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	});
 
-	useEffect(() => {
-		setData(agentData);
-	}, [agentData]);
 
 	const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -250,7 +245,7 @@ export function TeamAnalyticsDataTable({
 					</div>
 
 					<div className="text-sm text-muted-foreground">
-						Total: {data.length} agents
+						Total: {agentData.length} agents
 					</div>
 				</div>
 
@@ -299,7 +294,7 @@ export function TeamAnalyticsDataTable({
 			</div>
 
 			{/* Pagination */}
-			{data.length > 0 && (
+			{agentData.length > 0 && (
 				<div className="flex items-center justify-between px-4">
 					<div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
 						Showing {table.getFilteredRowModel().rows.length} of{" "}

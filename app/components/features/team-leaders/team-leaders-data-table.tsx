@@ -173,7 +173,6 @@ export function TeamLeadersDataTable({
 }: {
 	initialData: TeamLeader[];
 }) {
-	const [data, setData] = React.useState(initialData);
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
@@ -187,7 +186,7 @@ export function TeamLeadersDataTable({
 	});
 
 	const table = useReactTable({
-		data,
+		data: initialData,
 		columns,
 		state: {
 			sorting,
@@ -211,9 +210,6 @@ export function TeamLeadersDataTable({
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	});
 
-	useEffect(() => {
-		setData(initialData);
-	}, [initialData]);
 
 	return (
 		<div className="w-full flex flex-col justify-between h-full gap-6 overflow-hidden">

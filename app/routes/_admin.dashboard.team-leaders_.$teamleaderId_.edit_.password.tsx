@@ -68,6 +68,7 @@ export default function EditPasswordPage({ loaderData }: Route.ComponentProps) {
 			}
 		}
 	}, [fetcher.data, form.reset]);
+	
 	useEffect(() => {
 		if (hasCopied) {
 			toast.success("Copied to clipboard");

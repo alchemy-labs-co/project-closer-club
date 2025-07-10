@@ -1,8 +1,6 @@
 import { format } from "date-fns";
 import { Loader2, PlusIcon } from "lucide-react";
-import { useEffect } from "react";
 import { data, Link, useFetcher, useLoaderData } from "react-router";
-import { toast } from "sonner";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import { Button } from "~/components/ui/button";
 import {
@@ -16,7 +14,6 @@ import {
 } from "~/components/ui/dialog";
 import { getAllQuizzesWithLessonInfo } from "~/lib/admin/data-access/quiz/quiz.server";
 import type { Route } from "./+types/_admin.dashboard.quizzes";
-import type { Question } from "./_admin.dashboard.quizzes_.create";
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const result = await getAllQuizzesWithLessonInfo(request);

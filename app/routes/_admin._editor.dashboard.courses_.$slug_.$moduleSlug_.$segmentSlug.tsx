@@ -253,7 +253,7 @@ function LessonQuizzes() {
 							(quiz.questions as Question[]).map(
 								(question: Question, questionIndex: number) => (
 									<div
-										key={questionIndex}
+										key={question.id}
 										className="border-l-4 border-blue-500 pl-4"
 									>
 										<h4 className="font-medium text-gray-800 mb-3">
@@ -264,7 +264,7 @@ function LessonQuizzes() {
 											{question.answers.map(
 												(answer: string, answerIndex: number) => (
 													<div
-														key={answerIndex}
+														key={answer}
 														className={`flex items-center p-3 rounded-md transition-colors ${
 															answerIndex === question.correctAnswerIndex
 																? "bg-green-50 border border-green-200"
@@ -280,7 +280,8 @@ function LessonQuizzes() {
 														>
 															{answerIndex === question.correctAnswerIndex && (
 																<svg
-																title
+																	aria-label="Correct Answer"
+																	aria-hidden="true"
 																	className="w-3 h-3 text-white"
 																	fill="currentColor"
 																	viewBox="0 0 20 20"
@@ -511,9 +512,9 @@ function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 			tokenFormData.append("lessonId", lessonId);
 
 			// Add attachment file names for token generation
-			data.attachments.forEach((file) => {
+			for (const file of data.attachments) {
 				tokenFormData.append("attachmentNames", file.name);
-			});
+			}
 
 			const tokenResponse = await fetch("/resource/attachments", {
 				method: "POST",
@@ -686,7 +687,7 @@ function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 											<div className="flex flex-wrap gap-2">
 												{attachments.map((file, index) => (
 													<Badge
-														key={index}
+														key={file.name}
 														variant="secondary"
 														className="flex items-center gap-2 px-3 py-1 max-w-xs"
 													>

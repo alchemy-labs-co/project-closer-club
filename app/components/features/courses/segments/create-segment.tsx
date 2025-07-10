@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { redirect, useFetcher, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import PrimaryButton from "~/components/global/brand/primary-button";
+import { Badge } from "~/components/ui/badge";
 import {
 	Dialog,
 	DialogContent,
@@ -23,22 +24,19 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { Badge } from "~/components/ui/badge";
 import {
+	ACCEPTED_VIDEO_TYPES,
 	MAX_ATTACHMENT_SIZE,
 	MAX_VIDEO_SIZE,
-	ACCEPTED_VIDEO_TYPES,
 } from "~/lib/constants";
 import type { FetcherResponse } from "~/lib/types";
+import {
+	uploadWithProgress
+} from "~/lib/utils";
 import {
 	createSegmentSchema,
 	type CreateSegmentSchema,
 } from "~/lib/zod-schemas/segment";
-import {
-	uploadVideoDirectlyToBunny,
-	uploadAttachmentDirectlyToBunny,
-	uploadWithProgress,
-} from "~/lib/utils";
 
 type CreateSegmentFetcherResponse = FetcherResponse & {
 	segmentSlug: string;
@@ -147,9 +145,9 @@ export function CreateSegment() {
 			tokenFormData.append("lessonId", "temp"); // Will be replaced with actual ID
 
 			// Add attachment file names for token generation
-			attachments.forEach((file) => {
+			for (const file of attachments) {
 				tokenFormData.append("attachmentNames", file.name);
-			});
+			}
 
 			const tokenResponse = await fetch("/resource/segment", {
 				method: "POST",
@@ -235,23 +233,11 @@ export function CreateSegment() {
 
 	useEffect(() => {
 		if (fetcher.data) {
-			if (fetcher.data.success) {
-				toast.success(fetcher.data.message);
-				if (fetcher.data.segmentSlug) {
-					navigate(
-						`/dashboard/courses/${courseSlug}/${moduleSlug}/${fetcher.data.segmentSlug}`,
-					);
-				}
-			}
-			if (!fetcher.data.success) {
-				toast.error(fetcher.data.message);
-			}
-
 			// Reset upload state
 			setIsUploading(false);
 			setUploadProgress({ video: 0, attachments: {} });
 		}
-	}, [fetcher.data, courseSlug, moduleSlug, navigate]);
+	}, [fetcher.data]);
 
 	return (
 		<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -329,6 +315,7 @@ export function CreateSegment() {
 										>
 											{videoPreview ? (
 												<video
+													aria-label="Video Preview"
 													src={videoPreview}
 													controls
 													className="max-h-[200px] rounded-lg object-cover"
@@ -415,7 +402,7 @@ export function CreateSegment() {
 											<div className="flex flex-wrap gap-2">
 												{attachments.map((file, index) => (
 													<Badge
-														key={index}
+														key={file.name}
 														variant="secondary"
 														className="flex items-center gap-2 px-3 py-1 max-w-xs"
 													>

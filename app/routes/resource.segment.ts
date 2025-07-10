@@ -8,6 +8,7 @@ import {
 } from "~/lib/admin/actions/segment/segment.server";
 import { toast } from "sonner";
 import type { Route } from "./+types/resource.segment";
+import type { FetcherResponse } from "~/lib/types";
 
 const intents = [
 	"create-segment",
@@ -21,6 +22,20 @@ export async function loader() {
 	return data("Not Allowed", { status: 405 });
 }
 
+
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+	const result: FetcherResponse = await serverAction();
+
+	if (result.success) {
+		toast.success(result.message);
+		if (result.redirectTo) {
+			redirect(result.redirectTo);
+		}
+	} else {
+		toast.error(result.message);
+	}
+	return result;
+}
 
 export async function action({ request }: Route.ActionArgs) {
 	const formData = await request.formData();

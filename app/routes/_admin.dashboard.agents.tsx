@@ -12,9 +12,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 	return { students };
 }
 
-function NonCriticalLoaderData() {
-	
-}
 
 export function useAgentsLoaderData() {
 	const data = useRouteLoaderData<typeof loader>(
