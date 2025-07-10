@@ -4,7 +4,7 @@ import { LeadCaptureForm } from "./lead-capture/config/lead-capture-form";
 export function CTASection() {
   
   return (
-    <section className="relative min-h-[600px] overflow-hidden">
+    <section id="join-team" className="relative min-h-[600px] overflow-hidden">
         <div className="absolute inset-0 w-full h-full">
             <div className="absolute inset-0 overflow-hidden  sm:aspect-video">
                 <div className="absolute inset-0 bg-gradient-to-br from-black/80 to-black/60 z-10" />

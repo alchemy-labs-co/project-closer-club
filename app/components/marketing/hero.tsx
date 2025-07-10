@@ -6,14 +6,11 @@ import { cn } from '~/lib/utils'
 
 const menuItems = [
     { name: 'Features', href: '#link' },
-    { name: 'Solution', href: '#link' },
-    { name: 'Pricing', href: '#link' },
     { name: 'About', href: '#link' },
 ]
 
 export function HeroSection() {
     return (
-
             <section className='relative min-h-screen overflow-hidden'>
             <HeroHeader />
                     <div className="relative z-30 py-24 md:pb-32 lg:pb-36 lg:pt-72">
@@ -25,7 +22,7 @@ export function HeroSection() {
                                         <p className="text-lg text-white/80">Elevate your insurance sales game with our comprehensive virtual training platform. Get standardized, high-quality training from anywhere, and fast-track your path to success.</p>
                                     </div>
                                     <div className="flex justify-center lg:justify-start">
-                                        <Link className='inline-flex items-center bg-white text-black hover:bg-white/90 py-3 px-6 rounded-full text-base font-medium transition-colors' to="/login">
+                                        <Link className='inline-flex items-center bg-white text-black hover:bg-white/90 py-3 px-6 rounded-full text-base font-medium transition-colors' to="#join-team">
                                             Join the Team
                                         </Link>
                                     </div>
@@ -52,8 +49,6 @@ export function HeroSection() {
 
     )
 }
-
-
 
 const HeroHeader = () => {
     const [scrolled, setScrolled] = React.useState(false)
@@ -117,15 +112,15 @@ const HeroHeader = () => {
                                     asChild
                                     variant="outline"
                                     size="sm">
-                                    <Link to="#">
-                                        <span>Login</span>
+                                    <Link to="/login">
+                                        <span>Agent Login</span>
                                     </Link>
                                 </Button>
                                 <Button
                                     asChild
                                     size="sm">
-                                    <Link to="#">
-                                        <span>Sign Up</span>
+                                    <Link to="/team-leader/login">
+                                        <span>Team Leader Login</span>
                                     </Link>
                                 </Button>
                             </div>
