@@ -29,7 +29,6 @@ import { useForm } from "react-hook-form";
 import { useFetcher } from "react-router";
 import { toast } from "sonner";
 import { AssignCourseToStudent } from "~/components/features/students/assign-course-to-student";
-import EmailDomainInput from "~/components/features/students/email-domain-input";
 import { AssignAgentsToTeamLeader } from "~/components/features/team-leaders/assign-agents-to-team-leader";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import { Badge } from "~/components/ui/badge";
@@ -308,12 +307,12 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 										Email <span className="text-xs text-red-500">*</span>
 									</FormLabel>
 									<FormControl>
-										<EmailDomainInput
+										<Input
 											placeholder={`Enter ${watchedUserType === "team-leader" ? "team leader" : "agent"} username`}
-											value={field.value}
-											onChange={field.onChange}
+											type="email"
 											disabled={isSubmitting}
 											className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
+											{...field}
 										/>
 									</FormControl>
 									<FormMessage />

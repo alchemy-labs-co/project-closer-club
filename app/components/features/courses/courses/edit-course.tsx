@@ -1,10 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImagePlus, Pencil } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import { useFetcher } from "react-router";
-import { toast } from "sonner";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import {
 	Dialog,
@@ -29,7 +28,6 @@ import {
 	type UpdateCourseSchema,
 	updateCourseSchema,
 } from "~/lib/zod-schemas/course";
-
 export function EditCourse({
 	name,
 	description,

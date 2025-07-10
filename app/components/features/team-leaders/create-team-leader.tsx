@@ -28,7 +28,6 @@ import {
 	type CreateTeamLeaderSchema,
 } from "~/lib/zod-schemas/team-leader";
 import { AssignAgentsToTeamLeader } from "./assign-agents-to-team-leader";
-import EmailDomainInput from "../students/email-domain-input";
 import { AssignCourseToStudent } from "../students/assign-course-to-student";
 
 export function CreateTeamLeader() {
@@ -163,12 +162,12 @@ export function CreateTeamLeader() {
 											Email <span className="text-xs text-red-500">*</span>
 										</FormLabel>
 										<FormControl>
-											<EmailDomainInput
+											<Input
 												placeholder="Enter team leader username"
-												value={field.value}
-												onChange={field.onChange}
+												type="email"
 												disabled={isSubmitting}
 												className="bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
+												{...field}
 											/>
 										</FormControl>
 										<FormMessage />
@@ -185,7 +184,7 @@ export function CreateTeamLeader() {
 											Courses
 										</FormLabel>
 										<FormControl>
-											<AssignCourseToStudent form={form} {...field} />
+											<AssignCourseToStudent form={form as any} {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -202,7 +201,7 @@ export function CreateTeamLeader() {
 											<span className="text-xs text-gray-500">(optional)</span>
 										</FormLabel>
 										<FormControl>
-											<AssignAgentsToTeamLeader form={form} {...field} />
+											<AssignAgentsToTeamLeader form={form as any} {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>

@@ -1,5 +1,4 @@
 import LoginAuthForm from "~/components/global/admin/login-auth-form";
-import { PrimaryLogo } from "~/components/global/brand/primary-logo";
 
 type AuthType = "admin" | "student" | "team-leader";
 

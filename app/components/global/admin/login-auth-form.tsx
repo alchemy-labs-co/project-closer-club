@@ -44,15 +44,7 @@ export default function LoginAuthForm({
   const isPending = fetcher.state !== "idle";
   
   // Conditionally select schema and type based on user type
-  const form = type === "admin" 
-    ? useForm<AdminLoginSchema>({
-        resolver: zodResolver(adminLoginSchema),
-        defaultValues: {
-          email: "",
-          password: "",
-        },
-      })
-    : useForm<LoginSchema>({
+  const form = useForm<LoginSchema>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
           email: "",
