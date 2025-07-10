@@ -65,7 +65,7 @@ const HeroHeader = () => {
         <header>
             <nav
                 className="group fixed z-50 w-full pt-2">
-                <div className={cn('mx-auto max-w-7xl rounded-3xl px-6 transition-all duration-300 lg:px-12', scrolled && 'bg-background/50 backdrop-blur-2xl')}>
+                <div className={cn('mx-auto max-w-7xl rounded-3xl px-6 transition-all duration-300 lg:px-12', scrolled && 'bg-background/50 backdrop-blur-3xl')}>
                     <motion.div
                         key={1}
                         className={cn('relative flex flex-wrap items-center justify-between gap-6 py-3 duration-200 lg:gap-0 lg:py-6', scrolled && 'lg:py-4')}>
@@ -74,7 +74,7 @@ const HeroHeader = () => {
                                 to="/"
                                 aria-label="home"
                                 className="flex items-center space-x-2">
-                                <span className="text-xl font-semibold text-white">Closer Club</span>
+                                <span className={cn("text-xl font-semibold text-white", scrolled && 'text-black')}>Closer Club</span>
                             </Link>
 
 
@@ -84,7 +84,7 @@ const HeroHeader = () => {
                                         <li key={item.name}>
                                             <Link
                                                 to={item.href}
-                                                className="text-white hover:text-white/80 block duration-150">
+                                                className={cn("text-white hover:text-white/80 block duration-150", scrolled && 'text-black')}>
                                                 <span>{item.name}</span>
                                             </Link>
                                         </li>
