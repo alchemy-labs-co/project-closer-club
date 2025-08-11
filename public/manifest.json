@@ -1,0 +1,38 @@
+{
+	"name": "Closer Club",
+	"short_name": "CloserClub",
+	"description": "Transform Your Insurance Career with Closer Club - Comprehensive virtual training platform",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#F6F6F4",
+	"theme_color": "#2D9CDB",
+	"orientation": "portrait-primary",
+	"icons": [
+		{
+			"src": "/favicon-16x16.png",
+			"sizes": "16x16",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/favicon-32x32.png",
+			"sizes": "32x32",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/android-chrome-192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "/android-chrome-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		}
+	],
+	"categories": ["education", "business", "productivity"],
+	"lang": "en-US"
+}
