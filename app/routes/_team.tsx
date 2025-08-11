@@ -14,16 +14,18 @@ import {
 	SidebarTrigger,
 } from "~/components/ui/sidebar";
 import { teamLeaderDashboardConfig } from "~/config/dashboard";
-import { isTeamLeaderLoggedIn } from "~/lib/auth/auth.server";
+import { isAuthenticated } from "~/lib/auth/auth.server";
 import type { Route } from "./+types/_team";
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const { isLoggedIn, teamLeader } = await isTeamLeaderLoggedIn(request);
-	if (!isLoggedIn || !teamLeader) {
-		return redirect("/team-leader/login");
+	const { session } = await isAuthenticated(request);
+
+	if (!session || session.role !== "team_leader") {
+		return redirect("/login");
 	}
+
 	return {
-		teamLeader,
+		teamLeader: session,
 	};
 }
 

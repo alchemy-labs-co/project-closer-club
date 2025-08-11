@@ -3,6 +3,7 @@ import {
 	handleSignInAdmin,
 	handleSignInStudent,
 	handleSignInTeamLeader,
+	handleUnifiedSignIn,
 } from "~/lib/admin/actions/auth/auth.server";
 import { handleSignOut } from "~/lib/auth/auth.server";
 import type { Route } from "./+types/resource.auth";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 // import { handleSignInAdmin, handleSignInStudent, handleSignOut } from "~/lib/admin/actions/auth/auth.server"
 
 const intents = [
+	"unified-sign-in",
 	"sign-in-admin",
 	"sign-in-student",
 	"sign-in-team-leader",
@@ -25,10 +27,10 @@ export async function loader() {
 export async function clientAction({ serverAction }: Route.ClientActionArgs) {
 	const result:
 		| {
-			success: boolean;
-			message: string;
-			redirectToUrl?: string;
-		}
+				success: boolean;
+				message: string;
+				redirectToUrl?: string;
+		  }
 		| undefined = await serverAction();
 
 	if (result?.success) {
@@ -54,6 +56,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	try {
 		const handlers = {
+			"unified-sign-in": handleUnifiedSignIn,
 			"sign-in-admin": handleSignInAdmin,
 			"sign-in-student": handleSignInStudent,
 			"sign-in-team-leader": handleSignInTeamLeader,

@@ -6,6 +6,108 @@ import { auth } from "~/lib/auth/auth.server";
 import { isStudentAccountActivated } from "~/lib/student/data-access/students.server";
 import { loginSchema, adminLoginSchema } from "../../../zod-schemas/auth";
 
+// Unified Login Handler
+export async function handleUnifiedSignIn(
+	request: Request,
+	formData: FormData,
+) {
+	const loginData = {
+		email: formData.get("email"),
+		password: formData.get("password"),
+	};
+
+	const unvalidatedFields = loginSchema.safeParse(loginData);
+	if (!unvalidatedFields.success) {
+		return data({ success: false, message: "Invalid Fields" }, { status: 403 });
+	}
+
+	const validatedFields = unvalidatedFields.data;
+
+	try {
+		// Sign in the user
+		const { response, headers } = await auth.api.signInEmail({
+			returnHeaders: true,
+			body: {
+				email: validatedFields.email,
+				password: validatedFields.password,
+			},
+		});
+
+		// Get user details including role
+		const [signedInUser] = await db
+			.select()
+			.from(user)
+			.where(eq(user.id, response.user.id))
+			.limit(1);
+
+		// Check for student activation if user role
+		if (signedInUser.role === "user") {
+			const { isStudentActivated } = await isStudentAccountActivated(
+				validatedFields.email,
+			);
+			if (!isStudentActivated) {
+				return data(
+					{
+						success: false,
+						message:
+							"Your account is not activated. Please contact your administrator.",
+					},
+					{ status: 403 },
+				);
+			}
+		}
+
+		// Check for team leader activation if team_leader role
+		if (signedInUser.role === "team_leader") {
+			// Add team leader activation check if needed
+			// For now, we'll proceed
+		}
+
+		// Clear old sessions
+		const { success } = await LogUserOutOfAllSessionsExceptMostActiveOne(
+			response.user.id,
+		);
+		if (!success) {
+			throw new Error("Error logging out user from all sessions");
+		}
+
+		// Determine redirect URL based on role
+		let redirectToUrl: string;
+		switch (signedInUser.role) {
+			case "admin":
+				redirectToUrl = "/dashboard";
+				break;
+			case "team_leader":
+				redirectToUrl = "/team/analytics";
+				break;
+			case "user":
+				redirectToUrl = "/student/courses";
+				break;
+			default:
+				redirectToUrl = "/";
+		}
+
+		return data(
+			{
+				success: true,
+				message: `Welcome back!`,
+				redirectToUrl,
+			},
+			{ headers },
+		);
+	} catch (error) {
+		console.error(`🔴Error signing in: ${error}`);
+		return data(
+			{
+				success: false,
+				message:
+					error instanceof Error ? error.message : "Invalid email or password",
+			},
+			{ status: 500 },
+		);
+	}
+}
+
 // Admin Login
 export async function handleSignInAdmin(request: Request, formData: FormData) {
 	const loginData = {

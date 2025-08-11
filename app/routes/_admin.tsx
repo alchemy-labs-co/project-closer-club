@@ -13,16 +13,18 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "~/components/ui/sidebar";
-import { isAdminLoggedIn } from "~/lib/auth/auth.server";
+import { isAuthenticated } from "~/lib/auth/auth.server";
 import type { Route } from "./+types/_admin";
 
 export async function loader({ request }: Route.LoaderArgs) {
-	const { isLoggedIn, admin } = await isAdminLoggedIn(request);
-	if (!isLoggedIn || !admin) {
-		return redirect("/admin/login");
+	const { session } = await isAuthenticated(request);
+
+	if (!session || session.role !== "admin") {
+		return redirect("/login");
 	}
+
 	return {
-		admin,
+		admin: session,
 	};
 }
 
