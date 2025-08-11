@@ -5,6 +5,35 @@ import { CTASection } from "~/components/marketing/cta-section";
 import { Footer } from "~/components/marketing/footer";
 import type { Route } from "./+types/_index";
 import { useRouteLoaderData } from "react-router";
+import { metadata, assets } from "~/config/branding";
+
+export function meta() {
+	const pageTitle = `${metadata.siteName} - Transform Your Insurance Career`;
+	const pageDescription = metadata.siteDescription;
+	const pageUrl = metadata.siteUrl;
+	
+	return [
+		{ title: pageTitle },
+		{ name: "description", content: pageDescription },
+		// Open Graph
+		{ property: "og:title", content: pageTitle },
+		{ property: "og:description", content: pageDescription },
+		{ property: "og:url", content: pageUrl },
+		{ property: "og:image", content: `${metadata.siteUrl}${assets.openGraph.default}` },
+		{ property: "og:image:width", content: "1536" },
+		{ property: "og:image:height", content: "1024" },
+		// Twitter
+		{ name: "twitter:title", content: pageTitle },
+		{ name: "twitter:description", content: pageDescription },
+		{ name: "twitter:image", content: `${metadata.siteUrl}${assets.openGraph.default}` },
+		// Canonical
+		{
+			tagName: "link",
+			rel: "canonical",
+			href: pageUrl,
+		},
+	];
+}
 
 export async function loader({request}: Route.LoaderArgs) {
 	// retrive cookie waitlist

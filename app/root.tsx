@@ -10,9 +10,36 @@ import type { Route } from "./+types/root";
 import fontStyles from "./styles/fonts.css?url";
 import "./styles/global.css";
 import { Toaster } from "sonner";
+import { metadata } from "~/config/branding";
+
+export function meta() {
+	return [
+		{ title: metadata.siteName },
+		{ name: "description", content: metadata.siteDescription },
+		{ name: "theme-color", content: metadata.defaultMeta.themeColor },
+		{ name: "keywords", content: metadata.defaultMeta.keywords },
+		// Open Graph
+		{ property: "og:site_name", content: metadata.social.openGraph.siteName },
+		{ property: "og:type", content: metadata.social.openGraph.type },
+		{ property: "og:locale", content: metadata.social.openGraph.locale },
+		// Twitter
+		{ name: "twitter:card", content: metadata.social.twitter.card },
+		{ name: "twitter:site", content: metadata.social.twitter.site },
+		{ name: "twitter:creator", content: metadata.social.twitter.creator },
+	];
+}
 
 export const links: Route.LinksFunction = () => [
 	{ rel: "stylesheet", href: fontStyles },
+	// Favicons
+	{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+	{ rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+	{ rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+	{ rel: "icon", type: "image/png", sizes: "192x192", href: "/android-chrome-192x192.png" },
+	{ rel: "icon", type: "image/png", sizes: "512x512", href: "/android-chrome-512x512.png" },
+	{ rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+	// Manifest (we'll create this next)
+	{ rel: "manifest", href: "/manifest.json" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {

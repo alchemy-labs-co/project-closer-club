@@ -15,7 +15,7 @@ export default function UnifiedAuthPage() {
 			</div>
 			{/* RIGHT SIDE */}
 			<div className="relative h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-				<div className="absolute inset-0 rounded-md bg-gradient-to-br from-brand-primary to-brand-primary/80 md:rounded-none" />
+				<div className="absolute inset-0 rounded-md bg-gradient-to-br from-brand-aqua to-brand-aqua/80 md:rounded-none" />
 				<div className="relative z-20 mt-auto">
 					<blockquote className="space-y-2">
 						<p className="text-lg">

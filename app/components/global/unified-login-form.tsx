@@ -97,7 +97,7 @@ export default function UnifiedLoginForm() {
 						<Button
 							type="submit"
 							disabled={isPending}
-							className="bg-gradient-to-br from-brand-primary to-brand-primary/80 text-white cursor-pointer h-10 font-medium"
+							className="bg-gradient-to-br from-brand-aqua to-brand-aqua/80 text-white cursor-pointer h-10 font-medium hover:from-brand-aqua/90 hover:to-brand-aqua/70 transition-all"
 						>
 							{isPending ? "Logging in..." : "Login"}
 						</Button>
