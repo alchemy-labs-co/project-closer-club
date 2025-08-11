@@ -7,25 +7,43 @@ import type { Route } from "./+types/_index";
 import { useRouteLoaderData } from "react-router";
 import { metadata, assets } from "~/config/branding";
 
-export function meta() {
+export function meta({ matches }: Route.MetaArgs) {
 	const pageTitle = `${metadata.siteName} - Transform Your Insurance Career`;
-	const pageDescription = metadata.siteDescription;
-	const pageUrl = metadata.siteUrl;
+	const pageDescription = "Master insurance sales with Closer Club's comprehensive virtual training platform. Expert-led courses, real-world scenarios, and proven strategies to accelerate your career.";
+	
+	// For production, this should come from environment variable
+	const baseUrl = typeof window !== "undefined" 
+		? window.location.origin 
+		: process.env.PUBLIC_URL || "http://localhost:5173";
+	const pageUrl = baseUrl;
+	const ogImageUrl = `${baseUrl}${assets.openGraph.default}`;
+	
+	// Get parent meta tags
+	const parentMeta = matches.flatMap((match) => match?.meta ?? []);
+	
+	// Filter out meta tags we want to override
+	const filteredParentMeta = parentMeta.filter((meta: any) => {
+		if ("title" in meta) return false;
+		if ("name" in meta && meta.name === "description") return false;
+		if ("property" in meta && meta.property?.startsWith("og:title")) return false;
+		if ("property" in meta && meta.property?.startsWith("og:description")) return false;
+		if ("property" in meta && meta.property?.startsWith("og:url")) return false;
+		if ("name" in meta && meta.name?.startsWith("twitter:title")) return false;
+		if ("name" in meta && meta.name?.startsWith("twitter:description")) return false;
+		return true;
+	});
 	
 	return [
+		...filteredParentMeta,
 		{ title: pageTitle },
 		{ name: "description", content: pageDescription },
-		// Open Graph
+		// Open Graph overrides
 		{ property: "og:title", content: pageTitle },
 		{ property: "og:description", content: pageDescription },
 		{ property: "og:url", content: pageUrl },
-		{ property: "og:image", content: `${metadata.siteUrl}${assets.openGraph.default}` },
-		{ property: "og:image:width", content: "1536" },
-		{ property: "og:image:height", content: "1024" },
-		// Twitter
+		// Twitter overrides
 		{ name: "twitter:title", content: pageTitle },
 		{ name: "twitter:description", content: pageDescription },
-		{ name: "twitter:image", content: `${metadata.siteUrl}${assets.openGraph.default}` },
 		// Canonical
 		{
 			tagName: "link",

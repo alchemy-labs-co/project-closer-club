@@ -10,22 +10,41 @@ import type { Route } from "./+types/root";
 import fontStyles from "./styles/fonts.css?url";
 import "./styles/global.css";
 import { Toaster } from "sonner";
-import { metadata } from "~/config/branding";
+import { metadata, assets } from "~/config/branding";
 
 export function meta() {
+	// For OG images, we need to use absolute URLs
+	// In production, this should be set via environment variable
+	const baseUrl = typeof window !== "undefined" 
+		? window.location.origin 
+		: process.env.PUBLIC_URL || "http://localhost:5173";
+	const ogImageUrl = `${baseUrl}${assets.openGraph.default}`;
+	
 	return [
 		{ title: metadata.siteName },
 		{ name: "description", content: metadata.siteDescription },
 		{ name: "theme-color", content: metadata.defaultMeta.themeColor },
 		{ name: "keywords", content: metadata.defaultMeta.keywords },
-		// Open Graph
+		{ name: "viewport", content: "width=device-width,initial-scale=1" },
+		{ charSet: "utf-8" },
+		// Open Graph defaults
 		{ property: "og:site_name", content: metadata.social.openGraph.siteName },
 		{ property: "og:type", content: metadata.social.openGraph.type },
 		{ property: "og:locale", content: metadata.social.openGraph.locale },
-		// Twitter
+		{ property: "og:title", content: metadata.siteName },
+		{ property: "og:description", content: metadata.siteDescription },
+		{ property: "og:image", content: ogImageUrl },
+		{ property: "og:image:width", content: "1200" },
+		{ property: "og:image:height", content: "630" },
+		{ property: "og:image:alt", content: metadata.siteName },
+		// Twitter defaults
 		{ name: "twitter:card", content: metadata.social.twitter.card },
 		{ name: "twitter:site", content: metadata.social.twitter.site },
 		{ name: "twitter:creator", content: metadata.social.twitter.creator },
+		{ name: "twitter:title", content: metadata.siteName },
+		{ name: "twitter:description", content: metadata.siteDescription },
+		{ name: "twitter:image", content: ogImageUrl },
+		{ name: "twitter:image:alt", content: metadata.siteName },
 	];
 }
 
@@ -46,8 +65,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en">
 			<head>
-				<meta charSet="utf-8" />
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<Meta />
 				<Links />
 			</head>
