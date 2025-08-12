@@ -11,6 +11,16 @@ const ACCESS_KEYS = {
 	streamAccessKey: process.env.BUNNY_STREAM_ACCESS_KEY,
 };
 
+// Validate environment variables on module load
+if (!process.env.BUNNY_STREAM_ACCESS_KEY) {
+	console.warn("⚠️ BUNNY_STREAM_ACCESS_KEY is not set. Video operations will fail.");
+	console.warn("Get this from: Bunny.net Dashboard → Video Library → API section");
+}
+if (!process.env.BUNNY_STORAGE_ACCESS_KEY) {
+	console.warn("⚠️ BUNNY_STORAGE_ACCESS_KEY is not set. Storage operations will fail.");
+	console.warn("Get this from: Bunny.net Dashboard → Storage Zone → FTP & API Access (use the password)");
+}
+
 // API fetch helper with required Bunny CDN options
 // API fetch helper with required Bunny CDN options
 export const bunnyApiFetch = async <T = Record<string, unknown>>(
@@ -29,14 +39,19 @@ export const bunnyApiFetch = async <T = Record<string, unknown>>(
 
 	const key =
 		process.env[
-		bunnyType === "stream"
-			? "BUNNY_STREAM_ACCESS_KEY"
-			: "BUNNY_STORAGE_ACCESS_KEY"
+			bunnyType === "stream"
+				? "BUNNY_STREAM_ACCESS_KEY"
+				: "BUNNY_STORAGE_ACCESS_KEY"
 		];
+
+	if (!key) {
+		const keyName = bunnyType === "stream" ? "BUNNY_STREAM_ACCESS_KEY" : "BUNNY_STORAGE_ACCESS_KEY";
+		throw new Error(`Missing environment variable: ${keyName}. Please check your .env file.`);
+	}
 
 	const requestHeaders = {
 		...headers,
-		AccessKey: key || "",
+		AccessKey: key,
 		...(bunnyType === "stream" && {
 			accept: "application/json",
 			...(body && { "content-type": "application/json" }),
@@ -52,7 +67,15 @@ export const bunnyApiFetch = async <T = Record<string, unknown>>(
 	const response = await fetch(url, requestOptions);
 
 	if (!response.ok) {
-		throw new Error(`API error ${response.text()}`);
+		const errorText = await response.text();
+		console.error(`🔴 Bunny API error:`, {
+			url,
+			status: response.status,
+			statusText: response.statusText,
+			errorText,
+			bunnyType,
+		});
+		throw new Error(`API error: ${response.status} - ${errorText}`);
 	}
 
 	if (method === "DELETE" || !expectJson) {
@@ -573,4 +596,153 @@ export const uploadCertificateToBunny = async (
 		});
 		throw error;
 	}
+};
+
+// Video Library Functions
+
+interface BunnyStreamVideo {
+	guid: string;
+	title: string;
+	description?: string;
+	dateUploaded: string;
+	views: number;
+	length: number; // duration in seconds
+	status: number;
+	framerate?: number;
+	width?: number;
+	height?: number;
+	storageSize: number;
+	thumbnailFileName?: string;
+	encodeProgress: number;
+}
+
+interface BunnyStreamVideoList {
+	totalItems: number;
+	currentPage: number;
+	itemsPerPage: number;
+	items: BunnyStreamVideo[];
+}
+
+// Get list of videos from Bunny Stream
+export const getVideosFromBunnyStream = async (
+	libraryId: string,
+	page = 1,
+	itemsPerPage = 100,
+): Promise<BunnyStreamVideoList> => {
+	const url = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos?page=${page}&itemsPerPage=${itemsPerPage}`;
+
+	try {
+		const response = await bunnyApiFetch<BunnyStreamVideoList>(url, {
+			method: "GET",
+			bunnyType: "stream",
+		});
+
+		return response;
+	} catch (error) {
+		console.error("🔴 Error fetching videos from Bunny Stream:", error);
+		throw error;
+	}
+};
+
+// Get single video details from Bunny Stream
+export const getVideoDetailsFromBunny = async (
+	libraryId: string,
+	videoGuid: string,
+): Promise<BunnyStreamVideo> => {
+	const url = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoGuid}`;
+
+	try {
+		const response = await bunnyApiFetch<BunnyStreamVideo>(url, {
+			method: "GET",
+			bunnyType: "stream",
+		});
+
+		return response;
+	} catch (error) {
+		console.error("🔴 Error fetching video details from Bunny Stream:", error);
+		throw error;
+	}
+};
+
+// Delete video from Bunny Stream
+export const deleteVideoFromBunnyStream = async (
+	libraryId: string,
+	videoGuid: string,
+): Promise<boolean> => {
+	const url = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoGuid}`;
+
+	try {
+		await bunnyApiFetch(url, {
+			method: "DELETE",
+			bunnyType: "stream",
+			expectJson: false,
+		});
+
+		return true;
+	} catch (error) {
+		console.error("🔴 Error deleting video from Bunny Stream:", error);
+		throw error;
+	}
+};
+
+// Update video metadata in Bunny Stream
+export const updateVideoInBunnyStream = async (
+	libraryId: string,
+	videoGuid: string,
+	data: { title?: string; description?: string },
+): Promise<BunnyStreamVideo> => {
+	const url = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoGuid}`;
+
+	try {
+		const response = await bunnyApiFetch<BunnyStreamVideo>(url, {
+			method: "POST",
+			body: data,
+			bunnyType: "stream",
+		});
+
+		return response;
+	} catch (error) {
+		console.error("🔴 Error updating video in Bunny Stream:", error);
+		throw error;
+	}
+};
+
+// Get video statistics
+export const getVideoStatistics = async (
+	libraryId: string,
+	videoGuid: string,
+): Promise<{ views: number; watchTime: number }> => {
+	const url = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoGuid}/statistics`;
+
+	try {
+		const response = await bunnyApiFetch<{
+			viewsChart: any;
+			watchTime: number;
+		}>(url, {
+			method: "GET",
+			bunnyType: "stream",
+		});
+
+		return {
+			views: response.viewsChart?.totalViews || 0,
+			watchTime: response.watchTime || 0,
+		};
+	} catch (error) {
+		console.error("🔴 Error fetching video statistics:", error);
+		// Return default values on error
+		return { views: 0, watchTime: 0 };
+	}
+};
+
+// Generate thumbnail URL for a video
+export const getVideoThumbnailUrl = (
+	libraryId: string,
+	videoGuid: string,
+	thumbnailFileName?: string,
+): string => {
+	if (thumbnailFileName) {
+		return `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}/${thumbnailFileName}`;
+	}
+	// Default thumbnail
+	return `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}/thumbnail.jpg`;
 };
