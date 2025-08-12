@@ -23,7 +23,6 @@ export async function handleCreateCourse(request: Request, formData: FormData) {
 	const studentsIds = formData.getAll("students");
 	const thumbnail = formData.get("thumbnail");
 
-
 	// check if is instance of File
 	if (!(thumbnail instanceof File)) {
 		return data(
@@ -164,8 +163,6 @@ export async function handleEditCourse(request: Request, formData: FormData) {
 		description: formData.get("description"),
 		...(thumbnail && { thumbnail: thumbnail }),
 	};
-
-
 
 	// validate the form data
 	const unavlidatedFields = updateCourseSchema.safeParse(formDataObject);

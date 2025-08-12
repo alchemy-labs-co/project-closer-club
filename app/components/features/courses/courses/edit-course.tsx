@@ -41,11 +41,10 @@ export function EditCourse({
 	slug: string;
 	thumbnailUrl?: string;
 }) {
-	
 	const [preview, setPreview] = useState<string | ArrayBuffer | null>(
 		thumbnailUrl || null,
 	);
-	
+
 	const fetcher = useFetcher<FetcherResponse>();
 	const isSubmitting = fetcher.state === "submitting";
 

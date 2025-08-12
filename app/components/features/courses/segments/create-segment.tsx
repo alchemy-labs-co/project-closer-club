@@ -30,9 +30,7 @@ import {
 	MAX_VIDEO_SIZE,
 } from "~/lib/constants";
 import type { FetcherResponse } from "~/lib/types";
-import {
-	uploadWithProgress
-} from "~/lib/utils";
+import { uploadWithProgress } from "~/lib/utils";
 import {
 	createSegmentSchema,
 	type CreateSegmentSchema,
@@ -162,9 +160,14 @@ export function CreateSegment() {
 
 			// Step 2: Upload video directly to Bunny
 			const videoSuccess = await uploadWithProgress(
-				data.videoFile,
 				tokens.videoToken.uploadUrl,
-				tokens.videoToken.accessKey,
+				data.videoFile,
+				{
+					headers: {
+						AccessKey: tokens.videoToken.accessKey,
+						"Content-Type": data.videoFile.type,
+					},
+				},
 				(progress) =>
 					setUploadProgress((prev) => ({ ...prev, video: progress })),
 			);
@@ -185,9 +188,14 @@ export function CreateSegment() {
 				const token = tokens.attachmentTokens[i];
 
 				const attachmentSuccess = await uploadWithProgress(
-					file,
 					token.uploadUrl,
-					token.accessKey,
+					file,
+					{
+						headers: {
+							AccessKey: token.accessKey,
+							"Content-Type": "application/octet-stream",
+						},
+					},
 					(progress) =>
 						setUploadProgress((prev) => ({
 							...prev,
