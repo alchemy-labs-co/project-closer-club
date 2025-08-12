@@ -5,7 +5,7 @@ import type { FetcherResponse } from "~/lib/types";
 export function ActivateStudent({ studentId }: { studentId: string }) {
 	const fetcher = useFetcher<FetcherResponse>();
 	const isSubmitting = fetcher.state === "submitting";
-	
+
 	return (
 		<fetcher.Form
 			method="POST"

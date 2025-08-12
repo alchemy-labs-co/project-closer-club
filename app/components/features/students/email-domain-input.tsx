@@ -6,19 +6,19 @@
 //   className?: string;
 // }
 
-// export default function EmailDomainInput({ 
-//   value = "", 
-//   onChange, 
-//   placeholder = "Enter username", 
+// export default function EmailDomainInput({
+//   value = "",
+//   onChange,
+//   placeholder = "Enter username",
 //   disabled = false,
-//   className 
+//   className
 // }: EmailDomainInputProps) {
 //   const id = useId()
-  
+
 //   // Split the email value into username and domain parts
 //   const emailParts = value.includes('@') ? value.split('@') : [value, ''];
 //   const username = emailParts[0] || '';
-  
+
 //   // Maintain domain state separately to persist selection even when username is empty
 //   const [selectedDomain, setSelectedDomain] = useState(() => {
 //     return emailParts[1] ? `@${emailParts[1]}` : '@universecoverage.com';
@@ -60,7 +60,7 @@
 //           onChange={handleUsernameChange}
 //           disabled={disabled}
 //         />
-//         <SelectNative 
+//         <SelectNative
 //           className="text-muted-foreground hover:text-foreground w-fit rounded-s-none shadow-none"
 //           value={selectedDomain}
 //           onChange={handleDomainChange}
@@ -72,4 +72,4 @@
 //       </div>
 //     </div>
 //   )
-// } 
+// }

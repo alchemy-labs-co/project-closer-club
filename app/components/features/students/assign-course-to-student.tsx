@@ -44,14 +44,17 @@ export function AssignCourseToStudent({
 			}
 		}
 	}, [fetcher.data]);
-	const handleUnselect = React.useCallback((course: Course) => {
-		setSelected((prev) => prev.filter((s) => s.id !== course.id));
-		// attach the ids of the selected courses to the form
-		form.setValue(
-			"courses",
-			form.getValues("courses")?.filter((s) => s !== course.id) ?? [],
-		);
-	}, [form]);
+	const handleUnselect = React.useCallback(
+		(course: Course) => {
+			setSelected((prev) => prev.filter((s) => s.id !== course.id));
+			// attach the ids of the selected courses to the form
+			form.setValue(
+				"courses",
+				form.getValues("courses")?.filter((s) => s !== course.id) ?? [],
+			);
+		},
+		[form],
+	);
 
 	const handleKeyDown = React.useCallback(
 		(e: React.KeyboardEvent<HTMLDivElement>) => {

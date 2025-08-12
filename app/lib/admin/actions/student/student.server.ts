@@ -90,8 +90,8 @@ export async function handleCreateStudent(
 			if (!insertedStudent) {
 				return {
 					success: false,
-					message: "error inserting student"
-				}
+					message: "error inserting student",
+				};
 			}
 
 			// insert into studentCoursesTable (if they have courses assgiend to from the frontend)
@@ -206,8 +206,8 @@ export async function handleActivateStudent(
 		if (!updatedStudent) {
 			return {
 				success: false,
-				message: "Something went wrong activating the student"
-			}
+				message: "Something went wrong activating the student",
+			};
 		}
 
 		return data(
