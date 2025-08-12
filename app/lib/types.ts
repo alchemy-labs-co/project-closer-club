@@ -29,8 +29,8 @@ export type FetcherSubmitQuizResponse = {
 };
 
 export type Step = {
-	id: string
-	title: string
-	component: React.ReactNode
-	inputs: (keyof leadCaptureSchemaType)[]
-}
+	id: string;
+	title: string;
+	component: React.ReactNode;
+	inputs: (keyof leadCaptureSchemaType)[];
+};

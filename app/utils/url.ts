@@ -12,14 +12,18 @@ export function getBaseUrl(request?: Request): string {
 		const url = new URL(request.url);
 		return `${url.protocol}//${url.host}`;
 	}
-	
+
 	// For client-side rendering
 	if (typeof window !== "undefined") {
 		return window.location.origin;
 	}
-	
+
 	// Fallback to environment variable or default
-	return process.env.PUBLIC_URL || process.env.VITE_PUBLIC_URL || "http://localhost:5173";
+	return (
+		process.env.PUBLIC_URL ||
+		process.env.VITE_PUBLIC_URL ||
+		"http://localhost:5173"
+	);
 }
 
 /**
