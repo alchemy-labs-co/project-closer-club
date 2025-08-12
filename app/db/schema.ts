@@ -1,4 +1,5 @@
 import {
+	bigint,
 	boolean,
 	index,
 	integer,
@@ -80,7 +81,9 @@ export const agentsTable = pgTable(
 	"agents",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		studentId: text("student_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
+		studentId: text("student_id")
+			.references(() => user.id, { onDelete: "cascade" })
+			.notNull(),
 		name: varchar("name", { length: 255 }).notNull(),
 		email: varchar("email", { length: 255 }).notNull().unique(),
 		phone: varchar("phone", { length: 255 }),
@@ -100,7 +103,9 @@ export const agentsTable = pgTable(
 
 export const teamLeadersTable = pgTable("team_leaders", {
 	id: uuid("id").primaryKey().defaultRandom(),
-	teamLeaderId: text("team_leader_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
+	teamLeaderId: text("team_leader_id")
+		.references(() => user.id, { onDelete: "cascade" })
+		.notNull(),
 	name: varchar("name", { length: 255 }).notNull(),
 	email: varchar("email", { length: 255 }).notNull().unique(),
 	phone: varchar("phone", { length: 255 }),
@@ -165,6 +170,9 @@ export const lessonsTable = pgTable(
 		name: varchar("name", { length: 255 }).notNull(),
 		description: varchar("description", { length: 255 }),
 		videoUrl: varchar("video_url", { length: 255 }).notNull(),
+		videoId: uuid("video_id").references(() => videosTable.id, {
+			onDelete: "set null",
+		}), // Reference to video library
 		slug: varchar("slug", { length: 255 }).notNull(),
 		moduleId: uuid("module_id")
 			.references(() => modulesTable.id, { onDelete: "cascade" })
@@ -180,6 +188,7 @@ export const lessonsTable = pgTable(
 		index("segment_name_index").on(t.name),
 		index("segment_slug_index").on(t.slug),
 		index("segment_module_id_index").on(t.moduleId),
+		index("segment_video_id_index").on(t.videoId),
 	],
 );
 
@@ -187,7 +196,9 @@ export const studentCoursesTable = pgTable(
 	"student_courses",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		studentId: text("student_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+		studentId: text("student_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
 		courseId: uuid("course_id")
 			.references(() => coursesTable.id, { onDelete: "cascade" })
 			.notNull(),
@@ -240,6 +251,38 @@ export const completedQuizAssignmentsTable = pgTable(
 	},
 );
 
+export const videosTable = pgTable(
+	"videos",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		title: varchar("title", { length: 255 }).notNull(),
+		description: text("description"),
+		videoGuid: varchar("video_guid", { length: 255 }).notNull().unique(),
+		thumbnailUrl: varchar("thumbnail_url", { length: 500 }),
+		duration: integer("duration"), // in seconds
+		tags: text("tags"), // comma-separated tags
+		uploadedBy: text("uploaded_by").references(() => user.id, {
+			onDelete: "set null",
+		}),
+		libraryId: varchar("library_id", { length: 100 }).notNull(),
+		fileSize: bigint("file_size", { mode: "number" }), // in bytes
+		resolution: varchar("resolution", { length: 20 }), // e.g., "1920x1080"
+		status: varchar("status", { length: 50 }).notNull().default("processing"), // processing, ready, failed, deleted
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+		updatedAt: timestamp("updated_at")
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date()),
+	},
+	(t) => [
+		index("video_title_index").on(t.title),
+		index("video_created_at_index").on(t.createdAt),
+		index("video_guid_index").on(t.videoGuid),
+		index("video_status_index").on(t.status),
+		index("video_uploaded_by_index").on(t.uploadedBy),
+	],
+);
+
 export const attachmentsTable = pgTable(
 	"attachments",
 	{
@@ -278,7 +321,9 @@ export const leadCaptureTable = pgTable("lead_capture", {
 	phoneNumber: varchar("phone_number", { length: 255 }),
 	stateOfResidence: varchar("state_of_residence", { length: 255 }),
 	areYouOver18: boolean("are_you_over_18").notNull(),
-	doYouHaveAnyFeloniesOrMisdemeanors: boolean("do_you_have_any_felonies_or_misdemeanors").notNull(),
+	doYouHaveAnyFeloniesOrMisdemeanors: boolean(
+		"do_you_have_any_felonies_or_misdemeanors",
+	).notNull(),
 	leadStatus: text("lead_status").notNull().default("pending"),
 	reason: text("reason"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),

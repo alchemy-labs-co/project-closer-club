@@ -1,6 +1,6 @@
 {
-	"id": "59f99f0e-f6d2-403f-83a4-1026bcbb5d21",
-	"prevId": "32b9c3c7-cc8b-49c2-835a-c96417d12a7c",
+	"id": "d41bc8ee-70f0-4a76-bd50-bccd25b10731",
+	"prevId": "33781a57-966b-43d8-a76b-06c8f93af163",
 	"version": "7",
 	"dialect": "postgresql",
 	"tables": {
@@ -201,6 +201,15 @@
 				}
 			},
 			"foreignKeys": {
+				"agents_student_id_user_id_fk": {
+					"name": "agents_student_id_user_id_fk",
+					"tableFrom": "agents",
+					"tableTo": "user",
+					"columnsFrom": ["student_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
 				"agents_team_leader_id_team_leaders_id_fk": {
 					"name": "agents_team_leader_id_team_leaders_id_fk",
 					"tableFrom": "agents",
@@ -213,11 +222,6 @@
 			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {
-				"agents_student_id_unique": {
-					"name": "agents_student_id_unique",
-					"nullsNotDistinct": false,
-					"columns": ["student_id"]
-				},
 				"agents_email_unique": {
 					"name": "agents_email_unique",
 					"nullsNotDistinct": false,
@@ -612,6 +616,12 @@
 					"notNull": true,
 					"default": "'pending'"
 				},
+				"reason": {
+					"name": "reason",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
 				"created_at": {
 					"name": "created_at",
 					"type": "timestamp",
@@ -656,6 +666,12 @@
 					"type": "varchar(255)",
 					"primaryKey": false,
 					"notNull": true
+				},
+				"video_id": {
+					"name": "video_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
 				},
 				"slug": {
 					"name": "slug",
@@ -736,9 +752,33 @@
 					"concurrently": false,
 					"method": "btree",
 					"with": {}
+				},
+				"segment_video_id_index": {
+					"name": "segment_video_id_index",
+					"columns": [
+						{
+							"expression": "video_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
+				"lessons_video_id_videos_id_fk": {
+					"name": "lessons_video_id_videos_id_fk",
+					"tableFrom": "lessons",
+					"tableTo": "videos",
+					"columnsFrom": ["video_id"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				},
 				"lessons_module_id_modules_id_fk": {
 					"name": "lessons_module_id_modules_id_fk",
 					"tableFrom": "lessons",
@@ -1086,6 +1126,15 @@
 				}
 			},
 			"foreignKeys": {
+				"student_courses_student_id_user_id_fk": {
+					"name": "student_courses_student_id_user_id_fk",
+					"tableFrom": "student_courses",
+					"tableTo": "user",
+					"columnsFrom": ["student_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				},
 				"student_courses_course_id_courses_id_fk": {
 					"name": "student_courses_course_id_courses_id_fk",
 					"tableFrom": "student_courses",
@@ -1160,14 +1209,19 @@
 				}
 			},
 			"indexes": {},
-			"foreignKeys": {},
+			"foreignKeys": {
+				"team_leaders_team_leader_id_user_id_fk": {
+					"name": "team_leaders_team_leader_id_user_id_fk",
+					"tableFrom": "team_leaders",
+					"tableTo": "user",
+					"columnsFrom": ["team_leader_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {
-				"team_leaders_team_leader_id_unique": {
-					"name": "team_leaders_team_leader_id_unique",
-					"nullsNotDistinct": false,
-					"columns": ["team_leader_id"]
-				},
 				"team_leaders_email_unique": {
 					"name": "team_leaders_email_unique",
 					"nullsNotDistinct": false,
@@ -1314,6 +1368,199 @@
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.videos": {
+			"name": "videos",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"title": {
+					"name": "title",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"video_guid": {
+					"name": "video_guid",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"thumbnail_url": {
+					"name": "thumbnail_url",
+					"type": "varchar(500)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"duration": {
+					"name": "duration",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"tags": {
+					"name": "tags",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"uploaded_by": {
+					"name": "uploaded_by",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"library_id": {
+					"name": "library_id",
+					"type": "varchar(100)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"file_size": {
+					"name": "file_size",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"resolution": {
+					"name": "resolution",
+					"type": "varchar(20)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"status": {
+					"name": "status",
+					"type": "varchar(50)",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'processing'"
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {
+				"video_title_index": {
+					"name": "video_title_index",
+					"columns": [
+						{
+							"expression": "title",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"video_created_at_index": {
+					"name": "video_created_at_index",
+					"columns": [
+						{
+							"expression": "created_at",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"video_guid_index": {
+					"name": "video_guid_index",
+					"columns": [
+						{
+							"expression": "video_guid",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"video_status_index": {
+					"name": "video_status_index",
+					"columns": [
+						{
+							"expression": "status",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"video_uploaded_by_index": {
+					"name": "video_uploaded_by_index",
+					"columns": [
+						{
+							"expression": "uploaded_by",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"videos_uploaded_by_user_id_fk": {
+					"name": "videos_uploaded_by_user_id_fk",
+					"tableFrom": "videos",
+					"tableTo": "user",
+					"columnsFrom": ["uploaded_by"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"videos_video_guid_unique": {
+					"name": "videos_video_guid_unique",
+					"nullsNotDistinct": false,
+					"columns": ["video_guid"]
+				}
+			},
 			"policies": {},
 			"checkConstraints": {},
 			"isRLSEnabled": false
