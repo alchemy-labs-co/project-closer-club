@@ -26,7 +26,7 @@ import * as React from "react";
 import { Link, href } from "react-router";
 import { ActivateStudent } from "~/components/features/students/activate-student";
 import { CreateStudent } from "~/components/features/students/create-student";
-import { DeactivateStudent } from "~/components/features/students/deactivate-student";	
+import { DeactivateStudent } from "~/components/features/students/deactivate-student";
 import { StatusBadge } from "~/components/features/students/status-badge";
 
 import { Button } from "~/components/ui/button";
@@ -106,7 +106,9 @@ const columns: ColumnDef<Student>[] = [
 	{
 		accessorKey: "analytics",
 		header: "Analytics",
-		cell: ({ row }) => <AgentAnalayticsDrawer studentId={row.original.studentId} />,
+		cell: ({ row }) => (
+			<AgentAnalayticsDrawer studentId={row.original.studentId} />
+		),
 	},
 	{
 		accessorKey: "actions",

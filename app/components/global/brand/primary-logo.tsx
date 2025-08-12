@@ -16,8 +16,8 @@ export function PrimaryLogo({
 			className={cn("flex items-center justify-center gap-2", classNames?.link)}
 		>
 			<img
-				src={"/assets/LOGO.png"}
-				alt="Brand Logo"
+				src={"/logos/closer-club-logo.png"}
+				alt="Closer Club Logo"
 				className={cn("w-10 h-10 rounded-full", classNames?.img)}
 			/>
 			{children}
