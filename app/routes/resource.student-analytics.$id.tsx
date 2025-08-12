@@ -4,10 +4,13 @@ import { redirect } from "react-router";
 import { getAgentAnalytics } from "~/lib/admin/data-access/analytics/agent-analytics.server";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-    const { isLoggedIn } = await isAdminLoggedIn(request);
-    if (!isLoggedIn) {
-        throw redirect("/admin/login");
-    }
-    const { courseCompletionAnalytics } = await getAgentAnalytics(request, params.id)
-    return { courseCompletionAnalytics }
+	const { isLoggedIn } = await isAdminLoggedIn(request);
+	if (!isLoggedIn) {
+		throw redirect("/admin/login");
+	}
+	const { courseCompletionAnalytics } = await getAgentAnalytics(
+		request,
+		params.id,
+	);
+	return { courseCompletionAnalytics };
 }

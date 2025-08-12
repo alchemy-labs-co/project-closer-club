@@ -12,16 +12,42 @@ import {
 	type SortingState,
 	type VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Columns, X } from "lucide-react";
+import {
+	ChevronDown,
+	ChevronLeft,
+	ChevronRight,
+	ChevronsLeft,
+	ChevronsRight,
+	Columns,
+	X,
+} from "lucide-react";
 import * as React from "react";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "~/components/ui/select";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "~/components/ui/table";
 import type { TeamLeaderAnalytics } from "~/lib/team-leaders/data-access/analytics/team-analytics.server";
 
 type AgentData = TeamLeaderAnalytics["agentAnalytics"]["agents"][0];
@@ -34,7 +60,9 @@ const columns: ColumnDef<AgentData>[] = [
 		cell: ({ row }) => (
 			<div className="flex flex-col">
 				<span className="font-medium">{row.original.name}</span>
-				<span className="text-sm text-muted-foreground">{row.original.email}</span>
+				<span className="text-sm text-muted-foreground">
+					{row.original.email}
+				</span>
 			</div>
 		),
 	},
@@ -84,8 +112,8 @@ const columns: ColumnDef<AgentData>[] = [
 						score >= 80
 							? "text-green-600"
 							: score >= 60
-							? "text-yellow-600"
-							: "text-red-600"
+								? "text-yellow-600"
+								: "text-red-600"
 					}`}
 				>
 					{score}%
@@ -105,8 +133,8 @@ const columns: ColumnDef<AgentData>[] = [
 						accuracy >= 80
 							? "text-green-600"
 							: accuracy >= 60
-							? "text-yellow-600"
-							: "text-red-600"
+								? "text-yellow-600"
+								: "text-red-600"
 					}`}
 				>
 					{accuracy}%
@@ -133,8 +161,11 @@ export function TeamAnalyticsDataTable({
 }: {
 	agentData: TeamLeaderAnalytics["agentAnalytics"]["agents"];
 }) {
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+	const [columnVisibility, setColumnVisibility] =
+		React.useState<VisibilityState>({});
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+		[],
+	);
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [pagination, setPagination] = React.useState({
 		pageIndex: 0,
@@ -163,7 +194,6 @@ export function TeamAnalyticsDataTable({
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	});
 
-
 	const isFiltered = table.getState().columnFilters.length > 0;
 
 	return (
@@ -173,19 +203,26 @@ export function TeamAnalyticsDataTable({
 					<div className="flex items-center gap-2">
 						<Input
 							placeholder="Filter by name..."
-							value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+							value={
+								(table.getColumn("name")?.getFilterValue() as string) ?? ""
+							}
 							onChange={(event) =>
 								table.getColumn("name")?.setFilterValue(event.target.value)
 							}
 							className="h-8 w-[200px]"
 						/>
 						<Select
-							value={(table.getColumn("isActivated")?.getFilterValue() as string) ?? "all"}
+							value={
+								(table.getColumn("isActivated")?.getFilterValue() as string) ??
+								"all"
+							}
 							onValueChange={(value) => {
 								if (value === "all") {
 									table.getColumn("isActivated")?.setFilterValue(undefined);
 								} else {
-									table.getColumn("isActivated")?.setFilterValue(value === "active");
+									table
+										.getColumn("isActivated")
+										?.setFilterValue(value === "active");
 								}
 							}}
 						>
@@ -283,7 +320,10 @@ export function TeamAnalyticsDataTable({
 								))
 							) : (
 								<TableRow>
-									<TableCell colSpan={columns.length} className="h-24 text-center">
+									<TableCell
+										colSpan={columns.length}
+										className="h-24 text-center"
+									>
 										No agents found.
 									</TableCell>
 								</TableRow>
@@ -375,4 +415,4 @@ export function TeamAnalyticsDataTable({
 			)}
 		</div>
 	);
-} 
+}
