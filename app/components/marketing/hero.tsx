@@ -46,11 +46,10 @@ export function HeroSection() {
 						autoPlay
 						loop
 						className="h-full w-full object-cover opacity-40"
-						src="https://closer-club-pull-zone.b-cdn.net/64c9ad48e17f578000053416.mp4"
+						src="https://storage.googleapis.com/msgsndr/TmucnOzWpX4HavNHhejF/media/64c9ad48e17f578000053416.mp4"
 						muted
 						playsInline
 						preload="auto"
-						poster="https://closer-club-pull-zone.b-cdn.net/64c9ad48e17f578000053416.mp4"
 					/>
 				</div>
 			</div>
