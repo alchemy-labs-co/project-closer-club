@@ -27,12 +27,12 @@ export function WhatIsYourName() {
 								type="text"
 								className="bg-white/20 border border-white/30 placeholder:text-white/60 text-white focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white/50 relative z-50"
 								{...field}
-								/>
+							/>
 						</FormControl>
 						<FormMessage className="w-full text-center text-red-300 relative z-50" />
 					</FormItem>
 				)}
-				/>
+			/>
 			<FormField
 				control={control}
 				name="lastName"
@@ -47,13 +47,12 @@ export function WhatIsYourName() {
 								type="text"
 								className="bg-white/20 border border-white/30 placeholder:text-white/60 text-white focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white/50 relative z-50"
 								{...field}
-								/>
+							/>
 						</FormControl>
 						<FormMessage className="w-full text-center text-red-300 relative z-50" />
 					</FormItem>
 				)}
-				/>
-				</div>
-
+			/>
+		</div>
 	);
 }

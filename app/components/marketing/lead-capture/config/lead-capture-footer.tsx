@@ -5,7 +5,6 @@ import { useFormControls } from "./use-lead-capture-form";
 import type { Step } from "~/lib/types";
 
 const FormFooter = ({ steps }: { steps: Step[] }) => {
-
 	const {
 		handleBack,
 		handleNext,
@@ -31,7 +30,6 @@ const FormFooter = ({ steps }: { steps: Step[] }) => {
 				className={`${
 					isFinalPage ? "cursor-pointer" : "hidden"
 				} bg-white text-black hover:bg-white/90 relative z-50`}
-				
 			>
 				Submit
 			</Button>

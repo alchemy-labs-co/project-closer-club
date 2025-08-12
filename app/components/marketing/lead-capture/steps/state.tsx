@@ -16,13 +16,56 @@ import {
 import type { leadCaptureSchemaType } from "~/lib/zod-schemas/lead-capture";
 
 const US_STATES = [
-	"Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", 
-	"Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", 
-	"Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", 
-	"Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", 
-	"New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", 
-	"Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", 
-	"Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+	"Alabama",
+	"Alaska",
+	"Arizona",
+	"Arkansas",
+	"California",
+	"Colorado",
+	"Connecticut",
+	"Delaware",
+	"Florida",
+	"Georgia",
+	"Hawaii",
+	"Idaho",
+	"Illinois",
+	"Indiana",
+	"Iowa",
+	"Kansas",
+	"Kentucky",
+	"Louisiana",
+	"Maine",
+	"Maryland",
+	"Massachusetts",
+	"Michigan",
+	"Minnesota",
+	"Mississippi",
+	"Missouri",
+	"Montana",
+	"Nebraska",
+	"Nevada",
+	"New Hampshire",
+	"New Jersey",
+	"New Mexico",
+	"New York",
+	"North Carolina",
+	"North Dakota",
+	"Ohio",
+	"Oklahoma",
+	"Oregon",
+	"Pennsylvania",
+	"Rhode Island",
+	"South Carolina",
+	"South Dakota",
+	"Tennessee",
+	"Texas",
+	"Utah",
+	"Vermont",
+	"Virginia",
+	"Washington",
+	"West Virginia",
+	"Wisconsin",
+	"Wyoming",
 ];
 
 export function StateOfResidence() {
@@ -40,8 +83,8 @@ export function StateOfResidence() {
 						<FormControl>
 							<Select onValueChange={field.onChange} value={field.value}>
 								<SelectTrigger className="w-full bg-white/20 border border-white/30 text-white focus:ring-0 focus:ring-offset-0 focus:border-white/50 relative z-50">
-									<SelectValue 
-										placeholder="Select your state" 
+									<SelectValue
+										placeholder="Select your state"
 										className="text-white/60"
 									/>
 								</SelectTrigger>
