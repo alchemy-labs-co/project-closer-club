@@ -59,7 +59,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		student.id,
 		courseSlug,
 		moduleSlug,
-		lessonSlug
+		lessonSlug,
 	);
 
 	// If they can't access, redirect them to the required lesson
@@ -68,8 +68,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 			// Redirect to the lesson they need to complete first
 			throw redirect(`/student/courses/${accessResult.redirectTo}`);
 		}
-			throw redirect(`/student/courses/${courseSlug}`);
-		
+		throw redirect(`/student/courses/${courseSlug}`);
 	}
 
 	// critical data
@@ -77,7 +76,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		request,
 		courseSlug,
 		moduleSlug,
-		lessonSlug
+		lessonSlug,
 	);
 
 	// non critical data
@@ -87,7 +86,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		lessonSlug,
 		courseSlug,
 		lesson.id,
-		student.id
+		student.id,
 	);
 
 	return {
@@ -106,13 +105,13 @@ async function criticalLoaderData(
 	request: Request,
 	courseSlug: string,
 	moduleSlug: string,
-	lessonSlug: string
+	lessonSlug: string,
 ) {
 	const { lesson } = await getLessonBySlug(
 		request,
 		moduleSlug,
 		lessonSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	if (!lesson) {
@@ -124,7 +123,7 @@ async function criticalLoaderData(
 		request,
 		lessonSlug,
 		moduleSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	return { lesson, completedAssignment };
@@ -136,14 +135,14 @@ function nonCriticalLoaderData(
 	lessonSlug: string,
 	courseSlug: string,
 	lessonId: string,
-	studentId: string
+	studentId: string,
 ) {
 	// all these will return promises
 	const quizzes = getQuizzesForLesson(
 		request,
 		moduleSlug,
 		lessonSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	const attachments = getAttachmentsForLesson(request, lessonId);
@@ -153,22 +152,26 @@ function nonCriticalLoaderData(
 		studentId,
 		courseSlug,
 		moduleSlug,
-		lessonSlug
+		lessonSlug,
 	);
 
 	// Get certificate for this course if it exists
-	const certificate = getStudentCertificateForCourse(request, studentId, courseSlug);
+	const certificate = getStudentCertificateForCourse(
+		request,
+		studentId,
+		courseSlug,
+	);
 
 	return { quizzes, attachments, nextLesson, certificate };
 }
 
 function useLessonLoaderData() {
 	const data = useRouteLoaderData<typeof loader>(
-		"routes/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug"
+		"routes/_agent._editor.student.courses_.$courseSlug_.$moduleSlug_.$lessonSlug",
 	);
 	if (!data) {
 		throw new Error(
-			"VideoContent must be used within _agent._editor._tabs route"
+			"VideoContent must be used within _agent._editor._tabs route",
 		);
 	}
 
@@ -347,7 +350,7 @@ function AttachmentItem({
 				</div>
 			</div>
 			<button
-			type="button"
+				type="button"
 				onClick={handleDownload}
 				className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
 			>
@@ -364,7 +367,7 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 		[questionIndex: number]: number;
 	}>({});
 	const [quizState, setQuizState] = React.useState<"taking" | "submitted">(
-		"taking"
+		"taking",
 	);
 	const [lastSubmissionData, setLastSubmissionData] =
 		React.useState<FetcherSubmitQuizResponse | null>(null);
@@ -406,7 +409,7 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 		}
 
 		const answersArray = questions.map(
-			(_, index) => selectedAnswers[index] ?? -1
+			(_, index) => selectedAnswers[index] ?? -1,
 		);
 
 		fetcher.submit(
@@ -420,12 +423,12 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 			{
 				method: "post",
 				action: "/resource/assignments",
-			}
+			},
 		);
 	};
 
 	const isAllQuestionsAnswered = questions.every(
-		(_, index) => selectedAnswers[index] !== undefined
+		(_, index) => selectedAnswers[index] !== undefined,
 	);
 
 	const isPending = fetcher.state !== "idle";
@@ -481,8 +484,8 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 													answerIndex === incorrectQ.correctAnswer
 														? "bg-green-100 border border-green-300"
 														: answerIndex === incorrectQ.selectedAnswer
-														? "bg-red-100 border border-red-300"
-														: "bg-white border border-gray-200"
+															? "bg-red-100 border border-red-300"
+															: "bg-white border border-gray-200"
 												}`}
 											>
 												<span
@@ -490,23 +493,23 @@ function QuizDisplay({ quiz }: { quiz: Quiz | null }) {
 														answerIndex === incorrectQ.correctAnswer
 															? "text-green-700"
 															: answerIndex === incorrectQ.selectedAnswer
-															? "text-red-700"
-															: "text-gray-600"
+																? "text-red-700"
+																: "text-gray-600"
 													}`}
 												>
 													{answerIndex === incorrectQ.correctAnswer
 														? "✓"
 														: answerIndex === incorrectQ.selectedAnswer
-														? "✗"
-														: " "}
+															? "✗"
+															: " "}
 												</span>
 												<span
 													className={`flex-1 ${
 														answerIndex === incorrectQ.correctAnswer
 															? "text-green-800"
 															: answerIndex === incorrectQ.selectedAnswer
-															? "text-red-800"
-															: "text-gray-700"
+																? "text-red-800"
+																: "text-gray-700"
 													}`}
 												>
 													{answer}
@@ -656,12 +659,9 @@ function ProccedToNextLessonButton() {
 	const { nonCriticalData } = useLessonLoaderData();
 	const nextLesson = React.use(nonCriticalData.nextLesson);
 
-
 	// If there's no next lesson, show completion message or redirect to course overview
 	if (!nextLesson) {
-		return (
-			<MarkCourseAsCompleted/>
-		);
+		return <MarkCourseAsCompleted />;
 	}
 
 	return (
@@ -676,12 +676,13 @@ function ProccedToNextLessonButton() {
 }
 
 function MarkCourseAsCompleted() {
-	const { studentId, courseSlug, nonCriticalData, studentName} = useLessonLoaderData()
-	const courseName = slugToTitle(courseSlug)
+	const { studentId, courseSlug, nonCriticalData, studentName } =
+		useLessonLoaderData();
+	const courseName = slugToTitle(courseSlug);
 	const fetcher = useFetcher<FetcherResponse>();
 	const isSubmitting = fetcher.state !== "idle";
 	const { data: fetcherData } = fetcher;
-	
+
 	// Get certificate data from loader (this will be available after page load)
 	const certificate = React.use(nonCriticalData.certificate);
 
@@ -705,13 +706,10 @@ function MarkCourseAsCompleted() {
 						</p>
 					</div>
 				</div>
-				<PrimaryButton 
-					asChild 
-					className="w-full"
-				>
-					<a 
-						href={certificate.certificateUrl} 
-						target="_blank" 
+				<PrimaryButton asChild className="w-full">
+					<a
+						href={certificate.certificateUrl}
+						target="_blank"
 						rel="noopener noreferrer"
 						download={`${studentName}-${courseName}-Certificate.png`}
 					>
@@ -733,17 +731,26 @@ function MarkCourseAsCompleted() {
 							Certificate Generation Failed
 						</h3>
 						<p className="text-sm text-red-600">
-							{fetcherData.message || "An error occurred while generating your certificate."}
+							{fetcherData.message ||
+								"An error occurred while generating your certificate."}
 						</p>
 					</div>
 				</div>
-				<fetcher.Form method="post" action="/resource/certificate" className="w-full">
+				<fetcher.Form
+					method="post"
+					action="/resource/certificate"
+					className="w-full"
+				>
 					<input type="hidden" name="intent" value="download-certificate" />
 					<input type="hidden" name="studentId" value={studentId} />
 					<input type="hidden" name="studentName" value={studentName} />
 					<input type="hidden" name="courseName" value={courseName} />
 					<input type="hidden" name="courseSlug" value={courseSlug} />
-					<PrimaryButton type="submit" disabled={isSubmitting} className="w-full">
+					<PrimaryButton
+						type="submit"
+						disabled={isSubmitting}
+						className="w-full"
+					>
 						{isSubmitting ? "Generating Certificate..." : "Try Again"}
 					</PrimaryButton>
 				</fetcher.Form>
@@ -771,13 +778,10 @@ function MarkCourseAsCompleted() {
 						</p>
 					</div>
 				</div>
-				<PrimaryButton 
-					asChild 
-					className="w-full"
-				>
-					<a 
-						href={fetcherData.certificateUrl} 
-						target="_blank" 
+				<PrimaryButton asChild className="w-full">
+					<a
+						href={fetcherData.certificateUrl}
+						target="_blank"
 						rel="noopener noreferrer"
 						download={`${studentName}-${courseName}-Certificate.png`}
 					>
@@ -790,7 +794,11 @@ function MarkCourseAsCompleted() {
 
 	// Default state - show download button
 	return (
-		<fetcher.Form method="post" action="/resource/certificate" className="w-full">
+		<fetcher.Form
+			method="post"
+			action="/resource/certificate"
+			className="w-full"
+		>
 			<input type="hidden" name="intent" value="download-certificate" />
 			<input type="hidden" name="studentId" value={studentId} />
 			<input type="hidden" name="studentName" value={studentName} />
@@ -800,5 +808,5 @@ function MarkCourseAsCompleted() {
 				{isSubmitting ? "Generating Certificate..." : "Claim Certificate"}
 			</PrimaryButton>
 		</fetcher.Form>
-	)
+	);
 }

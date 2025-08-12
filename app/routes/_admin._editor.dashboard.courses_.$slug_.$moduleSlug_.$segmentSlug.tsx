@@ -539,9 +539,14 @@ function AddAttachmentDialog({ lessonId }: { lessonId: string }) {
 				const token = tokens.attachmentTokens[i];
 
 				const attachmentSuccess = await uploadWithProgress(
-					file,
 					token.uploadUrl,
-					token.accessKey,
+					file,
+					{
+						headers: {
+							AccessKey: token.accessKey,
+							"Content-Type": "application/octet-stream",
+						},
+					},
 					(progress) =>
 						setUploadProgress((prev) => ({
 							...prev,

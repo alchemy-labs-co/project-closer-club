@@ -15,10 +15,10 @@ export async function loader() {
 export async function clientAction({ serverAction }: Route.ClientActionArgs) {
 	const result:
 		| {
-			success: boolean;
-			message: string;
-			redirectToUrl?: string;
-		}
+				success: boolean;
+				message: string;
+				redirectToUrl?: string;
+		  }
 		| undefined = await serverAction();
 
 	if (result?.success) {

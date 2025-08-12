@@ -38,7 +38,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 			const totalLessons = await getTotalLessonsCount(request, course.id);
 			const completedLessons = await getCompletedLessonsCount(
 				request,
-				course.id
+				course.id,
 			);
 			return { totalLessons, completedLessons };
 		})(),
@@ -91,7 +91,7 @@ function CourseCard({
 		<Card
 			className={cn(
 				"flex flex-col h-full transition-all duration-300 hover:shadow-lg hover:border-brand-primary/30",
-				thumbnailUrl && "pt-0"
+				thumbnailUrl && "pt-0",
 			)}
 		>
 			{thumbnailUrl && (
@@ -169,7 +169,12 @@ function ProgressCircle({
 
 	return (
 		<div className="relative w-10 h-10">
-			<svg className="w-10 h-10 transform -rotate-90" viewBox="0 0 40 40" aria-label="Progress circle" role="img">
+			<svg
+				className="w-10 h-10 transform -rotate-90"
+				viewBox="0 0 40 40"
+				aria-label="Progress circle"
+				role="img"
+			>
 				{/* Background circle */}
 				<circle
 					cx="20"

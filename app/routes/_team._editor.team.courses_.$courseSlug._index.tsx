@@ -31,9 +31,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 	// Get the first module (already ordered from database)
 	const firstModule = modules[0];
-	
+
 	// Get the first lesson for this module (already ordered from database)
-	const firstLesson = lessons.find(l => l.moduleId === firstModule.id);
+	const firstLesson = lessons.find((l) => l.moduleId === firstModule.id);
 
 	if (firstLesson) {
 		// Redirect to the first lesson
@@ -44,4 +44,4 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 	// If no lessons, stay on overview
 	return { course, modules, lessons };
-} 
+}

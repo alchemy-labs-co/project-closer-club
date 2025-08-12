@@ -187,8 +187,6 @@ function DeleteQuiz({ quizId }: { quizId: string }) {
 		);
 	};
 
-	
-
 	return (
 		<Dialog>
 			<DialogTrigger asChild>

@@ -68,7 +68,7 @@ export default function EditPasswordPage({ loaderData }: Route.ComponentProps) {
 			}
 		}
 	}, [fetcher.data, form.reset]);
-	
+
 	useEffect(() => {
 		if (hasCopied) {
 			toast.success("Copied to clipboard");
@@ -146,9 +146,7 @@ export default function EditPasswordPage({ loaderData }: Route.ComponentProps) {
 				<DialogContent className="fle flex-col gap-8">
 					<DialogHeader>New Password</DialogHeader>
 					<DialogDescription className="flex flex-col gap-8">
-					
-							Password: {form.getValues("password")}
-					
+						Password: {form.getValues("password")}
 						<Button
 							variant={"outline"}
 							className="cursor-pointer"

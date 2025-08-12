@@ -46,7 +46,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	);
 
 	const progressPromise = (async () => {
-		const totalLessons = await getTotalLessonsCountForTeamLeader(request, course.id);
+		const totalLessons = await getTotalLessonsCountForTeamLeader(
+			request,
+			course.id,
+		);
 		return { totalLessons, completedLessons: 0 }; // Team leaders don't track completion
 	})();
 
@@ -70,7 +73,8 @@ export function useTeamLeaderEditorLoaderData() {
 }
 
 function ModulesAndLessonsContent() {
-	const { modulesAndLessonsPromise, courseSlug } = useTeamLeaderEditorLoaderData();
+	const { modulesAndLessonsPromise, courseSlug } =
+		useTeamLeaderEditorLoaderData();
 	const { modules, lessons } = React.use(modulesAndLessonsPromise);
 	const location = useLocation();
 	const pathname = location.pathname;
@@ -228,4 +232,4 @@ export default function TeamLeaderEditorLayout() {
 			</div>
 		</div>
 	);
-} 
+}

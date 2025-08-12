@@ -45,7 +45,7 @@ import {
 } from "~/components/ui/table";
 import type { Student, Course } from "~/db/schema";
 import { getAllPublicCourses } from "~/lib/admin/data-access/courses.server";
-import { 
+import {
 	GetAllStudents,
 	getCoursesTeamLeaderEnrolledIn,
 } from "~/lib/admin/data-access/students.server";

@@ -31,7 +31,9 @@ export default function TeamCourses({ loaderData }: Route.ComponentProps) {
 
 	return (
 		<div className="max-w-7xl mx-auto pt-8 md:pt-12 lg:pt-20 pb-8 px-4 xl:px-0">
-			<h1 className="text-center text-3xl font-bold mb-8">Your Assigned Courses</h1>
+			<h1 className="text-center text-3xl font-bold mb-8">
+				Your Assigned Courses
+			</h1>
 
 			{courses.length === 0 ? (
 				<div className="text-center py-12">
@@ -57,7 +59,7 @@ function CourseCard({ course }: { course: Course }) {
 		<Card
 			className={cn(
 				"flex flex-col h-full transition-all duration-300 hover:shadow-lg hover:border-brand-primary/30",
-				thumbnailUrl && "pt-0"
+				thumbnailUrl && "pt-0",
 			)}
 		>
 			{thumbnailUrl && (

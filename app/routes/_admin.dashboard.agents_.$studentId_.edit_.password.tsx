@@ -55,7 +55,7 @@ export default function EditPasswordPage({ loaderData }: Route.ComponentProps) {
 			password: "",
 		},
 	});
-	
+
 	useEffect(() => {
 		if (fetcher.data) {
 			if (fetcher.data.success) {
@@ -145,9 +145,7 @@ export default function EditPasswordPage({ loaderData }: Route.ComponentProps) {
 				<DialogContent className="fle flex-col gap-8">
 					<DialogHeader>New Password</DialogHeader>
 					<DialogDescription className="flex flex-col gap-8">
-					
-							Password: {form.getValues("password")}
-					
+						Password: {form.getValues("password")}
 						<Button
 							variant={"outline"}
 							className="cursor-pointer"

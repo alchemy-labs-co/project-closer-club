@@ -71,7 +71,6 @@ export default function EditModule() {
 		},
 	});
 
-
 	return (
 		<div className="space-y-6 p-8">
 			<PrimaryButton asChild>

@@ -1,10 +1,6 @@
 import { DownloadIcon, FileIcon } from "lucide-react";
 import React, { Suspense } from "react";
-import {
-	redirect,
-	useNavigation,
-	useRouteLoaderData,
-} from "react-router";
+import { redirect, useNavigation, useRouteLoaderData } from "react-router";
 import { VideoPlayer } from "~/components/features/video-players/video-player";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -40,7 +36,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		request,
 		moduleSlug,
 		lessonSlug,
-		courseSlug
+		courseSlug,
 	);
 
 	if (!lesson) {
@@ -48,7 +44,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 	}
 
 	// Get attachments as non-critical data
-	const attachmentsPromise = getAttachmentsForLessonForTeamLeader(request, lesson.id);
+	const attachmentsPromise = getAttachmentsForLessonForTeamLeader(
+		request,
+		lesson.id,
+	);
 
 	return {
 		lesson,
@@ -63,12 +62,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 function useLessonLoaderData() {
 	const data = useRouteLoaderData<typeof loader>(
-		"routes/_team._editor.team.courses_.$courseSlug_.$moduleSlug_.$lessonSlug"
+		"routes/_team._editor.team.courses_.$courseSlug_.$moduleSlug_.$lessonSlug",
 	);
 	if (!data) {
-		throw new Error(
-			"TeamLeaderLesson must be used within _team._editor route"
-		);
+		throw new Error("TeamLeaderLesson must be used within _team._editor route");
 	}
 
 	return data;
@@ -202,4 +199,4 @@ function AttachmentItem({
 			</button>
 		</div>
 	);
-} 
+}

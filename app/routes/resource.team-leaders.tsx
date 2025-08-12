@@ -26,23 +26,23 @@ export async function loader() {
 }
 
 export async function clientAction({ serverAction }: Route.ClientActionArgs) {
-    const result:
-        | {
-            success: boolean;
-            message: string;
-            redirectToUrl?: string;
-        }
-        | undefined = await serverAction();
+	const result:
+		| {
+				success: boolean;
+				message: string;
+				redirectToUrl?: string;
+		  }
+		| undefined = await serverAction();
 
-    if (result?.success) {
-        toast.success(result?.message);
-        if (result?.redirectToUrl) {
-            throw redirect(result?.redirectToUrl);
-        }
-    } else {
-        toast.error(result?.message);
-    }
-    return result;
+	if (result?.success) {
+		toast.success(result?.message);
+		if (result?.redirectToUrl) {
+			throw redirect(result?.redirectToUrl);
+		}
+	} else {
+		toast.error(result?.message);
+	}
+	return result;
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -71,6 +71,9 @@ export async function action({ request }: Route.ActionArgs) {
 		return handler(request, formData);
 	} catch (error) {
 		console.error("🔴Action error:", error);
-		return data({ success: false, message: "An unexpected error occurred" }, { status: 500 });
+		return data(
+			{ success: false, message: "An unexpected error occurred" },
+			{ status: 500 },
+		);
 	}
 }
