@@ -9,19 +9,20 @@
 		sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
 		"Noto Color Emoji";
 	--font-display: "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
-	--font-headline: "Sora", "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
+	--font-headline: "Sora", "SF Pro Display", ui-sans-serif, system-ui,
+		sans-serif;
 	--font-subhead: "Sora", "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
 	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
 	--navbar-height: 4.5rem;
-	
+
 	/* Brand Colors */
-	--color-brand-aqua: #2D9CDB;
+	--color-brand-aqua: #2d9cdb;
 	--color-brand-graphite: #111216;
 	--color-brand-slate: #606671;
-	--color-brand-porcelain: #F6F6F4;
-	--color-brand-aqua-light: #9ED8FF;
-	--color-brand-brass: #C9A227;
-	
+	--color-brand-porcelain: #f6f6f4;
+	--color-brand-aqua-light: #9ed8ff;
+	--color-brand-brass: #c9a227;
+
 	/* Legacy support */
 	--color-brand-primary: var(--color-brand-aqua);
 }
@@ -38,7 +39,7 @@ body {
 
 :root {
 	--radius: 0.625rem;
-	
+
 	/* Brand Color OKLCH Values */
 	--brand-aqua: oklch(0.658 0.127 234.37);
 	--brand-graphite: oklch(0.204 0.012 264.87);
@@ -46,7 +47,7 @@ body {
 	--brand-porcelain: oklch(0.973 0.002 106.82);
 	--brand-aqua-light: oklch(0.865 0.079 236.31);
 	--brand-brass: oklch(0.735 0.127 84.91);
-	
+
 	/* Theme Colors */
 	--background: var(--brand-porcelain);
 	--foreground: var(--brand-graphite);
@@ -66,14 +67,14 @@ body {
 	--border: oklch(0.922 0 0);
 	--input: oklch(0.922 0 0);
 	--ring: var(--brand-aqua);
-	
+
 	/* Chart Colors */
 	--chart-1: var(--brand-aqua);
 	--chart-2: var(--brand-brass);
 	--chart-3: var(--brand-slate);
 	--chart-4: var(--brand-aqua-light);
 	--chart-5: var(--brand-graphite);
-	
+
 	/* Sidebar */
 	--sidebar: oklch(0.985 0 0);
 	--sidebar-foreground: var(--brand-graphite);
@@ -136,7 +137,12 @@ body {
 	body {
 		@apply bg-background text-foreground;
 	}
-	h1, h2, h3, h4, h5, h6 {
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
 		font-family: var(--font-headline);
 		font-weight: 700;
 		letter-spacing: -0.02em;
@@ -182,7 +188,7 @@ body {
 	--border: oklch(0.25 0 0);
 	--input: oklch(0.25 0 0);
 	--ring: var(--brand-aqua-light);
-	
+
 	/* Dark mode sidebar */
 	--sidebar: var(--brand-graphite);
 	--sidebar-foreground: oklch(0.95 0 0);
@@ -192,4 +198,41 @@ body {
 	--sidebar-accent-foreground: oklch(0.95 0 0);
 	--sidebar-border: oklch(0.25 0 0);
 	--sidebar-ring: var(--brand-aqua-light);
+}
+
+/* Slide animations for video upload section */
+@keyframes slide-down {
+	from {
+		opacity: 0;
+		transform: translateY(-20px);
+		max-height: 0;
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+		max-height: 2000px;
+	}
+}
+
+@keyframes slide-up {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+		max-height: 2000px;
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-20px);
+		max-height: 0;
+	}
+}
+
+.animate-slide-down {
+	animation: slide-down 0.3s ease-out forwards;
+	overflow: hidden;
+}
+
+.animate-slide-up {
+	animation: slide-up 0.3s ease-out forwards;
+	overflow: hidden;
 }
