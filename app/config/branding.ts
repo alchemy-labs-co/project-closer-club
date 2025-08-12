@@ -1,6 +1,6 @@
 /**
  * Closer Club Branding Configuration
- * 
+ *
  * This file contains all brand constants including colors, typography,
  * and metadata for consistent branding across the application.
  */
@@ -51,7 +51,8 @@ export const typography = {
 		// Numeric/Code (optional)
 		mono: "IBM Plex Mono, ui-monospace, monospace",
 		// Display font (existing)
-		display: "SF Pro Display, var(--font-display), ui-sans-serif, system-ui, sans-serif",
+		display:
+			"SF Pro Display, var(--font-display), ui-sans-serif, system-ui, sans-serif",
 	},
 	// Font weights
 	weights: {
@@ -115,9 +116,10 @@ export const logo = {
 export const metadata = {
 	// Site metadata
 	siteName: "Closer Club",
-	siteDescription: "Transform Your Insurance Career with Closer Club - Comprehensive virtual training platform for insurance sales professionals.",
+	siteDescription:
+		"Transform Your Insurance Career with Closer Club - Comprehensive virtual training platform for insurance sales professionals.",
 	siteUrl: "https://closerclub.com", // Update with actual URL
-	
+
 	// Social media metadata
 	social: {
 		twitter: {
@@ -131,13 +133,14 @@ export const metadata = {
 			siteName: "Closer Club",
 		},
 	},
-	
+
 	// Default meta tags
 	defaultMeta: {
 		charset: "utf-8",
 		viewport: "width=device-width,initial-scale=1",
 		themeColor: colors.aqua.hex,
-		keywords: "insurance training, sales training, virtual training, insurance career, sales professional",
+		keywords:
+			"insurance training, sales training, virtual training, insurance career, sales professional",
 	},
 } as const;
 
@@ -171,7 +174,7 @@ export function getCSSVariables() {
 		"--color-brand-porcelain": colors.porcelain.hex,
 		"--color-brand-aqua-light": colors.aquaLight.hex,
 		"--color-brand-brass": colors.brass.hex,
-		
+
 		// OKLCH values for Tailwind v4
 		"--color-brand-aqua-oklch": colors.aqua.oklch,
 		"--color-brand-graphite-oklch": colors.graphite.oklch,
@@ -179,7 +182,7 @@ export function getCSSVariables() {
 		"--color-brand-porcelain-oklch": colors.porcelain.oklch,
 		"--color-brand-aqua-light-oklch": colors.aquaLight.oklch,
 		"--color-brand-brass-oklch": colors.brass.oklch,
-		
+
 		// Typography
 		"--font-headline": typography.families.headline,
 		"--font-subhead": typography.families.subhead,

@@ -7,6 +7,7 @@ import {
 	Pipette,
 	Users,
 	Users2,
+	Video,
 	type LucideProps,
 } from "lucide-react";
 import type { VideoPlayerTypes } from "~/lib/types";
@@ -33,8 +34,8 @@ type DahsboardConfig = {
 export const dashboardConfig: DahsboardConfig = {
 	sidebar: {
 		logo: {
-			src: "/assets/LOGO.png",
-			alt: "Logo",
+			src: "/logos/closer-club-logo.png",
+			alt: "Closer Club Logo",
 		},
 		items: [
 			{
@@ -42,11 +43,15 @@ export const dashboardConfig: DahsboardConfig = {
 				icon: Home,
 				url: "/dashboard",
 			},
-
 			{
 				title: "Courses",
 				icon: Book,
 				url: "/dashboard/courses",
+			},
+			{
+				title: "Videos",
+				icon: Video,
+				url: "/dashboard/videos",
 			},
 			{
 				title: "Quizzes",
@@ -67,8 +72,7 @@ export const dashboardConfig: DahsboardConfig = {
 				title: "Leads",
 				icon: Magnet,
 				url: "/dashboard/leads",
-			}
-
+			},
 		],
 	},
 	videoPlayer: "Bunny",
@@ -78,8 +82,8 @@ export const dashboardConfig: DahsboardConfig = {
 export const teamLeaderDashboardConfig: DahsboardConfig = {
 	sidebar: {
 		logo: {
-			src: "/assets/LOGO.png",
-			alt: "Logo",
+			src: "/logos/closer-club-logo.png",
+			alt: "Closer Club Logo",
 		},
 		items: [
 			{

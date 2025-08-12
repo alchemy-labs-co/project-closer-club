@@ -15,11 +15,12 @@ import { metadata, assets } from "~/config/branding";
 export function meta() {
 	// For OG images, we need to use absolute URLs
 	// In production, this should be set via environment variable
-	const baseUrl = typeof window !== "undefined" 
-		? window.location.origin 
-		: process.env.PUBLIC_URL || "http://localhost:5173";
+	const baseUrl =
+		typeof window !== "undefined"
+			? window.location.origin
+			: process.env.PUBLIC_URL || "http://localhost:5173";
 	const ogImageUrl = `${baseUrl}${assets.openGraph.default}`;
-	
+
 	return [
 		{ title: metadata.siteName },
 		{ name: "description", content: metadata.siteDescription },
@@ -52,10 +53,30 @@ export const links: Route.LinksFunction = () => [
 	{ rel: "stylesheet", href: fontStyles },
 	// Favicons
 	{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-	{ rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
-	{ rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
-	{ rel: "icon", type: "image/png", sizes: "192x192", href: "/android-chrome-192x192.png" },
-	{ rel: "icon", type: "image/png", sizes: "512x512", href: "/android-chrome-512x512.png" },
+	{
+		rel: "icon",
+		type: "image/png",
+		sizes: "16x16",
+		href: "/favicon-16x16.png",
+	},
+	{
+		rel: "icon",
+		type: "image/png",
+		sizes: "32x32",
+		href: "/favicon-32x32.png",
+	},
+	{
+		rel: "icon",
+		type: "image/png",
+		sizes: "192x192",
+		href: "/android-chrome-192x192.png",
+	},
+	{
+		rel: "icon",
+		type: "image/png",
+		sizes: "512x512",
+		href: "/android-chrome-512x512.png",
+	},
 	{ rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
 	// Manifest (we'll create this next)
 	{ rel: "manifest", href: "/manifest.json" },
