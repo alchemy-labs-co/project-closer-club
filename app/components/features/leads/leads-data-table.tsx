@@ -37,7 +37,7 @@ import {
 	promoteLeadSchema,
 	rejectLeadSchema,
 	type PromoteLeadSchemaType,
-	type RejectLeadSchemaType
+	type RejectLeadSchemaType,
 } from "~/lib/zod-schemas/lead-capture";
 
 import { Button } from "~/components/ui/button";
@@ -53,7 +53,7 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
-	DropdownMenuTrigger
+	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
 	Form,
@@ -98,11 +98,11 @@ import { formatDateToString } from "~/lib/utils";
 function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const fetcher = useFetcher();
-	
+
 	const form = useForm<PromoteLeadSchemaType>({
-        resolver: zodResolver(promoteLeadSchema),
+		resolver: zodResolver(promoteLeadSchema),
 		defaultValues: {
-            leadId: leadData.id,
+			leadId: leadData.id,
 			userType: "agent",
 			name: `${leadData.firstName} ${leadData.lastName}`,
 			email: "",
@@ -112,8 +112,8 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 			courses: [],
 		},
 	});
-    
-    const isSubmitting = fetcher.state !== "idle";
+
+	const isSubmitting = fetcher.state !== "idle";
 	const watchedUserType = form.watch("userType");
 
 	useEffect(() => {
@@ -122,17 +122,16 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 				const email = form.getValues("email");
 				const password = form.getValues("password");
 				const userType = form.getValues("userType");
-				
+
 				// Auto-copy to clipboard
-				navigator.clipboard.writeText(
-					`Email: ${email}\nPassword: ${password}`
-				);
-				
+				navigator.clipboard.writeText(`Email: ${email}\nPassword: ${password}`);
+
 				// Show persistent toast with credentials
 				toast.success(
 					<div className="flex flex-col gap-2">
 						<div className="font-medium">
-							{userType === "team-leader" ? "Team Leader" : "Agent"} Created Successfully!
+							{userType === "team-leader" ? "Team Leader" : "Agent"} Created
+							Successfully!
 						</div>
 						<div className="text-sm">
 							<div>Email: {email}</div>
@@ -149,16 +148,16 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 							label: "Copy Again",
 							onClick: () => {
 								navigator.clipboard.writeText(
-									`Email: ${email}\nPassword: ${password}`
+									`Email: ${email}\nPassword: ${password}`,
 								);
 								toast.success("Copied to clipboard", {
-									position: "bottom-right"
+									position: "bottom-right",
 								});
 							},
 						},
-					}
+					},
 				);
-				
+
 				// Close dialog after a brief delay
 				setTimeout(() => {
 					setIsDialogOpen(false);
@@ -339,10 +338,9 @@ function PromoteDialog({ leadData }: { leadData: LeadCapture }) {
 						/>
 
 						<PrimaryButton type="submit" disabled={isSubmitting}>
-							{isSubmitting 
-								? `Promoting to ${watchedUserType === "team-leader" ? "Team Leader" : "Agent"}...` 
-								: `Promote to ${watchedUserType === "team-leader" ? "Team Leader" : "Agent"}`
-							}
+							{isSubmitting
+								? `Promoting to ${watchedUserType === "team-leader" ? "Team Leader" : "Agent"}...`
+								: `Promote to ${watchedUserType === "team-leader" ? "Team Leader" : "Agent"}`}
 						</PrimaryButton>
 					</fetcher.Form>
 				</Form>
@@ -356,14 +354,14 @@ function RejectDialog({ leadData }: { leadData: LeadCapture }) {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const fetcher = useFetcher();
 	const form = useForm<RejectLeadSchemaType>({
-        resolver: zodResolver(rejectLeadSchema),
+		resolver: zodResolver(rejectLeadSchema),
 		defaultValues: {
-            leadId: leadData.id,
+			leadId: leadData.id,
 			reason: "",
 		},
 	});
-    
-    const isSubmitting = fetcher.state !== "idle";
+
+	const isSubmitting = fetcher.state !== "idle";
 
 	useEffect(() => {
 		if (!isDialogOpen) {
@@ -374,7 +372,11 @@ function RejectDialog({ leadData }: { leadData: LeadCapture }) {
 	return (
 		<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 			<DialogTrigger asChild>
-				<Button type="button" variant="ghost" className="cursor-pointer text-red-600 hover:text-red-700">
+				<Button
+					type="button"
+					variant="ghost"
+					className="cursor-pointer text-red-600 hover:text-red-700"
+				>
 					Reject
 				</Button>
 			</DialogTrigger>
@@ -382,7 +384,8 @@ function RejectDialog({ leadData }: { leadData: LeadCapture }) {
 				<DialogHeader>
 					<DialogTitle>Reject Lead</DialogTitle>
 					<DialogDescription>
-						Are you sure you want to reject this lead? This action cannot be undone.
+						Are you sure you want to reject this lead? This action cannot be
+						undone.
 					</DialogDescription>
 				</DialogHeader>
 				<Form {...form}>
@@ -424,17 +427,17 @@ function RejectDialog({ leadData }: { leadData: LeadCapture }) {
 						/>
 
 						<div className="flex gap-2 justify-end">
-							<Button 
-								type="button" 
-								variant="outline" 
+							<Button
+								type="button"
+								variant="outline"
 								onClick={() => setIsDialogOpen(false)}
 								disabled={isSubmitting}
 							>
 								Cancel
 							</Button>
-							<Button 
-								type="submit" 
-								variant="destructive" 
+							<Button
+								type="submit"
+								variant="destructive"
 								disabled={isSubmitting}
 							>
 								{isSubmitting ? "Rejecting..." : "Reject Lead"}
@@ -453,7 +456,9 @@ const columns: ColumnDef<LeadCapture>[] = [
 		header: "Name",
 		enableHiding: false,
 		cell: ({ row }) => (
-			<span>{row.original.firstName} {row.original.lastName}</span>
+			<span>
+				{row.original.firstName} {row.original.lastName}
+			</span>
 		),
 	},
 	{
@@ -475,19 +480,29 @@ const columns: ColumnDef<LeadCapture>[] = [
 		cell: ({ row }) => {
 			const status = row.original.leadStatus;
 			const reason = row.original.reason;
-			
+
 			const badgeElement = (
-				<Badge 
-					variant={status === "promoted" ? "default" : status === "rejected" ? "destructive" : "secondary"}
-					className={
-						status === "promoted" 
-							? "bg-green-500 hover:bg-green-600 text-white" 
+				<Badge
+					variant={
+						status === "promoted"
+							? "default"
 							: status === "rejected"
-							? "bg-red-500 hover:bg-red-600 text-white"
-							: "bg-yellow-500 hover:bg-yellow-600 text-white"
+								? "destructive"
+								: "secondary"
+					}
+					className={
+						status === "promoted"
+							? "bg-green-500 hover:bg-green-600 text-white"
+							: status === "rejected"
+								? "bg-red-500 hover:bg-red-600 text-white"
+								: "bg-yellow-500 hover:bg-yellow-600 text-white"
 					}
 				>
-					{status === "promoted" ? "Promoted" : status === "rejected" ? "Rejected" : "Pending"}
+					{status === "promoted"
+						? "Promoted"
+						: status === "rejected"
+							? "Rejected"
+							: "Pending"}
 				</Badge>
 			);
 
@@ -496,9 +511,7 @@ const columns: ColumnDef<LeadCapture>[] = [
 				return (
 					<TooltipProvider>
 						<Tooltip>
-							<TooltipTrigger asChild>
-								{badgeElement}
-							</TooltipTrigger>
+							<TooltipTrigger asChild>{badgeElement}</TooltipTrigger>
 							<TooltipContent>
 								<p className="max-w-xs">
 									<span className="font-medium">Reason:</span> {reason}
@@ -527,39 +540,41 @@ const columns: ColumnDef<LeadCapture>[] = [
 		header: "Actions",
 		cell: ({ row }) => {
 			const lead = row.original;
-			
+
 			if (lead.leadStatus === "promoted") {
 				return <span className="text-green-600 font-medium">Promoted!</span>;
-			} 
-			
+			}
+
 			if (lead.leadStatus === "rejected") {
-				return <span className="text-red-600 font-medium">Rejected</span>
+				return <span className="text-red-600 font-medium">Rejected</span>;
 			}
-				return (
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								variant="ghost"
-								className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
-								size="icon"
-							>
-								<MoreVertical />
-								<span className="sr-only">Open menu</span>
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent align="end" className="max-w-32">
-							<div className="flex flex-col gap-2">
-								<PromoteDialog leadData={lead} />
-								<RejectDialog leadData={lead} />
-							</div>
-						</PopoverContent>
-					</Popover>
-				);
-			}
+			return (
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button
+							variant="ghost"
+							className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
+							size="icon"
+						>
+							<MoreVertical />
+							<span className="sr-only">Open menu</span>
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent align="end" className="max-w-32">
+						<div className="flex flex-col gap-2">
+							<PromoteDialog leadData={lead} />
+							<RejectDialog leadData={lead} />
+						</div>
+					</PopoverContent>
+				</Popover>
+			);
 		},
+	},
 ];
 
-export function LeadsDataTable({ initialData }: { initialData: LeadCapture[] }) {
+export function LeadsDataTable({
+	initialData,
+}: { initialData: LeadCapture[] }) {
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [columnVisibility, setColumnVisibility] =
 		React.useState<VisibilityState>({});
@@ -597,7 +612,6 @@ export function LeadsDataTable({ initialData }: { initialData: LeadCapture[] }) 
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	});
 
-
 	const isFiltered = table.getState().columnFilters.length > 0;
 
 	return (
@@ -610,7 +624,8 @@ export function LeadsDataTable({ initialData }: { initialData: LeadCapture[] }) 
 						{/* Status Filter */}
 						<Select
 							value={
-								(table.getColumn("Lead Status")?.getFilterValue() as string) ?? "all"
+								(table.getColumn("Lead Status")?.getFilterValue() as string) ??
+								"all"
 							}
 							onValueChange={(value) => {
 								if (value === "all") {
@@ -810,4 +825,4 @@ export function LeadsDataTable({ initialData }: { initialData: LeadCapture[] }) 
 			</div>
 		</div>
 	);
-} 
+}
