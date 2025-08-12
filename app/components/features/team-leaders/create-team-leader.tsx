@@ -180,9 +180,7 @@ export function CreateTeamLeader() {
 								disabled={isSubmitting}
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>
-											Courses
-										</FormLabel>
+										<FormLabel>Courses</FormLabel>
 										<FormControl>
 											<AssignCourseToStudent form={form as any} {...field} />
 										</FormControl>

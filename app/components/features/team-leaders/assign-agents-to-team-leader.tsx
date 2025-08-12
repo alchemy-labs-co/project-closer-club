@@ -107,7 +107,9 @@ export function AssignAgentsToTeamLeader({
 		[],
 	);
 
-	const selectables = students.filter((student) => !selected.includes(student) && student.role === "agent");
+	const selectables = students.filter(
+		(student) => !selected.includes(student) && student.role === "agent",
+	);
 
 	return (
 		<div>
@@ -120,7 +122,8 @@ export function AssignAgentsToTeamLeader({
 							{selected.map((student) => {
 								return (
 									<Badge key={student.studentId} variant="secondary">
-										{student.name} ({student.role === "team leader" ? "leader" : "agent"})
+										{student.name} (
+										{student.role === "team leader" ? "leader" : "agent"})
 										{student.assignedTeamLeaderName && (
 											<span className="text-xs text-muted-foreground ml-1">
 												{student.assignedTeamLeaderName}
@@ -231,7 +234,8 @@ function SelectableAgentsList({
 							>
 								<div className="flex items-center justify-between w-full">
 									<span>
-										{student.name} ({student.role === "team leader" ? "leader" : "agent"})
+										{student.name} (
+										{student.role === "team leader" ? "leader" : "agent"})
 									</span>
 									{student.assignedTeamLeaderName && (
 										<span className="text-xs text-muted-foreground ml-2">

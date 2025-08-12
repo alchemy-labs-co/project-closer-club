@@ -76,7 +76,6 @@ export async function handleCreateTeamLeader(
 					name: validatedFields.name,
 					// @ts-ignore
 					role: "team_leader",
-
 				},
 			});
 
@@ -97,7 +96,7 @@ export async function handleCreateTeamLeader(
 				return {
 					success: false,
 					message: "Failed to create team leader",
-				}
+				};
 			}
 
 			if (agentsArray.length > 0) {
@@ -120,7 +119,7 @@ export async function handleCreateTeamLeader(
 		return {
 			success: true,
 			message: "Team leader created successfully",
-		}
+		};
 	} catch (error) {
 		return data(
 			{
@@ -388,7 +387,7 @@ export async function handleUpdateTeamLeader(
 				return {
 					success: false,
 					message: "Team leader not found",
-				}
+				};
 			}
 
 			// update user table

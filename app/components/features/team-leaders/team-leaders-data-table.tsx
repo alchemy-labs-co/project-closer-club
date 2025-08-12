@@ -19,7 +19,7 @@ import {
 	ChevronsLeft,
 	ChevronsRight,
 	Columns,
-	MoreVertical
+	MoreVertical,
 } from "lucide-react";
 import * as React from "react";
 import { useEffect } from "react";
@@ -209,7 +209,6 @@ export function TeamLeadersDataTable({
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	});
-
 
 	return (
 		<div className="w-full flex flex-col justify-between h-full gap-6 overflow-hidden">
