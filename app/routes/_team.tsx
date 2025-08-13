@@ -12,6 +12,7 @@ import {
 	SidebarInset,
 	SidebarProvider,
 	SidebarTrigger,
+	useSidebar,
 } from "~/components/ui/sidebar";
 import { teamLeaderDashboardConfig } from "~/config/dashboard";
 import { isAuthenticated } from "~/lib/auth/auth.server";
@@ -39,6 +40,34 @@ export function useTeamLeaderLayoutLoaderData() {
 	return data;
 }
 
+function TeamDashboardContent({ isLoading }: { isLoading: boolean }) {
+	const { state } = useSidebar();
+	const isCollapsed = state === "collapsed";
+	
+	return (
+		<SidebarInset className="overflow-hidden">
+			<div className="flex flex-1 flex-col p-4 h-full">
+				{/* BreadCrumbs Component */}
+				<div className="flex items-center gap-2 pb-4 border-b">
+					<SidebarTrigger className="-ml-1" />
+					{!isCollapsed && (
+						<Separator orientation="vertical" className="mr-2 h-2 transition-all" />
+					)}
+					<Breadcrumbs />
+				</div>
+
+				{isLoading ? (
+					<DashboardSkeleton />
+				) : (
+					<div className="overflow-hidden min-h-[calc(100dvh-76.8px)]">
+						<Outlet />
+					</div>
+				)}
+			</div>
+		</SidebarInset>
+	);
+}
+
 export default function Page({ loaderData }: Route.ComponentProps) {
 	const navigation = useNavigation();
 	const isLoading = navigation.state === "loading";
@@ -54,28 +83,12 @@ export default function Page({ loaderData }: Route.ComponentProps) {
 		>
 			<AppSidebar
 				variant="inset"
+				collapsible="icon"
 				config={teamLeaderDashboardConfig}
 				name={teamLeader.name}
 				email={teamLeader.email}
 			/>
-			<SidebarInset className="overflow-hidden">
-				<div className="flex flex-1 flex-col p-4 h-full">
-					{/* BreadCrumbs Component */}
-					<div className="flex items-center gap-2 pb-4 border-b">
-						<SidebarTrigger className="-ml-1" />
-						<Separator orientation="vertical" className="mr-2 h-2" />
-						<Breadcrumbs />
-					</div>
-
-					{isLoading ? (
-						<DashboardSkeleton />
-					) : (
-						<div className="overflow-hidden min-h-[calc(100dvh-76.8px)]">
-							<Outlet />
-						</div>
-					)}
-				</div>
-			</SidebarInset>
+			<TeamDashboardContent isLoading={isLoading} />
 		</SidebarProvider>
 	);
 }

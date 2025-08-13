@@ -12,6 +12,7 @@ import {
 	SidebarInset,
 	SidebarProvider,
 	SidebarTrigger,
+	useSidebar,
 } from "~/components/ui/sidebar";
 import { isAuthenticated } from "~/lib/auth/auth.server";
 import type { Route } from "./+types/_admin";
@@ -38,6 +39,34 @@ export function useDashboardLayoutLoaderData() {
 	return data;
 }
 
+function DashboardContent({ isLoading }: { isLoading: boolean }) {
+	const { state } = useSidebar();
+	const isCollapsed = state === "collapsed";
+	
+	return (
+		<SidebarInset className="overflow-hidden">
+			<div className="flex flex-1 flex-col p-4 h-full">
+				{/* BreadCrumbs Component */}
+				<div className="flex items-center gap-2 pb-4 border-b">
+					<SidebarTrigger className="-ml-1" />
+					{!isCollapsed && (
+						<Separator orientation="vertical" className="mr-2 h-2 transition-all" />
+					)}
+					<Breadcrumbs />
+				</div>
+
+				{isLoading ? (
+					<DashboardSkeleton />
+				) : (
+					<div className="overflow-y-auto h-full">
+						<Outlet />
+					</div>
+				)}
+			</div>
+		</SidebarInset>
+	);
+}
+
 export default function Page({ loaderData }: Route.ComponentProps) {
 	const navigation = useNavigation();
 	const isLoading = navigation.state === "loading";
@@ -51,25 +80,8 @@ export default function Page({ loaderData }: Route.ComponentProps) {
 			}
 			className="h-dvh"
 		>
-			<AppSidebar variant="inset" name={admin.name} email={admin.email} />
-			<SidebarInset className="overflow-hidden">
-				<div className="flex flex-1 flex-col p-4 h-full">
-					{/* BreadCrumbs Component */}
-					<div className="flex items-center gap-2 pb-4 border-b">
-						<SidebarTrigger className="-ml-1" />
-						<Separator orientation="vertical" className="mr-2 h-2" />
-						<Breadcrumbs />
-					</div>
-
-					{isLoading ? (
-						<DashboardSkeleton />
-					) : (
-						<div className="overflow-y-auto h-full">
-							<Outlet />
-						</div>
-					)}
-				</div>
-			</SidebarInset>
+			<AppSidebar variant="inset" collapsible="icon" name={admin.name} email={admin.email} />
+			<DashboardContent isLoading={isLoading} />
 		</SidebarProvider>
 	);
 }
