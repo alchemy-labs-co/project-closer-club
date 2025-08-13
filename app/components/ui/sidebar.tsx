@@ -256,24 +256,37 @@ function SidebarTrigger({
 	onClick,
 	...props
 }: React.ComponentProps<typeof Button>) {
-	const { toggleSidebar } = useSidebar();
+	const { toggleSidebar, state } = useSidebar();
+	const isCollapsed = state === "collapsed";
+
+	// Hide trigger when sidebar is collapsed (logo will be the trigger)
+	if (isCollapsed) {
+		return null;
+	}
 
 	return (
-		<Button
-			data-sidebar="trigger"
-			data-slot="sidebar-trigger"
-			variant="ghost"
-			size="icon"
-			className={cn("size-7", className)}
-			onClick={(event) => {
-				onClick?.(event);
-				toggleSidebar();
-			}}
-			{...props}
-		>
-			<PanelLeftIcon />
-			<span className="sr-only">Toggle Sidebar</span>
-		</Button>
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<Button
+					data-sidebar="trigger"
+					data-slot="sidebar-trigger"
+					variant="ghost"
+					size="icon"
+					className={cn("size-7", className)}
+					onClick={(event) => {
+						onClick?.(event);
+						toggleSidebar();
+					}}
+					{...props}
+				>
+					<PanelLeftIcon />
+					<span className="sr-only">Toggle Sidebar</span>
+				</Button>
+			</TooltipTrigger>
+			<TooltipContent>
+				<p>Close sidebar</p>
+			</TooltipContent>
+		</Tooltip>
 	);
 }
 
@@ -536,6 +549,7 @@ function SidebarMenuButton({
 			<TooltipContent
 				side="right"
 				align="center"
+				sideOffset={10}
 				hidden={state !== "collapsed" || isMobile}
 				{...tooltip}
 			/>
