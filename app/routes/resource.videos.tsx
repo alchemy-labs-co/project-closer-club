@@ -9,7 +9,58 @@ import {
 	uploadVideoToLibrary,
 	deleteVideo,
 } from "~/lib/admin/actions/videos/videos.server";
+import { getAllVideos } from "~/lib/admin/data-access/videos.server";
 import type { Route } from "./+types/resource.videos";
+
+export async function loader({ request }: Route.LoaderArgs) {
+	const { isLoggedIn, admin } = await isAdminLoggedIn(request);
+	if (!isLoggedIn || !admin) {
+		return data(
+			{
+				success: false,
+				message: "Unauthorized",
+				videos: [],
+				pagination: {
+					page: 1,
+					limit: 20,
+					total: 0,
+					totalPages: 0,
+				},
+			},
+			{ status: 401 },
+		);
+	}
+
+	const url = new URL(request.url);
+	const page = Number(url.searchParams.get("page")) || 1;
+	const query = url.searchParams.get("query") || "";
+	const status = url.searchParams.get("status") || "all";
+	const limit = Number(url.searchParams.get("limit")) || 20;
+
+	const result = await getAllVideos(request, {
+		page,
+		query,
+		status: status as any,
+		limit,
+	});
+
+	// Ensure consistent data structure even on error
+	if (!result.success || !result.videos) {
+		return data({
+			success: false,
+			message: result.message || "Failed to fetch videos",
+			videos: [],
+			pagination: {
+				page,
+				limit,
+				total: 0,
+				totalPages: 0,
+			},
+		});
+	}
+
+	return data(result);
+}
 
 export async function action({ request }: Route.ActionArgs) {
 	const { isLoggedIn, admin } = await isAdminLoggedIn(request);
