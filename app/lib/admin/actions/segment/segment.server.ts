@@ -1,15 +1,21 @@
 import { and, eq, max } from "drizzle-orm";
 import { data, redirect } from "react-router";
+
+import { dashboardConfig } from "~/config/dashboard";
 import db from "~/db/index.server";
-import { attachmentsTable, lessonsTable } from "~/db/schema";
+import {
+	type Module,
+	attachmentsTable,
+	lessonsTable,
+	videosTable,
+} from "~/db/schema";
 import { isAdminLoggedIn } from "~/lib/auth/auth.server";
 import {
-	uploadAttachmentToBunny,
 	createAndUploadVideoToBunnyStream,
-	generateVideoUploadToken,
 	generateAttachmentUploadToken,
+	generateVideoUploadToken,
+	uploadAttachmentToBunny,
 } from "~/lib/bunny.server";
-import { dashboardConfig } from "~/config/dashboard";
 import { titleToSlug } from "~/lib/utils";
 import {
 	createSegmentSchema,
@@ -17,16 +23,15 @@ import {
 } from "../../../zod-schemas/segment";
 import { getModuleBySlug } from "../../data-access/modules/modules.server";
 import { checkSegmentSlugUniqueForModule } from "../shared/shared.server";
-import type { Module } from "~/db/schema";
 
 export async function handleCreateSegment(
 	request: Request,
 	formData: FormData,
 ) {
 	// auth check
-	const { isLoggedIn } = await isAdminLoggedIn(request);
+	const { isLoggedIn, admin } = await isAdminLoggedIn(request);
 
-	if (!isLoggedIn) {
+	if (!isLoggedIn || !admin) {
 		throw redirect("/admin/login");
 	}
 
@@ -116,13 +121,36 @@ export async function handleCreateSegment(
 			);
 		}
 
+		// Create video record in videosTable
+		const [insertedVideo] = await db
+			.insert(videosTable)
+			.values({
+				title: name,
+				description: description || null,
+				videoGuid: videoGuid,
+				uploadedBy: admin.id,
+				libraryId: dashboardConfig.libraryId || "",
+				status: "ready", // Video is already processed by Bunny
+			})
+			.returning({
+				id: videosTable.id,
+			});
+
+		if (!insertedVideo) {
+			return data(
+				{ success: false, message: "Failed to create video record" },
+				{ status: 500 },
+			);
+		}
+
 		// insert lesson into database
 		const [insertedSegment] = await db
 			.insert(lessonsTable)
 			.values({
 				name,
 				description,
-				videoUrl: videoGuid, // Store the video GUID as videoUrl
+				videoUrl: `${dashboardConfig.libraryId}/${videoGuid}`, // Store complete path
+				videoId: insertedVideo.id, // Reference to videosTable
 				slug,
 				moduleId: module.id,
 				orderIndex: orderIndex.toString(),
@@ -448,14 +476,15 @@ export async function handleConfirmUploads(
 	formData: FormData,
 ) {
 	// auth check
-	const { isLoggedIn } = await isAdminLoggedIn(request);
+	const { isLoggedIn, admin } = await isAdminLoggedIn(request);
 
-	if (!isLoggedIn) {
+	if (!isLoggedIn || !admin) {
 		throw redirect("/admin/login");
 	}
 
 	try {
 		const videoGuid = formData.get("videoGuid") as string;
+		const videoId = formData.get("videoId") as string; // Get videoId if using library video
 		const attachmentUrls = formData.getAll("attachmentUrls") as string[];
 		const attachmentData = formData.get("attachmentData") as string;
 
@@ -511,13 +540,68 @@ export async function handleConfirmUploads(
 			? Number.parseInt(nextOrderIndex.max) + 1
 			: 0;
 
+		// Use existing video ID if provided (library video), otherwise create new video record
+		let finalVideoId: string;
+		let finalVideoUrl: string;
+		
+		if (videoId) {
+			// Using existing video from library
+			finalVideoId = videoId;
+			
+			// Fetch the video's libraryId to construct proper URL
+			const [existingVideo] = await db
+				.select({
+					libraryId: videosTable.libraryId,
+				})
+				.from(videosTable)
+				.where(eq(videosTable.id, videoId))
+				.limit(1);
+			
+			if (!existingVideo) {
+				return data(
+					{ success: false, message: "Selected video not found" },
+					{ status: 404 },
+				);
+			}
+			
+			// Store the complete path with libraryId for proper display
+			finalVideoUrl = `${existingVideo.libraryId}/${videoGuid}`;
+		} else {
+			// Create new video record for uploaded video
+			const [insertedVideo] = await db
+				.insert(videosTable)
+				.values({
+					title: name,
+					description: description || null,
+					videoGuid: videoGuid,
+					uploadedBy: admin.id,
+					libraryId: dashboardConfig.libraryId || "",
+					status: "ready", // Video is already processed by Bunny
+				})
+				.returning({
+					id: videosTable.id,
+				});
+
+			if (!insertedVideo) {
+				return data(
+					{ success: false, message: "Failed to create video record" },
+					{ status: 500 },
+				);
+			}
+			
+			finalVideoId = insertedVideo.id;
+			// For new uploads, also store the complete path
+			finalVideoUrl = `${dashboardConfig.libraryId}/${videoGuid}`;
+		}
+
 		// Insert lesson into database
 		const [insertedSegment] = await db
 			.insert(lessonsTable)
 			.values({
 				name,
 				description,
-				videoUrl: videoGuid, // Store the video GUID as videoUrl
+				videoUrl: finalVideoUrl, // Store the complete libraryId/videoGuid path
+				videoId: finalVideoId, // Reference to videosTable
 				slug,
 				moduleId: module.id,
 				orderIndex: orderIndex.toString(),
