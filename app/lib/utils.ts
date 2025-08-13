@@ -35,7 +35,13 @@ export function titleToSlug(title: string) {
 }
 
 export function extractBunnyVideoId(url: string) {
-	// library id is the first before the last one so we can split by /
+	// Check if url already contains libraryId/videoGuid format
+	if (url.includes("/")) {
+		// Already in correct format, return as-is
+		return url;
+	}
+	
+	// Legacy format: just a GUID, use config libraryId
 	const libraryId = dashboardConfig.libraryId ?? url.split("/").slice(-2)[0];
 	// video id
 	const videoId = url.split("/").pop();
@@ -320,4 +326,22 @@ export const uploadWithProgress = async (
 // replace the dashes + capitalize the first letter of each word
 export const slugToTitle = (slug: string) => {
 	return slug.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+// Client-safe function to generate video thumbnail URLs
+export const getVideoThumbnailUrl = (
+	libraryId: string,
+	videoGuid: string,
+	thumbnailFileName?: string,
+): string => {
+	// Use the Bunny.net video CDN URL format for thumbnails
+	// Format: https://vz-{pullZoneId}.b-cdn.net/{videoGuid}/{thumbnailFileName}
+	// The pullZoneId is typically libraryId-461 for Bunny video libraries
+	const CDN_BASE = `https://vz-${libraryId}-461.b-cdn.net`;
+	
+	if (thumbnailFileName) {
+		return `${CDN_BASE}/${videoGuid}/${thumbnailFileName}`;
+	}
+	// Default thumbnail filename
+	return `${CDN_BASE}/${videoGuid}/thumbnail.jpg`;
 };
