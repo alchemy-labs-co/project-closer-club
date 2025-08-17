@@ -334,13 +334,15 @@ export const getVideoThumbnailUrl = (
 	videoGuid: string,
 	thumbnailFileName?: string,
 ): string => {
-	// Use Bunny.net iframe embed URL for thumbnails
-	const embedUrl = "https://iframe.mediadelivery.net/embed";
+	// Use Bunny.net CDN pull zone URL for thumbnails
+	// Format: https://vz-{libraryId}-a.b-cdn.net/{videoGuid}/{thumbnailFile}
+	const pullZoneUrl = `https://vz-${libraryId}-a.b-cdn.net`;
+	
 	if (thumbnailFileName) {
-		return `${embedUrl}/${libraryId}/${videoGuid}/${thumbnailFileName}`;
+		return `${pullZoneUrl}/${videoGuid}/${thumbnailFileName}`;
 	}
-	// Default thumbnail
-	return `${embedUrl}/${libraryId}/${videoGuid}/thumbnail.jpg`;
+	// Default thumbnail - Bunny generates this automatically
+	return `${pullZoneUrl}/${videoGuid}/thumbnail.jpg`;
 };
 
 // Client-safe function to generate video embed URLs for playback

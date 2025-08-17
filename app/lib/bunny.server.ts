@@ -753,9 +753,13 @@ export const getVideoThumbnailUrl = (
 	videoGuid: string,
 	thumbnailFileName?: string,
 ): string => {
+	// Use Bunny.net CDN pull zone URL for thumbnails
+	// Format: https://vz-{libraryId}-a.b-cdn.net/{videoGuid}/{thumbnailFile}
+	const pullZoneUrl = `https://vz-${libraryId}-a.b-cdn.net`;
+	
 	if (thumbnailFileName) {
-		return `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}/${thumbnailFileName}`;
+		return `${pullZoneUrl}/${videoGuid}/${thumbnailFileName}`;
 	}
-	// Default thumbnail
-	return `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}/thumbnail.jpg`;
+	// Default thumbnail - Bunny generates this automatically
+	return `${pullZoneUrl}/${videoGuid}/thumbnail.jpg`;
 };
