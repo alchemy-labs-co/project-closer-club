@@ -81,7 +81,7 @@ export function AppSidebar({
 					<span
 						className={cn(
 							"text-xl font-semibold whitespace-nowrap transition-opacity duration-200 ease-in-out",
-							isCollapsed ? "opacity-0 invisible" : "opacity-100 visible"
+							isCollapsed ? "opacity-0 invisible" : "opacity-100 visible",
 						)}
 					>
 						Closer Club
@@ -148,7 +148,9 @@ export function NavMain({
 												isActive && `text-white`,
 											)}
 										/>
-										<span className="transition-all duration-200">{item.title}</span>
+										<span className="transition-all duration-200">
+											{item.title}
+										</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>

@@ -42,7 +42,7 @@ export function useDashboardLayoutLoaderData() {
 function DashboardContent({ isLoading }: { isLoading: boolean }) {
 	const { state } = useSidebar();
 	const isCollapsed = state === "collapsed";
-	
+
 	return (
 		<SidebarInset className="overflow-hidden">
 			<div className="flex flex-1 flex-col p-4 h-full">
@@ -50,7 +50,10 @@ function DashboardContent({ isLoading }: { isLoading: boolean }) {
 				<div className="flex items-center gap-2 pb-4 border-b">
 					<SidebarTrigger className="-ml-1" />
 					{!isCollapsed && (
-						<Separator orientation="vertical" className="mr-2 h-2 transition-all" />
+						<Separator
+							orientation="vertical"
+							className="mr-2 h-2 transition-all"
+						/>
 					)}
 					<Breadcrumbs />
 				</div>
@@ -80,7 +83,12 @@ export default function Page({ loaderData }: Route.ComponentProps) {
 			}
 			className="h-dvh"
 		>
-			<AppSidebar variant="inset" collapsible="icon" name={admin.name} email={admin.email} />
+			<AppSidebar
+				variant="inset"
+				collapsible="icon"
+				name={admin.name}
+				email={admin.email}
+			/>
 			<DashboardContent isLoading={isLoading} />
 		</SidebarProvider>
 	);

@@ -64,18 +64,20 @@ type SelectedVideo = {
 };
 
 // Extended schema to handle both modes
-const extendedCreateSegmentSchema = createSegmentSchema.extend({
-	videoId: z.string().optional(),
-	videoFile: z.instanceof(File).optional(),
-}).refine(
-	(data) => {
-		return data.videoFile || data.videoId;
-	},
-	{
-		message: "Either video file or video from library is required",
-		path: ["videoFile"],
-	},
-);
+const extendedCreateSegmentSchema = createSegmentSchema
+	.extend({
+		videoId: z.string().optional(),
+		videoFile: z.instanceof(File).optional(),
+	})
+	.refine(
+		(data) => {
+			return data.videoFile || data.videoId;
+		},
+		{
+			message: "Either video file or video from library is required",
+			path: ["videoFile"],
+		},
+	);
 
 type ExtendedCreateSegmentSchema = z.infer<typeof extendedCreateSegmentSchema>;
 
@@ -236,7 +238,10 @@ export function CreateSegment() {
 					const attachmentTokens = await tokenResponse.json();
 
 					if (!attachmentTokens.success) {
-						throw new Error(attachmentTokens.message || "Failed to generate attachment tokens");
+						throw new Error(
+							attachmentTokens.message ||
+								"Failed to generate attachment tokens",
+						);
 					}
 
 					// Upload attachments
@@ -459,12 +464,18 @@ export function CreateSegment() {
 									<FormControl>
 										<Tabs
 											value={videoMode}
-											onValueChange={(value) => handleModeChange(value as VideoMode)}
+											onValueChange={(value) =>
+												handleModeChange(value as VideoMode)
+											}
 											className="w-full"
 										>
 											<TabsList className="grid w-full grid-cols-2">
-												<TabsTrigger value="upload">Upload New Video</TabsTrigger>
-												<TabsTrigger value="library">Select from Library</TabsTrigger>
+												<TabsTrigger value="upload">
+													Upload New Video
+												</TabsTrigger>
+												<TabsTrigger value="library">
+													Select from Library
+												</TabsTrigger>
 											</TabsList>
 
 											<TabsContent value="upload" className="mt-4">
@@ -488,7 +499,9 @@ export function CreateSegment() {
 														className="hidden"
 													/>
 													{isVideoDragActive ? (
-														<p className="text-sm text-gray-600">Drop the video!</p>
+														<p className="text-sm text-gray-600">
+															Drop the video!
+														</p>
 													) : (
 														<p className="text-sm text-gray-600">
 															Click here or drag a video file to upload
@@ -519,8 +532,11 @@ export function CreateSegment() {
 																</h4>
 																{selectedVideo.duration && (
 																	<p className="text-sm text-gray-600">
-																		Duration: {Math.floor(selectedVideo.duration / 60)}:
-																		{(selectedVideo.duration % 60).toString().padStart(2, "0")}
+																		Duration:{" "}
+																		{Math.floor(selectedVideo.duration / 60)}:
+																		{(selectedVideo.duration % 60)
+																			.toString()
+																			.padStart(2, "0")}
 																	</p>
 																)}
 															</div>
@@ -538,19 +554,23 @@ export function CreateSegment() {
 												) : (
 													<VideoLibrarySelector
 														onSelectVideo={handleVideoSelect}
-														selectedVideoId={selectedVideo?.id as string | undefined}
+														selectedVideoId={
+															selectedVideo?.id as string | undefined
+														}
 													/>
 												)}
 											</TabsContent>
 										</Tabs>
 									</FormControl>
 									<FormMessage>
-										{videoFileRejections.length !== 0 && videoMode === "upload" && (
-											<p>
-												Video must be less than {MAX_VIDEO_SIZE / 1024 / 1024}MB
-												and of supported format (MP4, AVI, MOV, WMV, WebM, MKV)
-											</p>
-										)}
+										{videoFileRejections.length !== 0 &&
+											videoMode === "upload" && (
+												<p>
+													Video must be less than {MAX_VIDEO_SIZE / 1024 / 1024}
+													MB and of supported format (MP4, AVI, MOV, WMV, WebM,
+													MKV)
+												</p>
+											)}
 										{form.formState.errors.videoFile && (
 											<p className="text-sm text-red-500">
 												{form.formState.errors.videoFile.message}

@@ -1,12 +1,14 @@
 import {
+	CheckCircle,
 	Clock,
+	Loader2,
 	MoreVertical,
 	Play,
-	CheckCircle,
-	Loader2,
-	XCircle,
 	Trash2,
+	XCircle,
 } from "lucide-react";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -21,9 +23,13 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { Button } from "~/components/ui/button";
-import { Badge } from "~/components/ui/badge";
-import { formatDuration, formatBytes } from "~/lib/utils";
+import { VideoPlayer } from "~/components/ui/video-thumbnail-player";
+import {
+	formatBytes,
+	formatDuration,
+	getVideoEmbedUrl,
+	getVideoThumbnailUrl,
+} from "~/lib/utils";
 
 interface VideoCardProps {
 	video: {
@@ -36,6 +42,8 @@ interface VideoCardProps {
 		createdAt: Date | string;
 		fileSize?: number | null;
 		tags?: string | null;
+		videoGuid: string;
+		libraryId: string;
 	};
 	onDelete?: () => void;
 }
@@ -67,6 +75,73 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
 		}
 	};
 
+	// For ready videos, use the VideoPlayer component
+	if (video.status === "ready" && video.videoGuid && video.libraryId) {
+		const thumbnailUrl = getVideoThumbnailUrl(video.libraryId, video.videoGuid);
+		const videoUrl = getVideoEmbedUrl(video.libraryId, video.videoGuid);
+
+		return (
+			<Card className="overflow-hidden hover:shadow-lg transition-shadow">
+				<VideoPlayer
+					thumbnailUrl={thumbnailUrl}
+					videoUrl={videoUrl}
+					title={video.title}
+					description={video.description || undefined}
+					className="rounded-none"
+				/>
+				<CardContent className="pt-3 pb-2">
+					{video.tags && (
+						<div className="flex flex-wrap gap-1 mb-2">
+							{video.tags
+								.split(",")
+								.slice(0, 3)
+								.map((tag) => (
+									<Badge
+										key={tag.trim()}
+										variant="secondary"
+										className="text-xs"
+									>
+										{tag.trim()}
+									</Badge>
+								))}
+						</div>
+					)}
+					<div className="flex items-center justify-between text-xs text-muted-foreground">
+						<span>{new Date(video.createdAt).toLocaleDateString()}</span>
+						{video.fileSize && <span>{formatBytes(video.fileSize)}</span>}
+					</div>
+				</CardContent>
+				<CardFooter className="pt-2 pb-3 border-t">
+					<div className="flex items-center justify-between w-full">
+						<div className="flex items-center gap-2">
+							{getStatusIcon()}
+							<span className="text-sm">{getStatusText()}</span>
+							{video.duration && (
+								<span className="text-xs text-muted-foreground">
+									• {formatDuration(video.duration)}
+								</span>
+							)}
+						</div>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" className="h-8 w-8">
+									<MoreVertical className="h-4 w-4" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem className="text-red-600" onClick={onDelete}>
+									<Trash2 className="h-4 w-4 mr-2" />
+									Delete
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</CardFooter>
+			</Card>
+		);
+	}
+
+	// For processing/failed videos, show the original card
 	return (
 		<Card className="overflow-hidden hover:shadow-lg transition-shadow">
 			<div className="relative aspect-video bg-muted">
@@ -125,8 +200,8 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
 						{video.tags
 							.split(",")
 							.slice(0, 3)
-							.map((tag, index) => (
-								<Badge key={index} variant="secondary" className="text-xs">
+							.map((tag) => (
+								<Badge key={tag.trim()} variant="secondary" className="text-xs">
 									{tag.trim()}
 								</Badge>
 							))}

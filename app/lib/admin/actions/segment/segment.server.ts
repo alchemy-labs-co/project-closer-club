@@ -543,11 +543,11 @@ export async function handleConfirmUploads(
 		// Use existing video ID if provided (library video), otherwise create new video record
 		let finalVideoId: string;
 		let finalVideoUrl: string;
-		
+
 		if (videoId) {
 			// Using existing video from library
 			finalVideoId = videoId;
-			
+
 			// Fetch the video's libraryId to construct proper URL
 			const [existingVideo] = await db
 				.select({
@@ -556,14 +556,14 @@ export async function handleConfirmUploads(
 				.from(videosTable)
 				.where(eq(videosTable.id, videoId))
 				.limit(1);
-			
+
 			if (!existingVideo) {
 				return data(
 					{ success: false, message: "Selected video not found" },
 					{ status: 404 },
 				);
 			}
-			
+
 			// Store the complete path with libraryId for proper display
 			finalVideoUrl = `${existingVideo.libraryId}/${videoGuid}`;
 		} else {
@@ -588,7 +588,7 @@ export async function handleConfirmUploads(
 					{ status: 500 },
 				);
 			}
-			
+
 			finalVideoId = insertedVideo.id;
 			// For new uploads, also store the complete path
 			finalVideoUrl = `${dashboardConfig.libraryId}/${videoGuid}`;

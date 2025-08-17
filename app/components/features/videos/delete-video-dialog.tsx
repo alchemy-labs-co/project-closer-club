@@ -69,9 +69,11 @@ export function DeleteVideoDialog({
 			const computedStyle = getComputedStyle(document.body);
 			originalStyles = {
 				overflow: document.body.style.overflow || computedStyle.overflow,
-				pointerEvents: document.body.style.pointerEvents || computedStyle.pointerEvents,
+				pointerEvents:
+					document.body.style.pointerEvents || computedStyle.pointerEvents,
 				userSelect: document.body.style.userSelect || computedStyle.userSelect,
-				paddingRight: document.body.style.paddingRight || computedStyle.paddingRight,
+				paddingRight:
+					document.body.style.paddingRight || computedStyle.paddingRight,
 			};
 		} else {
 			// Comprehensive cleanup when dialog closes
@@ -81,12 +83,12 @@ export function DeleteVideoDialog({
 				document.body.style.pointerEvents = "";
 				document.body.style.userSelect = "";
 				document.body.style.paddingRight = "";
-				
+
 				// Remove all Radix-specific attributes
 				document.body.removeAttribute("data-scroll-locked");
 				document.body.removeAttribute("data-radix-scroll-area-viewport");
 				document.body.removeAttribute("style");
-				
+
 				// Force a reflow to ensure styles are applied
 				document.body.offsetHeight;
 			}, 50);
