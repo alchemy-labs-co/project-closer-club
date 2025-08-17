@@ -24,6 +24,7 @@ const VideoPlayer = React.forwardRef<HTMLDivElement, VideoPlayerProps>(
 		ref,
 	) => {
 		const [isModalOpen, setIsModalOpen] = React.useState(false);
+		const [imageError, setImageError] = React.useState(false);
 
 		React.useEffect(() => {
 			const handleEsc = (event: KeyboardEvent) => {
@@ -57,21 +58,26 @@ const VideoPlayer = React.forwardRef<HTMLDivElement, VideoPlayerProps>(
 					aria-label={`Play video: ${title}`}
 					{...props}
 				>
-					<img
-						src={thumbnailUrl}
-						alt={`Thumbnail for ${title}`}
-						className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-					/>
+					{!imageError ? (
+						<img
+							src={thumbnailUrl}
+							alt={`Thumbnail for ${title}`}
+							className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+							onError={() => setImageError(true)}
+						/>
+					) : (
+						<div className="h-full w-full bg-gradient-to-br from-gray-700 to-gray-900" />
+					)}
 					<div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 					<div className="absolute inset-0 flex items-center justify-center">
 						<div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-white/30">
 							<Play className="h-8 w-8 fill-white text-white" />
 						</div>
 					</div>
-					<div className="absolute bottom-0 left-0 p-6">
-						<h3 className="text-2xl font-bold text-white">{title}</h3>
+					<div className="absolute bottom-0 left-0 right-0 p-6">
+						<h3 className="text-2xl font-bold text-white line-clamp-2">{title}</h3>
 						{description ? (
-							<p className="mt-1 text-sm text-white/80">{description}</p>
+							<p className="mt-1 text-sm text-white/80 line-clamp-2">{description}</p>
 						) : null}
 					</div>
 				</div>
