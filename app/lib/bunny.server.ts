@@ -13,12 +13,20 @@ const ACCESS_KEYS = {
 
 // Validate environment variables on module load
 if (!process.env.BUNNY_STREAM_ACCESS_KEY) {
-	console.warn("⚠️ BUNNY_STREAM_ACCESS_KEY is not set. Video operations will fail.");
-	console.warn("Get this from: Bunny.net Dashboard → Video Library → API section");
+	console.warn(
+		"⚠️ BUNNY_STREAM_ACCESS_KEY is not set. Video operations will fail.",
+	);
+	console.warn(
+		"Get this from: Bunny.net Dashboard → Video Library → API section",
+	);
 }
 if (!process.env.BUNNY_STORAGE_ACCESS_KEY) {
-	console.warn("⚠️ BUNNY_STORAGE_ACCESS_KEY is not set. Storage operations will fail.");
-	console.warn("Get this from: Bunny.net Dashboard → Storage Zone → FTP & API Access (use the password)");
+	console.warn(
+		"⚠️ BUNNY_STORAGE_ACCESS_KEY is not set. Storage operations will fail.",
+	);
+	console.warn(
+		"Get this from: Bunny.net Dashboard → Storage Zone → FTP & API Access (use the password)",
+	);
 }
 
 // API fetch helper with required Bunny CDN options
@@ -45,8 +53,13 @@ export const bunnyApiFetch = async <T = Record<string, unknown>>(
 		];
 
 	if (!key) {
-		const keyName = bunnyType === "stream" ? "BUNNY_STREAM_ACCESS_KEY" : "BUNNY_STORAGE_ACCESS_KEY";
-		throw new Error(`Missing environment variable: ${keyName}. Please check your .env file.`);
+		const keyName =
+			bunnyType === "stream"
+				? "BUNNY_STREAM_ACCESS_KEY"
+				: "BUNNY_STORAGE_ACCESS_KEY";
+		throw new Error(
+			`Missing environment variable: ${keyName}. Please check your .env file.`,
+		);
 	}
 
 	const requestHeaders = {
@@ -745,4 +758,14 @@ export const getVideoThumbnailUrl = (
 	}
 	// Default thumbnail
 	return `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}/thumbnail.jpg`;
+};
+
+// Generate embed URL for video playback
+export const getVideoEmbedUrl = (
+	libraryId: string,
+	videoGuid: string,
+	autoplay = true,
+): string => {
+	const baseUrl = `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}`;
+	return autoplay ? `${baseUrl}?autoplay=1` : baseUrl;
 };

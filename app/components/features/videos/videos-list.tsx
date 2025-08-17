@@ -42,7 +42,9 @@ import {
 	SelectValue,
 } from "~/components/ui/select";
 import { Badge } from "~/components/ui/badge";
+import { VideoPlayer } from "~/components/ui/video-thumbnail-player";
 import { cn, formatDuration, formatBytes } from "~/lib/utils";
+import { getVideoThumbnailUrl, getVideoEmbedUrl } from "~/lib/bunny.server";
 import { VideoCard } from "./video-card";
 import { DeleteVideoDialog } from "./delete-video-dialog";
 
@@ -281,24 +283,51 @@ export function VideosList() {
 							<CardHeader>
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-4">
-										<div className="relative w-32 h-20 bg-muted rounded overflow-hidden">
-											{video.thumbnailUrl ? (
-												<img
-													src={video.thumbnailUrl}
-													alt={video.title}
-													className="w-full h-full object-cover"
+										{/* Video player for ready videos, static thumbnail for others */}
+										{video.status === "ready" &&
+										video.videoGuid &&
+										video.libraryId ? (
+											<div className="w-32 h-20">
+												<VideoPlayer
+													thumbnailUrl={getVideoThumbnailUrl(
+														video.libraryId,
+														video.videoGuid,
+													)}
+													videoUrl={getVideoEmbedUrl(
+														video.libraryId,
+														video.videoGuid,
+													)}
+													title={video.title}
+													description={video.description || undefined}
+													aspectRatio="16/9"
+													className="rounded overflow-hidden"
 												/>
-											) : (
-												<div className="w-full h-full flex items-center justify-center">
-													<Play className="h-8 w-8 text-muted-foreground" />
-												</div>
-											)}
-											{video.duration && (
-												<div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded">
-													{formatDuration(video.duration)}
-												</div>
-											)}
-										</div>
+											</div>
+										) : (
+											<div className="relative w-32 h-20 bg-muted rounded overflow-hidden">
+												{video.thumbnailUrl ? (
+													<img
+														src={video.thumbnailUrl}
+														alt={video.title}
+														className="w-full h-full object-cover"
+													/>
+												) : (
+													<div className="w-full h-full flex items-center justify-center">
+														<Play className="h-8 w-8 text-muted-foreground" />
+													</div>
+												)}
+												{video.duration && (
+													<div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded">
+														{formatDuration(video.duration)}
+													</div>
+												)}
+												{video.status === "processing" && (
+													<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+														<Loader2 className="h-6 w-6 text-white animate-spin" />
+													</div>
+												)}
+											</div>
+										)}
 										<div>
 											<CardTitle className="text-base">{video.title}</CardTitle>
 											{video.description && (
@@ -313,6 +342,9 @@ export function VideosList() {
 												</span>
 												{video.fileSize && (
 													<span>{formatBytes(video.fileSize)}</span>
+												)}
+												{video.duration && (
+													<span>• {formatDuration(video.duration)}</span>
 												)}
 											</div>
 										</div>

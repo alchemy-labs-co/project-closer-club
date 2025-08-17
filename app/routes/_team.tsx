@@ -43,7 +43,7 @@ export function useTeamLeaderLayoutLoaderData() {
 function TeamDashboardContent({ isLoading }: { isLoading: boolean }) {
 	const { state } = useSidebar();
 	const isCollapsed = state === "collapsed";
-	
+
 	return (
 		<SidebarInset className="overflow-hidden">
 			<div className="flex flex-1 flex-col p-4 h-full">
@@ -51,7 +51,10 @@ function TeamDashboardContent({ isLoading }: { isLoading: boolean }) {
 				<div className="flex items-center gap-2 pb-4 border-b">
 					<SidebarTrigger className="-ml-1" />
 					{!isCollapsed && (
-						<Separator orientation="vertical" className="mr-2 h-2 transition-all" />
+						<Separator
+							orientation="vertical"
+							className="mr-2 h-2 transition-all"
+						/>
 					)}
 					<Breadcrumbs />
 				</div>

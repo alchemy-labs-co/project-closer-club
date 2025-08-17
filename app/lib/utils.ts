@@ -40,7 +40,7 @@ export function extractBunnyVideoId(url: string) {
 		// Already in correct format, return as-is
 		return url;
 	}
-	
+
 	// Legacy format: just a GUID, use config libraryId
 	const libraryId = dashboardConfig.libraryId ?? url.split("/").slice(-2)[0];
 	// video id
@@ -338,7 +338,7 @@ export const getVideoThumbnailUrl = (
 	// Format: https://vz-{pullZoneId}.b-cdn.net/{videoGuid}/{thumbnailFileName}
 	// The pullZoneId is typically libraryId-461 for Bunny video libraries
 	const CDN_BASE = `https://vz-${libraryId}-461.b-cdn.net`;
-	
+
 	if (thumbnailFileName) {
 		return `${CDN_BASE}/${videoGuid}/${thumbnailFileName}`;
 	}
