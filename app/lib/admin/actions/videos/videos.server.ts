@@ -8,6 +8,7 @@ import {
 	generateVideoUploadToken,
 	confirmVideoUpload,
 	deleteVideoFromBunnyStream,
+	getVideoThumbnailUrl,
 } from "~/lib/bunny.server";
 const BUNNY_LIBRARY_ID = process.env.BUNNY_LIBRARY_ID || "461493";
 import type {
@@ -45,6 +46,9 @@ export async function uploadVideoToLibrary(
 			BUNNY_LIBRARY_ID,
 		);
 
+		// Generate thumbnail URL
+		const thumbnailUrl = getVideoThumbnailUrl(BUNNY_LIBRARY_ID, videoGuid);
+
 		// Create video record in database
 		const [video] = await db
 			.insert(videosTable)
@@ -54,6 +58,7 @@ export async function uploadVideoToLibrary(
 				tags: tags || null,
 				videoGuid,
 				libraryId: BUNNY_LIBRARY_ID,
+				thumbnailUrl,
 				uploadedBy: admin.id,
 				status: "processing",
 				fileSize: videoFile.size,
@@ -267,6 +272,12 @@ export async function generateUploadToken(request: Request, title: string) {
 
 		const tokenData = await generateVideoUploadToken(title, BUNNY_LIBRARY_ID);
 
+		// Generate thumbnail URL
+		const thumbnailUrl = getVideoThumbnailUrl(
+			BUNNY_LIBRARY_ID,
+			tokenData.videoGuid,
+		);
+
 		// Create video record in database with pending status
 		const [video] = await db
 			.insert(videosTable)
@@ -276,6 +287,7 @@ export async function generateUploadToken(request: Request, title: string) {
 				tags: null,
 				videoGuid: tokenData.videoGuid,
 				libraryId: BUNNY_LIBRARY_ID,
+				thumbnailUrl,
 				uploadedBy: admin.id,
 				status: "processing",
 			})

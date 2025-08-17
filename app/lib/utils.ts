@@ -337,7 +337,7 @@ export const getVideoThumbnailUrl = (
 	// Use Bunny.net CDN pull zone URL for thumbnails
 	// Format: https://vz-{libraryId}-a.b-cdn.net/{videoGuid}/{thumbnailFile}
 	const pullZoneUrl = `https://vz-${libraryId}-a.b-cdn.net`;
-	
+
 	if (thumbnailFileName) {
 		return `${pullZoneUrl}/${videoGuid}/${thumbnailFileName}`;
 	}
