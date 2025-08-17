@@ -55,18 +55,57 @@ export function DeleteVideoDialog({
 		}
 	}, [fetcher.data, fetcher.state]);
 
-	// Cleanup body pointer-events when dialog closes
+	// Store original body styles and cleanup when dialog closes
 	useEffect(() => {
-		if (!open) {
-			// Ensure body pointer-events are reset when dialog closes
+		let originalStyles: {
+			overflow?: string;
+			pointerEvents?: string;
+			userSelect?: string;
+			paddingRight?: string;
+		} = {};
+
+		if (open) {
+			// Store original styles when dialog opens
+			const computedStyle = getComputedStyle(document.body);
+			originalStyles = {
+				overflow: document.body.style.overflow || computedStyle.overflow,
+				pointerEvents: document.body.style.pointerEvents || computedStyle.pointerEvents,
+				userSelect: document.body.style.userSelect || computedStyle.userSelect,
+				paddingRight: document.body.style.paddingRight || computedStyle.paddingRight,
+			};
+		} else {
+			// Comprehensive cleanup when dialog closes
 			const cleanup = setTimeout(() => {
+				// Reset all potentially modified body styles
+				document.body.style.overflow = "";
 				document.body.style.pointerEvents = "";
-				// Also remove any Radix-specific attributes
+				document.body.style.userSelect = "";
+				document.body.style.paddingRight = "";
+				
+				// Remove all Radix-specific attributes
 				document.body.removeAttribute("data-scroll-locked");
-			}, 100);
+				document.body.removeAttribute("data-radix-scroll-area-viewport");
+				document.body.removeAttribute("style");
+				
+				// Force a reflow to ensure styles are applied
+				document.body.offsetHeight;
+			}, 50);
 
 			return () => clearTimeout(cleanup);
 		}
+
+		// Cleanup function for component unmount
+		return () => {
+			if (open) {
+				// Emergency cleanup if component unmounts while open
+				document.body.style.overflow = "";
+				document.body.style.pointerEvents = "";
+				document.body.style.userSelect = "";
+				document.body.style.paddingRight = "";
+				document.body.removeAttribute("data-scroll-locked");
+				document.body.removeAttribute("data-radix-scroll-area-viewport");
+			}
+		};
 	}, [open]);
 
 	const handleDelete = () => {
