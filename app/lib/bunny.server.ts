@@ -759,13 +759,3 @@ export const getVideoThumbnailUrl = (
 	// Default thumbnail
 	return `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}/thumbnail.jpg`;
 };
-
-// Generate embed URL for video playback
-export const getVideoEmbedUrl = (
-	libraryId: string,
-	videoGuid: string,
-	autoplay = true,
-): string => {
-	const baseUrl = `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}`;
-	return autoplay ? `${baseUrl}?autoplay=1` : baseUrl;
-};

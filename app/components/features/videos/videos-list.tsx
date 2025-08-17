@@ -43,8 +43,13 @@ import {
 } from "~/components/ui/select";
 import { Badge } from "~/components/ui/badge";
 import { VideoPlayer } from "~/components/ui/video-thumbnail-player";
-import { cn, formatDuration, formatBytes } from "~/lib/utils";
-import { getVideoThumbnailUrl, getVideoEmbedUrl } from "~/lib/bunny.server";
+import {
+	cn,
+	formatDuration,
+	formatBytes,
+	getVideoThumbnailUrl,
+	getVideoEmbedUrl,
+} from "~/lib/utils";
 import { VideoCard } from "./video-card";
 import { DeleteVideoDialog } from "./delete-video-dialog";
 

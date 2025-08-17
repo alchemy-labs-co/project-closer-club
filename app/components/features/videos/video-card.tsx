@@ -24,8 +24,12 @@ import {
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { VideoPlayer } from "~/components/ui/video-thumbnail-player";
-import { getVideoEmbedUrl, getVideoThumbnailUrl } from "~/lib/bunny.server";
-import { formatBytes, formatDuration } from "~/lib/utils";
+import {
+	formatBytes,
+	formatDuration,
+	getVideoEmbedUrl,
+	getVideoThumbnailUrl,
+} from "~/lib/utils";
 
 interface VideoCardProps {
 	video: {
