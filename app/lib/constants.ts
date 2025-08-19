@@ -1,6 +1,10 @@
 import { ACCEPTED_FILE_TYPES } from "./zod-schemas/attachment";
 
-export const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB
+// Video upload size limit - configurable via environment variable
+// Default to 2GB if not set, can be overridden with MAX_VIDEO_SIZE_MB env var
+export const MAX_VIDEO_SIZE = process.env.MAX_VIDEO_SIZE_MB 
+	? parseInt(process.env.MAX_VIDEO_SIZE_MB) * 1024 * 1024
+	: 2 * 1024 * 1024 * 1024; // Default 2GB
 export const MAX_THUMBNAIL_SIZE = 10 * 1024 * 1024; // 10MB
 export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB
 

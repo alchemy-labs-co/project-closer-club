@@ -98,6 +98,9 @@ Required environment variables:
 - `BUNNY_STORAGE_ACCESS_KEY` - Bunny.net Storage Zone password (Storage Zone → FTP & API Access)
 - `REDIS_URL` - Redis connection for caching
 
+Optional environment variables:
+- `MAX_VIDEO_SIZE_MB` - Maximum video upload size in MB (default: 2048 MB = 2GB). Set to adjust upload limits without code changes.
+
 ### Bunny.net Configuration
 
 To set up Bunny.net for video and file storage:
@@ -146,3 +149,25 @@ Currently no test suite configured. When implementing tests:
 - CDN for video/file delivery (Bunny.net)
 - Redis caching for frequently accessed data
 - Database indexes on foreign keys and frequently queried fields
+
+## Video Upload System
+
+### Upload Methods
+The system automatically selects the optimal upload method based on file size:
+- **Direct upload** (< 100MB): Simple XMLHttpRequest for smaller files
+- **Chunked upload** (100MB - 500MB): Custom chunked implementation with resume capability
+- **TUS resumable upload** (> 500MB): Industry-standard resumable upload protocol
+
+### Features
+- **Configurable size limits**: Set via `MAX_VIDEO_SIZE_MB` environment variable
+- **Progress tracking**: Real-time progress with speed and time estimates
+- **Pause/Resume**: Users can pause and resume large uploads
+- **Automatic retry**: Failed chunks are automatically retried with exponential backoff
+- **Session persistence**: Upload sessions survive browser refreshes
+- **Memory optimization**: Large files are processed in chunks to prevent browser memory issues
+
+### File Size Recommendations
+- **Default limit**: 2GB (configurable via environment variable)
+- **Optimal range**: 100MB - 1GB for best balance of quality and upload time
+- **Bunny.net limit**: Supports up to 30GB per file
+- **Performance tip**: Encourage H.264/H.265 compression for optimal delivery
