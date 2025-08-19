@@ -5,7 +5,12 @@ import { data } from "react-router";
 import db from "~/db/index.server";
 import { account, session, user, verification } from "~/db/schema";
 
+if (!process.env.BETTER_AUTH_SECRET) {
+	throw new Error("BETTER_AUTH_SECRET environment variable is required");
+}
+
 export const auth = betterAuth({
+	secret: process.env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema: {
