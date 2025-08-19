@@ -7,6 +7,9 @@ import {
 	FileVideo,
 	Film,
 	CheckCircle,
+	Pause,
+	Play,
+	Square,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
@@ -24,6 +27,8 @@ import {
 } from "~/hooks/use-file-upload";
 import { MAX_VIDEO_SIZE } from "~/lib/constants";
 import type { FetcherResponse } from "~/lib/types";
+import { ChunkedUploader, formatUploadSpeed, formatTimeRemaining } from "~/lib/upload/chunked-uploader.client";
+import { TusUploader, isTusSupported } from "~/lib/upload/tus-uploader.client";
 
 type UploadVideoFetcherResponse = FetcherResponse & {
 	videoId?: string;
@@ -34,6 +39,16 @@ type UploadVideoFetcherResponse = FetcherResponse & {
 
 type UploadProgress = {
 	[fileId: string]: number;
+};
+
+type UploadSpeed = {
+	[fileId: string]: number; // bytes per second
+};
+
+type UploadMethod = 'direct' | 'chunked' | 'tus';
+
+type ActiveUploader = {
+	[fileId: string]: ChunkedUploader | TusUploader | null;
 };
 
 interface VideoUploadSectionProps {
@@ -70,6 +85,8 @@ export function VideoUploadSection({
 	onCancel,
 }: VideoUploadSectionProps) {
 	const [uploadProgress, setUploadProgress] = useState<UploadProgress>({});
+	const [uploadSpeed, setUploadSpeed] = useState<UploadSpeed>({});
+	const [activeUploaders, setActiveUploaders] = useState<ActiveUploader>({});
 	const [videoMetadata, setVideoMetadata] = useState<{
 		[fileId: string]: {
 			title: string;
@@ -79,6 +96,7 @@ export function VideoUploadSection({
 	}>({});
 	const [tagInputs, setTagInputs] = useState<{ [fileId: string]: string }>({});
 	const [uploadedVideos, setUploadedVideos] = useState<Set<string>>(new Set());
+	const [pausedUploads, setPausedUploads] = useState<Set<string>>(new Set());
 
 	const fetcher = useFetcher<UploadVideoFetcherResponse>();
 
@@ -123,6 +141,28 @@ export function VideoUploadSection({
 			});
 		},
 	});
+
+	// Cleanup function to run on component unmount
+	useEffect(() => {
+		return () => {
+			// Cleanup old upload sessions on unmount
+			ChunkedUploader.cleanupOldSessions(24);
+		};
+	}, []);
+
+	// Determine optimal upload method based on file size
+	const getUploadMethod = (fileSize: number): UploadMethod => {
+		const CHUNK_THRESHOLD = 100 * 1024 * 1024; // 100MB
+		const TUS_THRESHOLD = 500 * 1024 * 1024; // 500MB
+
+		if (fileSize > TUS_THRESHOLD && isTusSupported()) {
+			return 'tus';
+		} else if (fileSize > CHUNK_THRESHOLD) {
+			return 'chunked';
+		} else {
+			return 'direct';
+		}
+	};
 
 	const handleMetadataChange = (
 		fileId: string,
@@ -192,80 +232,150 @@ export function VideoUploadSection({
 				throw new Error(tokenData.message || "Failed to get upload token");
 			}
 
-			// Step 2: Upload video directly to Bunny Stream with progress tracking
-			const xhr = new XMLHttpRequest();
+			// Step 2: Determine upload method and upload video
+			const uploadMethod = getUploadMethod(videoFile.size);
+			const fileSize = videoFile.size;
+			
+			// Show file size warning for large files
+			if (fileSize > 1024 * 1024 * 1024) { // > 1GB
+				toast.info(`Large file detected (${formatBytes(fileSize)}). Using ${uploadMethod} upload for optimal performance.`);
+			}
 
-			xhr.upload.addEventListener("progress", (event) => {
-				if (event.lengthComputable) {
-					const progress = Math.round((event.loaded / event.total) * 100);
-					setUploadProgress((prev) => ({
-						...prev,
-						[file.id]: progress,
-					}));
-				}
-			});
+			const confirmUpload = async () => {
+				// Step 3: Confirm upload and save metadata
+				const confirmFormData = new FormData();
+				confirmFormData.append("intent", "confirm-upload");
+				confirmFormData.append("videoId", tokenData.videoId);
+				confirmFormData.append("videoGuid", tokenData.videoGuid);
+				confirmFormData.append("title", metadata.title);
+				confirmFormData.append("description", metadata.description || "");
+				confirmFormData.append("tags", metadata.tags.join(",") || "");
+				confirmFormData.append("fileSize", videoFile.size.toString());
 
-			xhr.addEventListener("load", async () => {
-				if (xhr.status >= 200 && xhr.status < 300) {
-					// Step 3: Confirm upload and save metadata
-					const confirmFormData = new FormData();
-					confirmFormData.append("intent", "confirm-upload");
-					confirmFormData.append("videoId", tokenData.videoId);
-					confirmFormData.append("videoGuid", tokenData.videoGuid);
-					confirmFormData.append("title", metadata.title);
-					confirmFormData.append("description", metadata.description || "");
-					confirmFormData.append("tags", metadata.tags.join(",") || "");
-					confirmFormData.append("fileSize", videoFile.size.toString());
-
-					const confirmResponse = await fetch("/resource/videos", {
-						method: "POST",
-						body: confirmFormData,
-					});
-
-					const confirmData = await confirmResponse.json();
-
-					if (confirmData.success) {
-						toast.success(`${metadata.title} uploaded successfully!`);
-
-						// Optimistic UI update - immediately mark as uploaded
-						setUploadedVideos((prev) => new Set(prev).add(file.id));
-
-						// Remove file after a short delay for smooth transition
-						setTimeout(() => {
-							removeFile(file.id);
-							setUploadProgress((prev) => {
-								const newProgress = { ...prev };
-								delete newProgress[file.id];
-								return newProgress;
-							});
-
-							// Check if all files are uploaded
-							const remainingFiles = files.filter((f) => f.id !== file.id);
-							if (remainingFiles.length === 0 && onUploadComplete) {
-								onUploadComplete();
-							}
-						}, 300);
-					} else {
-						throw new Error(confirmData.message || "Failed to confirm upload");
-					}
-				} else {
-					throw new Error("Upload failed");
-				}
-			});
-
-			xhr.addEventListener("error", () => {
-				toast.error(`Failed to upload ${metadata.title}`);
-				setUploadProgress((prev) => {
-					const newProgress = { ...prev };
-					delete newProgress[file.id];
-					return newProgress;
+				const confirmResponse = await fetch("/resource/videos", {
+					method: "POST",
+					body: confirmFormData,
 				});
-			});
 
-			xhr.open("PUT", tokenData.uploadUrl);
-			xhr.setRequestHeader("AccessKey", tokenData.accessKey);
-			xhr.setRequestHeader("Content-Type", videoFile.type);
-			xhr.send(videoFile);
+				const confirmData = await confirmResponse.json();
+
+				if (confirmData.success) {
+					toast.success(`${metadata.title} uploaded successfully!`);
+
+					// Cleanup uploader
+					setActiveUploaders(prev => ({ ...prev, [file.id]: null }));
+					
+					// Optimistic UI update - immediately mark as uploaded
+					setUploadedVideos((prev) => new Set(prev).add(file.id));
+
+					// Remove file after a short delay for smooth transition
+					setTimeout(() => {
+						removeFile(file.id);
+						setUploadProgress((prev) => {
+							const newProgress = { ...prev };
+							delete newProgress[file.id];
+							return newProgress;
+						});
+						setUploadSpeed((prev) => {
+							const newSpeed = { ...prev };
+							delete newSpeed[file.id];
+							return newSpeed;
+						});
+
+						// Check if all files are uploaded
+						const remainingFiles = files.filter((f) => f.id !== file.id);
+						if (remainingFiles.length === 0 && onUploadComplete) {
+							onUploadComplete();
+						}
+					}, 300);
+				} else {
+					throw new Error(confirmData.message || "Failed to confirm upload");
+				}
+			};
+
+			if (uploadMethod === 'tus') {
+				// Use TUS for very large files
+				const tusUploader = new TusUploader({
+					file: videoFile,
+					uploadUrl: tokenData.tusUploadUrl,
+					accessKey: tokenData.accessKey,
+					metadata: {
+						title: metadata.title,
+						description: metadata.description || '',
+						tags: metadata.tags.join(',') || ''
+					},
+					onProgress: (bytesUploaded, bytesTotal) => {
+						const progress = Math.round((bytesUploaded / bytesTotal) * 100);
+						setUploadProgress((prev) => ({
+							...prev,
+							[file.id]: progress,
+						}));
+					},
+					onSuccess: confirmUpload,
+					onError: (error) => {
+						throw error;
+					}
+				});
+
+				setActiveUploaders(prev => ({ ...prev, [file.id]: tusUploader }));
+				await tusUploader.start();
+
+			} else if (uploadMethod === 'chunked') {
+				// Use chunked upload for large files
+				const chunkedUploader = new ChunkedUploader({
+					file: videoFile,
+					uploadUrl: tokenData.uploadUrl,
+					accessKey: tokenData.accessKey,
+					onProgress: (progress) => {
+						setUploadProgress((prev) => ({
+							...prev,
+							[file.id]: progress,
+						}));
+					},
+					onSpeedUpdate: (bytesPerSecond) => {
+						setUploadSpeed((prev) => ({
+							...prev,
+							[file.id]: bytesPerSecond,
+						}));
+					}
+				});
+
+				setActiveUploaders(prev => ({ ...prev, [file.id]: chunkedUploader }));
+				await chunkedUploader.upload();
+				await confirmUpload();
+
+			} else {
+				// Use direct upload for smaller files
+				const xhr = new XMLHttpRequest();
+
+				xhr.upload.addEventListener("progress", (event) => {
+					if (event.lengthComputable) {
+						const progress = Math.round((event.loaded / event.total) * 100);
+						setUploadProgress((prev) => ({
+							...prev,
+							[file.id]: progress,
+						}));
+					}
+				});
+
+				xhr.addEventListener("load", async () => {
+					if (xhr.status >= 200 && xhr.status < 300) {
+						await confirmUpload();
+					} else {
+						throw new Error(`Upload failed: HTTP ${xhr.status}`);
+					}
+				});
+
+				xhr.addEventListener("error", () => {
+					throw new Error("Network error during upload");
+				});
+
+				xhr.open("PUT", tokenData.uploadUrl);
+				xhr.setRequestHeader("AccessKey", tokenData.accessKey);
+				xhr.setRequestHeader("Content-Type", videoFile.type);
+				xhr.send(videoFile);
+			}
+
 		} catch (error) {
 			console.error("Upload error:", error);
 			toast.error(error instanceof Error ? error.message : "Upload failed");
@@ -274,6 +384,12 @@ export function VideoUploadSection({
 				delete newProgress[file.id];
 				return newProgress;
 			});
+			setUploadSpeed((prev) => {
+				const newSpeed = { ...prev };
+				delete newSpeed[file.id];
+				return newSpeed;
+			});
+			setActiveUploaders(prev => ({ ...prev, [file.id]: null }));
 		}
 	};
 
@@ -285,17 +401,67 @@ export function VideoUploadSection({
 		});
 	};
 
+	// Pause/Resume functions
+	const pauseUpload = (fileId: string) => {
+		const uploader = activeUploaders[fileId];
+		if (uploader) {
+			if ('pause' in uploader) {
+				uploader.pause();
+				setPausedUploads(prev => new Set(prev).add(fileId));
+			}
+		}
+	};
+
+	const resumeUpload = (fileId: string) => {
+		const uploader = activeUploaders[fileId];
+		if (uploader) {
+			if ('resume' in uploader) {
+				uploader.resume();
+				setPausedUploads(prev => {
+					const newSet = new Set(prev);
+					newSet.delete(fileId);
+					return newSet;
+				});
+			}
+		}
+	};
+
+	const cancelUpload = (fileId: string) => {
+		const uploader = activeUploaders[fileId];
+		if (uploader) {
+			if ('abort' in uploader) {
+				uploader.abort();
+			}
+		}
+		// Clean up all related state
+		setActiveUploaders(prev => ({ ...prev, [fileId]: null }));
+		setUploadProgress((prev) => {
+			const newProgress = { ...prev };
+			delete newProgress[fileId];
+			return newProgress;
+		});
+		setUploadSpeed((prev) => {
+			const newSpeed = { ...prev };
+			delete newSpeed[fileId];
+			return newSpeed;
+		});
+		setPausedUploads(prev => {
+			const newSet = new Set(prev);
+			newSet.delete(fileId);
+			return newSet;
+		});
+	};
+
 	const handleRemoveFile = (fileId: string) => {
+		// Cancel any active upload
+		cancelUpload(fileId);
+		
+		// Remove file from the list
 		removeFile(fileId);
 		setVideoMetadata((prev) => {
 			const newMetadata = { ...prev };
 			delete newMetadata[fileId];
 			return newMetadata;
-		});
-		setUploadProgress((prev) => {
-			const newProgress = { ...prev };
-			delete newProgress[fileId];
-			return newProgress;
 		});
 		setUploadedVideos((prev) => {
 			const newSet = new Set(prev);
@@ -305,11 +471,21 @@ export function VideoUploadSection({
 	};
 
 	const handleClearAll = () => {
+		// Cancel all active uploads
+		Object.keys(activeUploaders).forEach(fileId => {
+			if (activeUploaders[fileId]) {
+				cancelUpload(fileId);
+			}
+		});
+		
 		clearFiles();
 		setVideoMetadata({});
 		setUploadProgress({});
+		setUploadSpeed({});
+		setActiveUploaders({});
 		setTagInputs({});
 		setUploadedVideos(new Set());
+		setPausedUploads(new Set());
 	};
 
 	return (
@@ -545,12 +721,67 @@ export function VideoUploadSection({
 
 									{/* Upload progress */}
 									{isUploading && (
-										<div className="space-y-1">
-											<div className="flex justify-between text-xs">
-												<span>Uploading...</span>
+										<div className="space-y-2">
+											<div className="flex justify-between items-center text-xs">
+												<span className="flex items-center gap-2">
+													{pausedUploads.has(file.id) ? "Paused" : "Uploading..."}
+													{/* Upload method indicator */}
+													{file.file instanceof File && (
+														<span className="text-muted-foreground">
+															({getUploadMethod(file.file.size)})
+														</span>
+													)}
+												</span>
 												<span>{progress}%</span>
 											</div>
-											<Progress value={progress} className="h-1.5" />
+											<Progress value={progress} className="h-2" />
+											
+											{/* Speed and time remaining */}
+											{uploadSpeed[file.id] && !pausedUploads.has(file.id) && (
+												<div className="flex justify-between text-xs text-muted-foreground">
+													<span>{formatUploadSpeed(uploadSpeed[file.id])}</span>
+													<span>
+														{formatTimeRemaining(
+															file.file instanceof File ? file.file.size - (file.file.size * progress / 100) : 0,
+															uploadSpeed[file.id]
+														)}
+													</span>
+												</div>
+											)}
+											
+											{/* Pause/Resume/Cancel buttons */}
+											<div className="flex gap-2">
+												{!pausedUploads.has(file.id) ? (
+													<Button
+														size="sm"
+														variant="outline"
+														onClick={() => pauseUpload(file.id)}
+														className="flex-1"
+													>
+														<Pause className="h-3 w-3 mr-1" />
+														Pause
+													</Button>
+												) : (
+													<Button
+														size="sm"
+														variant="outline"
+														onClick={() => resumeUpload(file.id)}
+														className="flex-1"
+													>
+														<Play className="h-3 w-3 mr-1" />
+														Resume
+													</Button>
+												)}
+												<Button
+													size="sm"
+													variant="destructive"
+													onClick={() => cancelUpload(file.id)}
+													className="flex-1"
+												>
+													<Square className="h-3 w-3 mr-1" />
+													Cancel
+												</Button>
+											</div>
 										</div>
 									)}
 
