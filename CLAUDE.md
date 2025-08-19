@@ -155,16 +155,15 @@ Currently no test suite configured. When implementing tests:
 ### Upload Methods
 The system automatically selects the optimal upload method based on file size:
 - **Direct upload** (< 100MB): Simple XMLHttpRequest for smaller files
-- **Chunked upload** (100MB - 500MB): Custom chunked implementation with resume capability
-- **TUS resumable upload** (> 500MB): Industry-standard resumable upload protocol
+- **Streaming upload** (≥ 100MB): Enhanced PUT upload with progress tracking and memory management
 
 ### Features
 - **Configurable size limits**: Set via `MAX_VIDEO_SIZE_MB` environment variable
 - **Progress tracking**: Real-time progress with speed and time estimates
-- **Pause/Resume**: Users can pause and resume large uploads
-- **Automatic retry**: Failed chunks are automatically retried with exponential backoff
+- **Pause/Resume**: Users can pause uploads (restart required due to Bunny.net limitations)
 - **Session persistence**: Upload sessions survive browser refreshes
-- **Memory optimization**: Large files are processed in chunks to prevent browser memory issues
+- **Memory optimization**: Large files use streaming upload to prevent browser memory issues
+- **Compatible with Bunny.net**: Uses PUT uploads as required by Bunny.net Stream API
 
 ### File Size Recommendations
 - **Default limit**: 2GB (configurable via environment variable)
