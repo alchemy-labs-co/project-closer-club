@@ -494,10 +494,12 @@ export const generateVideoUploadToken = async (
 
 		// Step 2: Return upload URL for direct/chunked uploads
 		const uploadUrl = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoResponse.guid}`;
+		const tusUploadUrl = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoResponse.guid}/tus`;
 
 		return {
 			videoGuid: videoResponse.guid,
 			uploadUrl,
+			tusUploadUrl,
 			accessKey: ACCESS_KEYS.streamAccessKey,
 			videoResponse,
 		};

@@ -156,6 +156,8 @@ Currently no test suite configured. When implementing tests:
 The system automatically selects the optimal upload method based on file size:
 - **Direct upload** (< 100MB): Simple XMLHttpRequest for smaller files
 - **Streaming upload** (≥ 100MB): Enhanced PUT upload with progress tracking and memory management
+- **Chunked upload** (100MB - 500MB): Custom chunked implementation with resume capability
+- **TUS resumable upload** (> 500MB): Industry-standard resumable upload protocol
 
 ### Features
 - **Configurable size limits**: Set via `MAX_VIDEO_SIZE_MB` environment variable
