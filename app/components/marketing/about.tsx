@@ -53,32 +53,14 @@ export function AboutSection() {
 						</div>
 					</div>
 
-					{/* Image Placeholder */}
+					{/* Closer Club Emblem */}
 					<div className="relative">
-						<div className="aspect-[4/5] rounded-2xl bg-gray-200 flex items-center justify-center">
-							<div className="text-center">
-								<div className="w-16 h-16 mx-auto mb-4 bg-gray-300 rounded-full flex items-center justify-center">
-									<svg
-										className="w-8 h-8 text-gray-500"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-										aria-labelledby="image-icon-title"
-									>
-										<title id="image-icon-title">Image placeholder icon</title>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"
-										/>
-									</svg>
-								</div>
-								<p className="text-gray-500 text-sm">Team Photo Placeholder</p>
-								<p className="text-gray-400 text-xs mt-1">
-									1200 x 1500 recommended
-								</p>
-							</div>
+						<div className="aspect-[4/5] rounded-2xl flex items-center justify-center p-12" style={{ backgroundColor: '#EDE9E5' }}>
+							<img
+								src="/logos/closer-club-emblem.png"
+								alt="Closer Club Emblem"
+								className="w-full h-full object-contain"
+							/>
 						</div>
 						{/* Optional decorative elements */}
 						<div className="absolute -top-4 -right-4 w-24 h-24 bg-blue-100 rounded-full opacity-20" />
