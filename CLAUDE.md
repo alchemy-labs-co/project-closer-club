@@ -92,7 +92,7 @@ bun run seed             # Seed database (seed.server.ts)
 
 Required environment variables:
 - `DATABASE_URL` - PostgreSQL connection string
-- `AUTH_SECRET` - Better Auth secret key
+- `BETTER_AUTH_SECRET` - Better Auth secret key (minimum 32 characters, use `openssl rand -base64 32` to generate)
 - `BUNNY_LIBRARY_ID` - Bunny.net Video Library ID (found in Video Library settings)
 - `BUNNY_STREAM_ACCESS_KEY` - Bunny.net Stream API key (Video Library → API section)
 - `BUNNY_STORAGE_ACCESS_KEY` - Bunny.net Storage Zone password (Storage Zone → FTP & API Access)
