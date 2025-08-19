@@ -27,8 +27,7 @@ import {
 } from "~/hooks/use-file-upload";
 import { MAX_VIDEO_SIZE } from "~/lib/constants";
 import type { FetcherResponse } from "~/lib/types";
-import { ChunkedUploader, formatUploadSpeed, formatTimeRemaining } from "~/lib/upload/chunked-uploader.client";
-import { TusUploader, isTusSupported } from "~/lib/upload/tus-uploader.client";
+import { StreamingUploader, formatUploadSpeed, formatTimeRemaining } from "~/lib/upload/streaming-uploader.client";
 
 type UploadVideoFetcherResponse = FetcherResponse & {
 	videoId?: string;
@@ -45,10 +44,10 @@ type UploadSpeed = {
 	[fileId: string]: number; // bytes per second
 };
 
-type UploadMethod = 'direct' | 'chunked' | 'tus';
+type UploadMethod = 'direct' | 'chunked';
 
 type ActiveUploader = {
-	[fileId: string]: ChunkedUploader | TusUploader | null;
+	[fileId: string]: StreamingUploader | null;
 };
 
 interface VideoUploadSectionProps {
@@ -146,21 +145,18 @@ export function VideoUploadSection({
 	useEffect(() => {
 		return () => {
 			// Cleanup old upload sessions on unmount
-			ChunkedUploader.cleanupOldSessions(24);
+			StreamingUploader.cleanupOldSessions(24);
 		};
 	}, []);
 
 	// Determine optimal upload method based on file size
 	const getUploadMethod = (fileSize: number): UploadMethod => {
 		const CHUNK_THRESHOLD = 100 * 1024 * 1024; // 100MB
-		const TUS_THRESHOLD = 500 * 1024 * 1024; // 500MB
 
-		if (fileSize > TUS_THRESHOLD && isTusSupported()) {
-			return 'tus';
-		} else if (fileSize > CHUNK_THRESHOLD) {
-			return 'chunked';
+		if (fileSize > CHUNK_THRESHOLD) {
+			return 'chunked'; // Use streaming upload for large files
 		} else {
-			return 'direct';
+			return 'direct'; // Use direct upload for smaller files
 		}
 	};
 
@@ -293,36 +289,9 @@ export function VideoUploadSection({
 				}
 			};
 
-			if (uploadMethod === 'tus') {
-				// Use TUS for very large files
-				const tusUploader = new TusUploader({
-					file: videoFile,
-					uploadUrl: tokenData.tusUploadUrl,
-					accessKey: tokenData.accessKey,
-					metadata: {
-						title: metadata.title,
-						description: metadata.description || '',
-						tags: metadata.tags.join(',') || ''
-					},
-					onProgress: (bytesUploaded, bytesTotal) => {
-						const progress = Math.round((bytesUploaded / bytesTotal) * 100);
-						setUploadProgress((prev) => ({
-							...prev,
-							[file.id]: progress,
-						}));
-					},
-					onSuccess: confirmUpload,
-					onError: (error) => {
-						throw error;
-					}
-				});
-
-				setActiveUploaders(prev => ({ ...prev, [file.id]: tusUploader }));
-				await tusUploader.start();
-
-			} else if (uploadMethod === 'chunked') {
-				// Use chunked upload for large files
-				const chunkedUploader = new ChunkedUploader({
+			if (uploadMethod === 'chunked') {
+				// Use streaming upload for large files
+				const streamingUploader = new StreamingUploader({
 					file: videoFile,
 					uploadUrl: tokenData.uploadUrl,
 					accessKey: tokenData.accessKey,
@@ -337,12 +306,15 @@ export function VideoUploadSection({
 							...prev,
 							[file.id]: bytesPerSecond,
 						}));
+					},
+					onSuccess: confirmUpload,
+					onError: (error) => {
+						throw error;
 					}
 				});
 
-				setActiveUploaders(prev => ({ ...prev, [file.id]: chunkedUploader }));
-				await chunkedUploader.upload();
-				await confirmUpload();
+				setActiveUploaders(prev => ({ ...prev, [file.id]: streamingUploader }));
+				await streamingUploader.upload();
 
 			} else {
 				// Use direct upload for smaller files

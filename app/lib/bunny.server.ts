@@ -492,7 +492,7 @@ export const generateVideoUploadToken = async (
 			thumbnailTime,
 		);
 
-		// Step 2: Return upload URLs for both direct and TUS uploads
+		// Step 2: Return upload URL for direct/chunked uploads
 		const uploadUrl = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoResponse.guid}`;
 		const tusUploadUrl = `${BUNNY.STREAM_BASE_URL}/${libraryId}/videos/${videoResponse.guid}/tus`;
 
@@ -510,13 +510,10 @@ export const generateVideoUploadToken = async (
 };
 
 // Determine the optimal upload method based on file size
-export const getOptimalUploadMethod = (fileSize: number): 'direct' | 'chunked' | 'tus' => {
+export const getOptimalUploadMethod = (fileSize: number): 'direct' | 'chunked' => {
 	const CHUNK_THRESHOLD = 100 * 1024 * 1024; // 100MB
-	const TUS_THRESHOLD = 500 * 1024 * 1024; // 500MB
 
-	if (fileSize > TUS_THRESHOLD) {
-		return 'tus'; // Use TUS for very large files (best resume capability)
-	} else if (fileSize > CHUNK_THRESHOLD) {
+	if (fileSize > CHUNK_THRESHOLD) {
 		return 'chunked'; // Use chunked upload for large files
 	} else {
 		return 'direct'; // Use direct upload for smaller files
