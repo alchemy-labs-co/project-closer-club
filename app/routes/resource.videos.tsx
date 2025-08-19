@@ -10,7 +10,10 @@ import {
 	deleteVideo,
 } from "~/lib/admin/actions/videos/videos.server";
 import { getAllVideos } from "~/lib/admin/data-access/videos.server";
+import { getVideoThumbnailUrl } from "~/lib/bunny.server";
 import type { Route } from "./+types/resource.videos";
+
+const BUNNY_LIBRARY_ID = process.env.BUNNY_LIBRARY_ID || "461493";
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const { isLoggedIn, admin } = await isAdminLoggedIn(request);
@@ -101,6 +104,21 @@ export async function action({ request }: Route.ActionArgs) {
 				);
 			}
 
+			// Generate thumbnail URL if not already set
+			const thumbnailUrl = getVideoThumbnailUrl(BUNNY_LIBRARY_ID, videoGuid);
+
+			// Try to fetch video details from Bunny to get duration
+			let duration: number | null = null;
+			try {
+				const { getVideoDetailsFromBunny } = await import("~/lib/bunny.server");
+				const bunnyVideo = await getVideoDetailsFromBunny(BUNNY_LIBRARY_ID, videoGuid);
+				if (bunnyVideo.length && bunnyVideo.length > 0) {
+					duration = bunnyVideo.length;
+				}
+			} catch (error) {
+				console.warn("Failed to fetch video duration from Bunny:", error);
+			}
+
 			// Update video metadata in database
 			const [updatedVideo] = await db
 				.update(videosTable)
@@ -109,6 +127,8 @@ export async function action({ request }: Route.ActionArgs) {
 					description: description || null,
 					tags: tags || null,
 					fileSize: fileSize ? Number(fileSize) : null,
+					thumbnailUrl,
+					duration,
 					status: "ready",
 					updatedAt: new Date(),
 				})

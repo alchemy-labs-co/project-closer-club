@@ -17,13 +17,21 @@ export function PrimaryLogo({
 		<img
 			src={"/logos/closer-club-logo.png"}
 			alt="Closer Club Logo"
-			className={cn("w-10 h-10 rounded-full object-contain flex-shrink-0", classNames?.img)}
+			className={cn(
+				"w-10 h-10 rounded-full object-contain flex-shrink-0",
+				classNames?.img,
+			)}
 		/>
 	);
 
 	if (asButton) {
 		return (
-			<div className={cn("flex items-center justify-center gap-2", classNames?.link)}>
+			<div
+				className={cn(
+					"flex items-center justify-center gap-2",
+					classNames?.link,
+				)}
+			>
 				{logoImage}
 				{children}
 			</div>

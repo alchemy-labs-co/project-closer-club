@@ -40,7 +40,7 @@ export function extractBunnyVideoId(url: string) {
 		// Already in correct format, return as-is
 		return url;
 	}
-	
+
 	// Legacy format: just a GUID, use config libraryId
 	const libraryId = dashboardConfig.libraryId ?? url.split("/").slice(-2)[0];
 	// video id
@@ -334,14 +334,24 @@ export const getVideoThumbnailUrl = (
 	videoGuid: string,
 	thumbnailFileName?: string,
 ): string => {
-	// Use the Bunny.net video CDN URL format for thumbnails
-	// Format: https://vz-{pullZoneId}.b-cdn.net/{videoGuid}/{thumbnailFileName}
-	// The pullZoneId is typically libraryId-461 for Bunny video libraries
-	const CDN_BASE = `https://vz-${libraryId}-461.b-cdn.net`;
-	
+	// Use Bunny.net CDN pull zone URL for thumbnails
+	// Format: https://vz-{libraryId}-a.b-cdn.net/{videoGuid}/{thumbnailFile}
+	const pullZoneUrl = `https://vz-${libraryId}-a.b-cdn.net`;
+
 	if (thumbnailFileName) {
-		return `${CDN_BASE}/${videoGuid}/${thumbnailFileName}`;
+		return `${pullZoneUrl}/${videoGuid}/${thumbnailFileName}`;
 	}
-	// Default thumbnail filename
-	return `${CDN_BASE}/${videoGuid}/thumbnail.jpg`;
+	// Default thumbnail - Bunny generates this automatically
+	return `${pullZoneUrl}/${videoGuid}/thumbnail.jpg`;
+};
+
+// Client-safe function to generate video embed URLs for playback
+export const getVideoEmbedUrl = (
+	libraryId: string,
+	videoGuid: string,
+	autoplay = true,
+): string => {
+	const embedUrl = "https://iframe.mediadelivery.net/embed";
+	const baseUrl = `${embedUrl}/${libraryId}/${videoGuid}`;
+	return autoplay ? `${baseUrl}?autoplay=1` : baseUrl;
 };

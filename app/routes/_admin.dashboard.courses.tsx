@@ -23,11 +23,13 @@ export function useCoursesLoaderData() {
 	return data;
 }
 export default function Page() {
+	const { courses } = useCoursesLoaderData();
+
 	return (
 		<div className="flex flex-col gap-8 md:gap-12 h-full overflow-y-auto py-4">
 			<div className="flex flex-row justify-between items-center w-full ">
 				<h1>Courses</h1>
-				<CreateCourse />
+				{courses.length > 0 && <CreateCourse />}
 			</div>
 			<CoursesList />
 		</div>

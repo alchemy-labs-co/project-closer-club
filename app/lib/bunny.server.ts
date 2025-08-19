@@ -13,12 +13,20 @@ const ACCESS_KEYS = {
 
 // Validate environment variables on module load
 if (!process.env.BUNNY_STREAM_ACCESS_KEY) {
-	console.warn("⚠️ BUNNY_STREAM_ACCESS_KEY is not set. Video operations will fail.");
-	console.warn("Get this from: Bunny.net Dashboard → Video Library → API section");
+	console.warn(
+		"⚠️ BUNNY_STREAM_ACCESS_KEY is not set. Video operations will fail.",
+	);
+	console.warn(
+		"Get this from: Bunny.net Dashboard → Video Library → API section",
+	);
 }
 if (!process.env.BUNNY_STORAGE_ACCESS_KEY) {
-	console.warn("⚠️ BUNNY_STORAGE_ACCESS_KEY is not set. Storage operations will fail.");
-	console.warn("Get this from: Bunny.net Dashboard → Storage Zone → FTP & API Access (use the password)");
+	console.warn(
+		"⚠️ BUNNY_STORAGE_ACCESS_KEY is not set. Storage operations will fail.",
+	);
+	console.warn(
+		"Get this from: Bunny.net Dashboard → Storage Zone → FTP & API Access (use the password)",
+	);
 }
 
 // API fetch helper with required Bunny CDN options
@@ -45,8 +53,13 @@ export const bunnyApiFetch = async <T = Record<string, unknown>>(
 		];
 
 	if (!key) {
-		const keyName = bunnyType === "stream" ? "BUNNY_STREAM_ACCESS_KEY" : "BUNNY_STORAGE_ACCESS_KEY";
-		throw new Error(`Missing environment variable: ${keyName}. Please check your .env file.`);
+		const keyName =
+			bunnyType === "stream"
+				? "BUNNY_STREAM_ACCESS_KEY"
+				: "BUNNY_STORAGE_ACCESS_KEY";
+		throw new Error(
+			`Missing environment variable: ${keyName}. Please check your .env file.`,
+		);
 	}
 
 	const requestHeaders = {
@@ -740,9 +753,13 @@ export const getVideoThumbnailUrl = (
 	videoGuid: string,
 	thumbnailFileName?: string,
 ): string => {
+	// Use Bunny.net CDN pull zone URL for thumbnails
+	// Format: https://vz-{libraryId}-a.b-cdn.net/{videoGuid}/{thumbnailFile}
+	const pullZoneUrl = `https://vz-${libraryId}-a.b-cdn.net`;
+
 	if (thumbnailFileName) {
-		return `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}/${thumbnailFileName}`;
+		return `${pullZoneUrl}/${videoGuid}/${thumbnailFileName}`;
 	}
-	// Default thumbnail
-	return `${BUNNY.EMBED_URL}/${libraryId}/${videoGuid}/thumbnail.jpg`;
+	// Default thumbnail - Bunny generates this automatically
+	return `${pullZoneUrl}/${videoGuid}/thumbnail.jpg`;
 };
