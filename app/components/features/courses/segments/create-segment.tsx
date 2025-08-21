@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { redirect, useFetcher, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
+import { ACCEPTED_FILE_TYPES as ACCEPTED_FILE_TYPES_ARRAY } from "~/lib/zod-schemas/attachment";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import { VideoLibrarySelector } from "~/components/features/videos/video-library-selector";
 import { Badge } from "~/components/ui/badge";
@@ -81,16 +82,28 @@ const extendedCreateSegmentSchema = createSegmentSchema
 
 type ExtendedCreateSegmentSchema = z.infer<typeof extendedCreateSegmentSchema>;
 
-const ACCEPTED_FILE_TYPES = {
-	"application/pdf": [".pdf"],
-	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
-		".docx",
-	],
-	"application/msword": [".doc"],
-	"image/png": [".png"],
-	"image/jpg": [".jpg"],
-	"image/jpeg": [".jpeg"],
-};
+// Convert ACCEPTED_FILE_TYPES from the schema to dropzone format
+const ACCEPTED_FILE_TYPES = ACCEPTED_FILE_TYPES_ARRAY.reduce(
+	(acc, type) => {
+		const extensions = {
+			"application/pdf": [".pdf"],
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+				[".docx"],
+			"application/msword": [".doc"],
+			"image/png": [".png"],
+			"image/jpg": [".jpg"],
+			"image/jpeg": [".jpeg"],
+			"text/plain": [".txt"],
+			"text/csv": [".csv"],
+			"text/markdown": [".md"],
+			"application/x-markdown": [".markdown"],
+		};
+		acc[type as keyof typeof extensions] =
+			extensions[type as keyof typeof extensions] || [];
+		return acc;
+	},
+	{} as Record<string, string[]>,
+);
 
 export function CreateSegment() {
 	const params = useParams();
@@ -230,7 +243,7 @@ export function CreateSegment() {
 						tokenFormData.append("attachmentNames", file.name);
 					}
 
-					const tokenResponse = await fetch("/resource/segment", {
+					const tokenResponse = await fetch("/resource/attachments", {
 						method: "POST",
 						body: tokenFormData,
 					});

@@ -55,7 +55,10 @@ export function AboutSection() {
 
 					{/* Closer Club Emblem */}
 					<div className="relative">
-						<div className="aspect-[4/5] rounded-2xl flex items-center justify-center p-12" style={{ backgroundColor: '#EDE9E5' }}>
+						<div
+							className="aspect-[4/5] rounded-2xl flex items-center justify-center p-12"
+							style={{ backgroundColor: "#EDE9E5" }}
+						>
 							<img
 								src="/logos/closer-club-emblem.png"
 								alt="Closer Club Emblem"

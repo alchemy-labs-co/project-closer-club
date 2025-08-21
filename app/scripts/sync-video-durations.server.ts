@@ -30,22 +30,22 @@ export async function syncVideoDurations() {
 
 					// Update video with duration and other metadata
 					const updates: any = {};
-					
+
 					// Duration is in seconds from Bunny.net
 					if (bunnyVideo.length && bunnyVideo.length > 0) {
 						updates.duration = bunnyVideo.length;
 					}
-					
+
 					// Update file size if available
 					if (bunnyVideo.storageSize && bunnyVideo.storageSize > 0) {
 						updates.fileSize = bunnyVideo.storageSize;
 					}
-					
+
 					// Update resolution if available
 					if (bunnyVideo.width && bunnyVideo.height) {
 						updates.resolution = `${bunnyVideo.width}x${bunnyVideo.height}`;
 					}
-					
+
 					// Update status based on Bunny's status
 					// Status codes: 0 = Queued, 1 = Processing, 2 = Encoding, 3 = Finished, 4 = Resolution Finished, 5 = Failed
 					if (bunnyVideo.status === 3 || bunnyVideo.status === 4) {
@@ -59,7 +59,7 @@ export async function syncVideoDurations() {
 					// Only update if we have changes
 					if (Object.keys(updates).length > 0) {
 						updates.updatedAt = new Date();
-						
+
 						await db
 							.update(videosTable)
 							.set(updates)
@@ -67,7 +67,7 @@ export async function syncVideoDurations() {
 
 						updatedCount++;
 						console.log(
-							`✅ Updated video: ${video.title} - Duration: ${updates.duration || 'N/A'}s, Size: ${updates.fileSize ? (updates.fileSize / (1024 * 1024)).toFixed(2) + 'MB' : 'N/A'}`,
+							`✅ Updated video: ${video.title} - Duration: ${updates.duration || "N/A"}s, Size: ${updates.fileSize ? (updates.fileSize / (1024 * 1024)).toFixed(2) + "MB" : "N/A"}`,
 						);
 					} else {
 						console.log(`⏭️ No updates needed for: ${video.title}`);
@@ -80,7 +80,9 @@ export async function syncVideoDurations() {
 					);
 				}
 			} else {
-				console.warn(`⚠️ Skipping video ${video.id} - missing videoGuid or libraryId`);
+				console.warn(
+					`⚠️ Skipping video ${video.id} - missing videoGuid or libraryId`,
+				);
 			}
 		}
 

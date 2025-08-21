@@ -22,7 +22,7 @@ export interface UploadSession {
 	completed: boolean;
 }
 
-const SESSION_STORAGE_KEY = 'video-upload-sessions';
+const SESSION_STORAGE_KEY = "video-upload-sessions";
 
 export class StreamingUploader {
 	private options: StreamingUploadOptions;
@@ -53,35 +53,41 @@ export class StreamingUploader {
 
 	private getStoredSession(): UploadSession | null {
 		try {
-			const sessions = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || '{}');
+			const sessions = JSON.parse(
+				localStorage.getItem(SESSION_STORAGE_KEY) || "{}",
+			);
 			const session = sessions[this.fileId];
-			
+
 			if (session && session.uploadUrl === this.options.uploadUrl) {
 				return session;
 			}
 		} catch (error) {
-			console.warn('Failed to load upload session:', error);
+			console.warn("Failed to load upload session:", error);
 		}
 		return null;
 	}
 
 	private saveSession(session: UploadSession): void {
 		try {
-			const sessions = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || '{}');
+			const sessions = JSON.parse(
+				localStorage.getItem(SESSION_STORAGE_KEY) || "{}",
+			);
 			sessions[this.fileId] = session;
 			localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessions));
 		} catch (error) {
-			console.warn('Failed to save upload session:', error);
+			console.warn("Failed to save upload session:", error);
 		}
 	}
 
 	private clearSession(): void {
 		try {
-			const sessions = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) || '{}');
+			const sessions = JSON.parse(
+				localStorage.getItem(SESSION_STORAGE_KEY) || "{}",
+			);
 			delete sessions[this.fileId];
 			localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessions));
 		} catch (error) {
-			console.warn('Failed to clear upload session:', error);
+			console.warn("Failed to clear upload session:", error);
 		}
 	}
 
@@ -91,7 +97,7 @@ export class StreamingUploader {
 			const timeDiff = now - this.lastProgressTime;
 			const bytesDiff = this.uploadedBytes - this.lastProgressBytes;
 			const bytesPerSecond = (bytesDiff * 1000) / timeDiff;
-			
+
 			this.options.onSpeedUpdate?.(bytesPerSecond);
 			this.lastProgressTime = now;
 			this.lastProgressBytes = this.uploadedBytes;
@@ -102,14 +108,16 @@ export class StreamingUploader {
 	}
 
 	private updateProgress(): void {
-		const progress = Math.round((this.uploadedBytes / this.options.file.size) * 100);
+		const progress = Math.round(
+			(this.uploadedBytes / this.options.file.size) * 100,
+		);
 		this.options.onProgress?.(progress);
 		this.updateSpeed();
 	}
 
 	async upload(): Promise<void> {
 		if (this.aborted) {
-			throw new Error('Upload was aborted');
+			throw new Error("Upload was aborted");
 		}
 
 		// Check if already completed
@@ -129,7 +137,7 @@ export class StreamingUploader {
 			uploadUrl: this.options.uploadUrl,
 			accessKey: this.options.accessKey,
 			createdAt: session?.createdAt || Date.now(),
-			completed: false
+			completed: false,
 		};
 
 		this.saveSession(currentSession);
@@ -139,7 +147,7 @@ export class StreamingUploader {
 				this.xhr = new XMLHttpRequest();
 
 				// Progress tracking
-				this.xhr.upload.addEventListener('progress', (event) => {
+				this.xhr.upload.addEventListener("progress", (event) => {
 					if (event.lengthComputable && !this.aborted && !this.paused) {
 						this.uploadedBytes = event.loaded;
 						this.updateProgress();
@@ -147,13 +155,13 @@ export class StreamingUploader {
 				});
 
 				// Success handler
-				this.xhr.addEventListener('load', () => {
+				this.xhr.addEventListener("load", () => {
 					if (this.xhr && this.xhr.status >= 200 && this.xhr.status < 300) {
 						// Mark as completed and clear session
 						currentSession.completed = true;
 						this.saveSession(currentSession);
 						this.clearSession();
-						
+
 						this.options.onSuccess?.();
 						resolve();
 					} else {
@@ -164,37 +172,37 @@ export class StreamingUploader {
 				});
 
 				// Error handlers
-				this.xhr.addEventListener('error', () => {
-					const error = new Error('Network error during upload');
+				this.xhr.addEventListener("error", () => {
+					const error = new Error("Network error during upload");
 					this.options.onError?.(error);
 					reject(error);
 				});
 
-				this.xhr.addEventListener('timeout', () => {
-					const error = new Error('Upload timeout');
+				this.xhr.addEventListener("timeout", () => {
+					const error = new Error("Upload timeout");
 					this.options.onError?.(error);
 					reject(error);
 				});
 
-				this.xhr.addEventListener('abort', () => {
+				this.xhr.addEventListener("abort", () => {
 					if (!this.aborted) {
-						const error = new Error('Upload was aborted');
+						const error = new Error("Upload was aborted");
 						this.options.onError?.(error);
 						reject(error);
 					}
 				});
 
 				// Configure and send request
-				this.xhr.open('PUT', this.options.uploadUrl);
-				this.xhr.setRequestHeader('AccessKey', this.options.accessKey);
-				this.xhr.setRequestHeader('Content-Type', this.options.file.type);
+				this.xhr.open("PUT", this.options.uploadUrl);
+				this.xhr.setRequestHeader("AccessKey", this.options.accessKey);
+				this.xhr.setRequestHeader("Content-Type", this.options.file.type);
 				this.xhr.timeout = 0; // No timeout for large files
-				
+
 				// Start upload
 				this.xhr.send(this.options.file);
-
 			} catch (error) {
-				const uploadError = error instanceof Error ? error : new Error('Upload failed');
+				const uploadError =
+					error instanceof Error ? error : new Error("Upload failed");
 				this.options.onError?.(uploadError);
 				reject(uploadError);
 			}
@@ -213,8 +221,8 @@ export class StreamingUploader {
 			this.paused = false;
 			// For Bunny.net, we need to restart the upload completely
 			// since it doesn't support true resumable uploads
-			this.upload().catch(error => {
-				console.error('Resume upload failed:', error);
+			this.upload().catch((error) => {
+				console.error("Resume upload failed:", error);
 				this.options.onError?.(error);
 			});
 		}
@@ -271,7 +279,7 @@ export class StreamingUploader {
 
 // Utility functions
 export const formatUploadSpeed = (bytesPerSecond: number): string => {
-	const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+	const units = ["B/s", "KB/s", "MB/s", "GB/s"];
 	let speed = bytesPerSecond;
 	let unitIndex = 0;
 
@@ -283,11 +291,14 @@ export const formatUploadSpeed = (bytesPerSecond: number): string => {
 	return `${speed.toFixed(1)} ${units[unitIndex]}`;
 };
 
-export const formatTimeRemaining = (bytesRemaining: number, bytesPerSecond: number): string => {
-	if (bytesPerSecond === 0) return 'Calculating...';
-	
+export const formatTimeRemaining = (
+	bytesRemaining: number,
+	bytesPerSecond: number,
+): string => {
+	if (bytesPerSecond === 0) return "Calculating...";
+
 	const secondsRemaining = bytesRemaining / bytesPerSecond;
-	
+
 	if (secondsRemaining < 60) {
 		return `${Math.round(secondsRemaining)}s remaining`;
 	}

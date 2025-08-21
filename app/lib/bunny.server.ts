@@ -510,13 +510,15 @@ export const generateVideoUploadToken = async (
 };
 
 // Determine the optimal upload method based on file size
-export const getOptimalUploadMethod = (fileSize: number): 'direct' | 'chunked' => {
+export const getOptimalUploadMethod = (
+	fileSize: number,
+): "direct" | "chunked" => {
 	const CHUNK_THRESHOLD = 100 * 1024 * 1024; // 100MB
 
 	if (fileSize > CHUNK_THRESHOLD) {
-		return 'chunked'; // Use chunked upload for large files
+		return "chunked"; // Use chunked upload for large files
 	} else {
-		return 'direct'; // Use direct upload for smaller files
+		return "direct"; // Use direct upload for smaller files
 	}
 };
 
