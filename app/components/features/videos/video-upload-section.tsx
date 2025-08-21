@@ -27,7 +27,11 @@ import {
 } from "~/hooks/use-file-upload";
 import { MAX_VIDEO_SIZE } from "~/lib/constants";
 import type { FetcherResponse } from "~/lib/types";
-import { StreamingUploader, formatUploadSpeed, formatTimeRemaining } from "~/lib/upload/streaming-uploader.client";
+import {
+	StreamingUploader,
+	formatUploadSpeed,
+	formatTimeRemaining,
+} from "~/lib/upload/streaming-uploader.client";
 
 type UploadVideoFetcherResponse = FetcherResponse & {
 	videoId?: string;
@@ -44,7 +48,7 @@ type UploadSpeed = {
 	[fileId: string]: number; // bytes per second
 };
 
-type UploadMethod = 'direct' | 'chunked';
+type UploadMethod = "direct" | "chunked";
 
 type ActiveUploader = {
 	[fileId: string]: StreamingUploader | null;
@@ -154,9 +158,9 @@ export function VideoUploadSection({
 		const CHUNK_THRESHOLD = 100 * 1024 * 1024; // 100MB
 
 		if (fileSize > CHUNK_THRESHOLD) {
-			return 'chunked'; // Use streaming upload for large files
+			return "chunked"; // Use streaming upload for large files
 		} else {
-			return 'direct'; // Use direct upload for smaller files
+			return "direct"; // Use direct upload for smaller files
 		}
 	};
 
@@ -231,10 +235,13 @@ export function VideoUploadSection({
 			// Step 2: Determine upload method and upload video
 			const uploadMethod = getUploadMethod(videoFile.size);
 			const fileSize = videoFile.size;
-			
+
 			// Show file size warning for large files
-			if (fileSize > 1024 * 1024 * 1024) { // > 1GB
-				toast.info(`Large file detected (${formatBytes(fileSize)}). Using ${uploadMethod} upload for optimal performance.`);
+			if (fileSize > 1024 * 1024 * 1024) {
+				// > 1GB
+				toast.info(
+					`Large file detected (${formatBytes(fileSize)}). Using ${uploadMethod} upload for optimal performance.`,
+				);
 			}
 
 			const confirmUpload = async () => {
@@ -259,8 +266,8 @@ export function VideoUploadSection({
 					toast.success(`${metadata.title} uploaded successfully!`);
 
 					// Cleanup uploader
-					setActiveUploaders(prev => ({ ...prev, [file.id]: null }));
-					
+					setActiveUploaders((prev) => ({ ...prev, [file.id]: null }));
+
 					// Optimistic UI update - immediately mark as uploaded
 					setUploadedVideos((prev) => new Set(prev).add(file.id));
 
@@ -289,7 +296,7 @@ export function VideoUploadSection({
 				}
 			};
 
-			if (uploadMethod === 'chunked') {
+			if (uploadMethod === "chunked") {
 				// Use streaming upload for large files
 				const streamingUploader = new StreamingUploader({
 					file: videoFile,
@@ -310,12 +317,14 @@ export function VideoUploadSection({
 					onSuccess: confirmUpload,
 					onError: (error) => {
 						throw error;
-					}
+					},
 				});
 
-				setActiveUploaders(prev => ({ ...prev, [file.id]: streamingUploader }));
+				setActiveUploaders((prev) => ({
+					...prev,
+					[file.id]: streamingUploader,
+				}));
 				await streamingUploader.upload();
-
 			} else {
 				// Use direct upload for smaller files
 				const xhr = new XMLHttpRequest();
@@ -347,7 +356,6 @@ export function VideoUploadSection({
 				xhr.setRequestHeader("Content-Type", videoFile.type);
 				xhr.send(videoFile);
 			}
-
 		} catch (error) {
 			console.error("Upload error:", error);
 			toast.error(error instanceof Error ? error.message : "Upload failed");
@@ -361,7 +369,7 @@ export function VideoUploadSection({
 				delete newSpeed[file.id];
 				return newSpeed;
 			});
-			setActiveUploaders(prev => ({ ...prev, [file.id]: null }));
+			setActiveUploaders((prev) => ({ ...prev, [file.id]: null }));
 		}
 	};
 
@@ -377,9 +385,9 @@ export function VideoUploadSection({
 	const pauseUpload = (fileId: string) => {
 		const uploader = activeUploaders[fileId];
 		if (uploader) {
-			if ('pause' in uploader) {
+			if ("pause" in uploader) {
 				uploader.pause();
-				setPausedUploads(prev => new Set(prev).add(fileId));
+				setPausedUploads((prev) => new Set(prev).add(fileId));
 			}
 		}
 	};
@@ -387,9 +395,9 @@ export function VideoUploadSection({
 	const resumeUpload = (fileId: string) => {
 		const uploader = activeUploaders[fileId];
 		if (uploader) {
-			if ('resume' in uploader) {
+			if ("resume" in uploader) {
 				uploader.resume();
-				setPausedUploads(prev => {
+				setPausedUploads((prev) => {
 					const newSet = new Set(prev);
 					newSet.delete(fileId);
 					return newSet;
@@ -401,12 +409,12 @@ export function VideoUploadSection({
 	const cancelUpload = (fileId: string) => {
 		const uploader = activeUploaders[fileId];
 		if (uploader) {
-			if ('abort' in uploader) {
+			if ("abort" in uploader) {
 				uploader.abort();
 			}
 		}
 		// Clean up all related state
-		setActiveUploaders(prev => ({ ...prev, [fileId]: null }));
+		setActiveUploaders((prev) => ({ ...prev, [fileId]: null }));
 		setUploadProgress((prev) => {
 			const newProgress = { ...prev };
 			delete newProgress[fileId];
@@ -417,7 +425,7 @@ export function VideoUploadSection({
 			delete newSpeed[fileId];
 			return newSpeed;
 		});
-		setPausedUploads(prev => {
+		setPausedUploads((prev) => {
 			const newSet = new Set(prev);
 			newSet.delete(fileId);
 			return newSet;
@@ -427,7 +435,7 @@ export function VideoUploadSection({
 	const handleRemoveFile = (fileId: string) => {
 		// Cancel any active upload
 		cancelUpload(fileId);
-		
+
 		// Remove file from the list
 		removeFile(fileId);
 		setVideoMetadata((prev) => {
@@ -444,12 +452,12 @@ export function VideoUploadSection({
 
 	const handleClearAll = () => {
 		// Cancel all active uploads
-		Object.keys(activeUploaders).forEach(fileId => {
+		Object.keys(activeUploaders).forEach((fileId) => {
 			if (activeUploaders[fileId]) {
 				cancelUpload(fileId);
 			}
 		});
-		
+
 		clearFiles();
 		setVideoMetadata({});
 		setUploadProgress({});
@@ -696,7 +704,9 @@ export function VideoUploadSection({
 										<div className="space-y-2">
 											<div className="flex justify-between items-center text-xs">
 												<span className="flex items-center gap-2">
-													{pausedUploads.has(file.id) ? "Paused" : "Uploading..."}
+													{pausedUploads.has(file.id)
+														? "Paused"
+														: "Uploading..."}
 													{/* Upload method indicator */}
 													{file.file instanceof File && (
 														<span className="text-muted-foreground">
@@ -707,20 +717,23 @@ export function VideoUploadSection({
 												<span>{progress}%</span>
 											</div>
 											<Progress value={progress} className="h-2" />
-											
+
 											{/* Speed and time remaining */}
 											{uploadSpeed[file.id] && !pausedUploads.has(file.id) && (
 												<div className="flex justify-between text-xs text-muted-foreground">
 													<span>{formatUploadSpeed(uploadSpeed[file.id])}</span>
 													<span>
 														{formatTimeRemaining(
-															file.file instanceof File ? file.file.size - (file.file.size * progress / 100) : 0,
-															uploadSpeed[file.id]
+															file.file instanceof File
+																? file.file.size -
+																		(file.file.size * progress) / 100
+																: 0,
+															uploadSpeed[file.id],
 														)}
 													</span>
 												</div>
 											)}
-											
+
 											{/* Pause/Resume/Cancel buttons */}
 											<div className="flex gap-2">
 												{!pausedUploads.has(file.id) ? (

@@ -75,9 +75,13 @@ const VideoPlayer = React.forwardRef<HTMLDivElement, VideoPlayerProps>(
 						</div>
 					</div>
 					<div className="absolute bottom-0 left-0 right-0 p-6">
-						<h3 className="text-2xl font-bold text-white line-clamp-2">{title}</h3>
+						<h3 className="text-2xl font-bold text-white line-clamp-2">
+							{title}
+						</h3>
 						{description ? (
-							<p className="mt-1 text-sm text-white/80 line-clamp-2">{description}</p>
+							<p className="mt-1 text-sm text-white/80 line-clamp-2">
+								{description}
+							</p>
 						) : null}
 					</div>
 				</div>

@@ -334,7 +334,9 @@ export function VideosList() {
 											</div>
 										)}
 										<div className="flex-1 min-w-0">
-											<CardTitle className="text-base line-clamp-1">{video.title}</CardTitle>
+											<CardTitle className="text-base line-clamp-1">
+												{video.title}
+											</CardTitle>
 											{video.description && (
 												<CardDescription className="mt-1 line-clamp-2">
 													{video.description}

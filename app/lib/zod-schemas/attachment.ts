@@ -9,6 +9,10 @@ const ACCEPTED_FILE_TYPES = [
 	"image/png",
 	"image/jpg",
 	"image/jpeg",
+	"text/plain",
+	"text/csv",
+	"text/markdown",
+	"application/x-markdown",
 ];
 
 // Schema for creating attachments
@@ -25,7 +29,7 @@ export const createAttachmentSchema = z.object({
 				)
 				.refine(
 					(file) => ACCEPTED_FILE_TYPES.includes(file.type),
-					"File type not supported. Allowed types: PDF, DOCX, DOC, PNG, JPG, JPEG",
+					"File type not supported. Allowed types: PDF, DOCX, DOC, PNG, JPG, JPEG, TXT, CSV, MD",
 				),
 		)
 		.min(1, { message: "At least one attachment is required" })

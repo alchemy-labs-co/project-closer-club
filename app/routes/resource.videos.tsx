@@ -111,7 +111,10 @@ export async function action({ request }: Route.ActionArgs) {
 			let duration: number | null = null;
 			try {
 				const { getVideoDetailsFromBunny } = await import("~/lib/bunny.server");
-				const bunnyVideo = await getVideoDetailsFromBunny(BUNNY_LIBRARY_ID, videoGuid);
+				const bunnyVideo = await getVideoDetailsFromBunny(
+					BUNNY_LIBRARY_ID,
+					videoGuid,
+				);
 				if (bunnyVideo.length && bunnyVideo.length > 0) {
 					duration = bunnyVideo.length;
 				}
