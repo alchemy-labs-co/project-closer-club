@@ -93,7 +93,7 @@ export default function CreateQuizPage({ loaderData }: Route.ComponentProps) {
 
 		return [
 			{
-				id: 1,
+				id: Date.now() + Math.random(),
 				title: "",
 				correctAnswerIndex: -1,
 				answers: ["", ""],
@@ -396,7 +396,7 @@ function AnswersList({
 			<div className="space-y-3">
 				{question.answers.map((answer, index) => (
 					<AnswerItem
-						key={answer}
+						key={`answer-${question.id}-${index}`}
 						answer={answer}
 						index={index}
 						question={question}
@@ -571,10 +571,12 @@ function AddQuestion({
 
 	const handleAddQuestion = () => {
 		if (allQuestionsComplete) {
+			// Generate a unique ID based on timestamp + random number to avoid collisions
+			const newId = Date.now() + Math.random();
 			setQuestions([
 				...questions,
 				{
-					id: questions.length + 1,
+					id: newId,
 					title: "",
 					correctAnswerIndex: -1,
 					answers: ["", ""],
