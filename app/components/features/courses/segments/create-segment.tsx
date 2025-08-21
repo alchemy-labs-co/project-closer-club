@@ -537,6 +537,7 @@ export function CreateSegment() {
 																	src={selectedVideo.thumbnailUrl}
 																	alt={selectedVideo.title}
 																	className="w-24 h-16 object-cover rounded"
+																	crossOrigin="anonymous"
 																/>
 															)}
 															<div className="flex-1">

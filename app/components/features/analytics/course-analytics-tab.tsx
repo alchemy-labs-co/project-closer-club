@@ -54,6 +54,7 @@ export default function CourseAnalyticsTab({
 							src={`https://${course.thumbnailUrl}`}
 							alt={course.name || "Course thumbnail"}
 							className="w-20 h-15 rounded-lg object-cover"
+							crossOrigin="anonymous"
 						/>
 					</div>
 				)}
