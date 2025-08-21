@@ -63,6 +63,7 @@ const VideoPlayer = React.forwardRef<HTMLDivElement, VideoPlayerProps>(
 							src={thumbnailUrl}
 							alt={`Thumbnail for ${title}`}
 							className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+							crossOrigin="anonymous"
 							onError={() => setImageError(true)}
 						/>
 					) : (

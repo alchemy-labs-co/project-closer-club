@@ -77,6 +77,7 @@ function CourseCard({ course }: { course: Course }) {
 						src={thumbnailUrl}
 						alt={`${name} thumbnail`}
 						className="w-full h-48 object-cover rounded-t-lg"
+						crossOrigin="anonymous"
 					/>
 				</div>
 			)}

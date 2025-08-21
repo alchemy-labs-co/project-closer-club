@@ -150,6 +150,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
 						src={video.thumbnailUrl}
 						alt={video.title}
 						className="w-full h-full object-cover"
+						crossOrigin="anonymous"
 					/>
 				) : (
 					<div className="w-full h-full flex items-center justify-center">

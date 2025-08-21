@@ -195,6 +195,7 @@ export default function AgentAnalyticsDisplay({
 											src={`https://${course.thumbnailUrl}`}
 											alt={course.name || "Course thumbnail"}
 											className="w-12 h-9 rounded object-cover"
+											crossOrigin="anonymous"
 										/>
 									)}
 									<div>

@@ -227,6 +227,7 @@ export function VideoLibrarySelector({
 										src={getThumbnailUrl(video)}
 										alt={video.title}
 										className="w-full h-full object-cover"
+										crossOrigin="anonymous"
 										loading="lazy"
 										onError={(e) => {
 											// Fallback to Play icon if thumbnail fails to load
