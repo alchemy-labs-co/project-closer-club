@@ -7,6 +7,7 @@ import {
 	handleUpdateStudent,
 	handleUpdateStudentPassword,
 } from "~/lib/admin/actions/student/student.server";
+import { handlePromoteAgentToTeamLeader } from "~/lib/admin/actions/student/promote-to-team-leader.server";
 import type { Route } from "./+types/resource.student";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ const intents = [
 	"deactivate-student",
 	"update-student",
 	"update-student-password",
+	"promote-to-team-leader",
 ];
 
 export async function loader() {
@@ -62,6 +64,7 @@ export async function action({ request }: ActionFunctionArgs) {
 			"deactivate-student": handleDeactivateStudent,
 			"update-student": handleUpdateStudent,
 			"update-student-password": handleUpdateStudentPassword,
+			"promote-to-team-leader": handlePromoteAgentToTeamLeader,
 		} as const;
 
 		const handler = handlers[intent as keyof typeof handlers];

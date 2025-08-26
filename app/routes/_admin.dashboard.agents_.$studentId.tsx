@@ -6,6 +6,7 @@ import {
 	Edit,
 	Mail,
 	Phone,
+	TrendingUp,
 	User,
 } from "lucide-react";
 import React, { Suspense } from "react";
@@ -21,6 +22,7 @@ import {
 import { z } from "zod";
 import { ActivateStudent } from "~/components/features/students/activate-student";
 import { DeactivateStudent } from "~/components/features/students/deactivate-student";
+import { PromoteToTeamLeader } from "~/components/features/students/promote-to-team-leader";
 import { StatusBadge } from "~/components/features/students/status-badge";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import { Button } from "~/components/ui/button";
@@ -73,7 +75,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		request,
 		studentId,
 	);
-	const { success, student } = await GetStudentById(
+	const { success, student, isPromoted } = await GetStudentById(
 		request,
 		studentId as string,
 	);
@@ -86,6 +88,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		{
 			success: true,
 			student,
+			isPromoted,
 			courses: publicCourses,
 			coursesStudentAssignedTo: coursesStudentAssignedTo,
 			teamLeaders: allTeamLeaders,
@@ -284,7 +287,7 @@ export default function StudentProfilePage() {
 }
 
 function StudentInfoMainCard() {
-	const { student } = useLoaderData<typeof loader>();
+	const { student, isPromoted } = useLoaderData<typeof loader>();
 	return (
 		<Card className="col-span-3 md:col-span-2">
 			<CardHeader>
@@ -354,6 +357,24 @@ function StudentInfoMainCard() {
 				</div>
 			</CardContent>
 			<CardFooter className="flex justify-end gap-2">
+				{student.isActivated && (
+					isPromoted ? (
+						<Button
+							variant="outline"
+							size="sm"
+							disabled
+							className="cursor-not-allowed opacity-60"
+						>
+							<TrendingUp className="h-4 w-4 mr-1" />
+							Promoted to Team Leader
+						</Button>
+					) : (
+						<PromoteToTeamLeader 
+							studentId={student.studentId}
+							studentName={student.name}
+						/>
+					)
+				)}
 				{student.isActivated ? (
 					<DeactivateStudent studentId={student.studentId} />
 				) : (
@@ -365,7 +386,7 @@ function StudentInfoMainCard() {
 }
 
 function StudentStatusCard() {
-	const { student } = useLoaderData<typeof loader>();
+	const { student, isPromoted } = useLoaderData<typeof loader>();
 	return (
 		<Card className="col-span-3 md:col-span-1">
 			<CardHeader>
@@ -378,6 +399,15 @@ function StudentStatusCard() {
 						<span className="text-sm font-medium">Account Status</span>
 						<StatusBadge status={student.isActivated} />
 					</div>
+					{isPromoted && (
+						<div className="flex items-center justify-between">
+							<span className="text-sm font-medium">Role Status</span>
+							<div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+								<TrendingUp className="h-3 w-3" />
+								Promoted
+							</div>
+						</div>
+					)}
 				</div>
 			</CardContent>
 		</Card>

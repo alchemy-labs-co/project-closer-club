@@ -57,6 +57,10 @@ export const assignStudentToCourseSchema = z.object({
 		.min(1, { message: "At least one student must be assigned to the course" }),
 });
 
+export const promoteAgentToTeamLeaderSchema = z.object({
+	studentId: z.string().min(1, { message: "Student ID is required" }),
+});
+
 // types
 export type CreateStudentSchema = z.infer<typeof createStudentSchema>;
 export type UpdateStudentSchema = z.infer<typeof updateStudentSchema>;
@@ -65,4 +69,7 @@ export type UpdateStudentPasswordSchema = z.infer<
 >;
 export type AssignedStudentToCourseSchemaType = z.infer<
 	typeof assignStudentToCourseSchema
+>;
+export type PromoteAgentToTeamLeaderSchema = z.infer<
+	typeof promoteAgentToTeamLeaderSchema
 >;
