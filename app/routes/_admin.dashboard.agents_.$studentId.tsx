@@ -21,6 +21,7 @@ import {
 import { z } from "zod";
 import { ActivateStudent } from "~/components/features/students/activate-student";
 import { DeactivateStudent } from "~/components/features/students/deactivate-student";
+import { PromoteToTeamLeader } from "~/components/features/students/promote-to-team-leader";
 import { StatusBadge } from "~/components/features/students/status-badge";
 import PrimaryButton from "~/components/global/brand/primary-button";
 import { Button } from "~/components/ui/button";
@@ -354,6 +355,12 @@ function StudentInfoMainCard() {
 				</div>
 			</CardContent>
 			<CardFooter className="flex justify-end gap-2">
+				{student.isActivated && (
+					<PromoteToTeamLeader 
+						studentId={student.studentId}
+						studentName={student.name}
+					/>
+				)}
 				{student.isActivated ? (
 					<DeactivateStudent studentId={student.studentId} />
 				) : (
